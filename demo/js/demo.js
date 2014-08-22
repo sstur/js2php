@@ -1,8 +1,4 @@
-var HELLO_COMPONENT = "var message = 'Hello World';\n\
-console.log(message);\n\
-console.log(Math.floor(Math.random() * 100));\n\
-console.log(message.charAt(0) + 'ello');\n\
-";
+var HELLO_COMPONENT = "var message = 'Hello World';\nconsole.log(message, Math.floor(Math.random() * 100));\nconsole.log(message.charAt(0) + 'ello');\nfunction f() {\n  console.log('hi from `f`');\n}\nf();\nfunction Thing(name) {\n  this.name = name;\n}\nThing.prototype.sayHello = function() {\n  console.log('hi from', this.name);\n};\nvar thing = new Thing('Bob');\nthing.sayHello();";
 
 React.renderComponent(
   ReactPlayground({
@@ -10,8 +6,7 @@ React.renderComponent(
     renderCode: true,
     transformer: function(code) {
       return window.Transformer({
-        source: code,
-        buildRuntime: false
+        source: code
       });
     }
   }),

@@ -2,6 +2,7 @@
 /*global process, require, module, global*/
 (function() {
   var fs = require('fs');
+  var path = require('path');
   var argv = require('minimist')(process.argv.slice(2));
   var transform = require('./transformer/transform.js');
 
@@ -23,7 +24,8 @@
   }
   var output = transform({
     source: source,
-    buildRuntime: argv.runtime
+    buildRuntime: argv.runtime,
+    outpath: outfile ? path.dirname(outfile) : null
   });
   if (outfile) {
     fs.writeFileSync(outfile, output, 'utf8');
