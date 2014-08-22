@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <title>Facebook ES6 Compiler Service</title>
+  <meta name="viewport" content="width=device-width">
+
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="stylesheet" href="css/syntax.css">
+  <link rel="stylesheet" href="css/codemirror.css">
+  <link rel="stylesheet" href="css/react.css">
+
+  <!-- CodeMirror Files -->
+  <script src="js/codemirror.js"></script>
+  <script src="js/javascript.js"></script>
+  <script src="js/php.js"></script>
+  <!-- This file is built with browserify -->
+  <script src="js/transformer.js"></script>
+  <script src="js/react.js"></script>
+  <script src="js/live_editor.js"></script>
+</head>
+<body>
+<div class="container">
+  <div class="es6Compiler">
+    <h1>JS to PHP</h1>
+    <p>
+      This tool transforms JS to PHP. Just for fun.
+    </p>
+    <div id="output-pane"></div>
+    <script src="js/demo.js"></script>
+  </div>
+  <footer class="wrap">
+    <div class="left">A Hackathon 44 creation.</div>
+    <div class="right">&copy; 2014 Facebook Inc.</div>
+  </footer>
+</div>
+</body>
+</html>
