@@ -1,4 +1,5 @@
 browserify transformer/transform.js --standalone Transformer -o demo/js/transformer.js
+rsync -av ../js2php dev:~/
 
 Divergence from JavaScript
   Cannot Implement:

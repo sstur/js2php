@@ -273,7 +273,7 @@
     source = source.slice(0, index);
     var output = [];
     source.replace(/require_once\('(.+?)'\)/g, function(_, file) {
-      var source = fs.readFileSync(path.join('.', file), 'utf8');
+      var source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
       source = source.replace('<?php\n', '');
       output.push.apply(output, source.split('\n'));
     });
