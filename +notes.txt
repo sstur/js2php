@@ -1,3 +1,5 @@
+browserify transformer/transform.js --standalone Transformer -o demo/js/transformer.js
+
 Divergence from JavaScript
   Cannot Implement:
     "0" -> truthy
