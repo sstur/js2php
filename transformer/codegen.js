@@ -46,6 +46,10 @@
     return results.join('') + '\n';
   }
 
+  function genConditionalExpression(node, opts) {
+    return generate(node.test, opts) + ' ? ' + generate(node.consequent, opts) + ' : ' + generate(node.alternate, opts);
+  }
+
   function genForStatement(node, opts) {
     var results = ['for ('];
     results.push(generate(node.init, opts) + '; ');
@@ -254,8 +258,10 @@
       case 'UpdateExpression':
         result = genUpdateExpression(node, opts);
         break;
-      case 'ArrayPattern':
       case 'ConditionalExpression':
+        result = genConditionalExpression(node, opts);
+        break;
+      case 'ArrayPattern':
       case 'LogicalExpression':
       case 'ObjectPattern':
       case 'Property':
