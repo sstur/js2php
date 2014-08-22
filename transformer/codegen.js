@@ -184,7 +184,6 @@
       case 'ForOfStatement':
       case 'FunctionDeclaration':
       case 'LabeledStatement':
-      case 'ReturnStatement':
       case 'SwitchStatement':
       case 'SwitchCase':
       case 'ThrowStatement':
@@ -198,6 +197,9 @@
         break;
       case 'ExpressionStatement':
         result = generate(node.expression, opts) + ';\n';
+        break;
+      case 'ReturnStatement':
+        result = 'return ' + generate(node.argument) + ';\n';
         break;
       case 'VariableDeclaration':
         result = genVariableDeclaration(node, opts);
