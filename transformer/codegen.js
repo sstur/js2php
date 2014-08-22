@@ -137,6 +137,17 @@
     return generate(node.left, opts) + ' ' + op + ' ' + generate(node.right, opts);
   }
 
+  function genUnaryExpression(node, opts) {
+    var op = node.operator;
+    if (op in OPERATOR_MAP) {
+      op = OPERATOR_MAP[op];
+    }
+    if (op.match(/^[a-z]+$/)) {
+      return 'js_' + op + '(' + generate(node.argument, opts) + ')';
+    }
+    return op + generate(node.argument, opts);
+  }
+
   function genSequenceExpression(node, opts) {
     var expressions = node.expressions.map(function(node) {
       return generate(node, opts);
@@ -229,6 +240,9 @@
       case 'ObjectExpression':
         result = genObjectExpression(node, opts);
         break;
+      case 'UnaryExpression':
+        result = genUnaryExpression(node, opts);
+        break;
       case 'BinaryExpression':
         result = genBinaryExpression(node, opts);
         break;
@@ -243,7 +257,6 @@
       case 'LogicalExpression':
       case 'ObjectPattern':
       case 'Property':
-      case 'UnaryExpression':
         result = 'unsupported("' + node.type + '")';
         break;
 
