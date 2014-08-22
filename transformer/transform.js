@@ -16,6 +16,8 @@
   module.exports = function(opts) {
     var source = opts.source || fs.readFileSync(opts.infile, 'utf8');
     source = mutateFirstPass(source);
+    //todo: fix a weird bug when the first character starts a var declaration
+    source = '\n' + source;
     source = mutateSecondPass(source);
     source = mutateThirdPass(source);
     var ast = rocambole.parse(source);
