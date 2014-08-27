@@ -312,7 +312,7 @@
 
   function encodeVarChar(ch) {
     var hex = ch.charCodeAt(0).toString(16);
-    hex = ('0' + hex).slice(-2);
+    hex = hex.length === 1 ? '0' + hex : hex;
     return '«' + hex + '»';
   }
 
