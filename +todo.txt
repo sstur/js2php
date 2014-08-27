@@ -1,3 +1,5 @@
+Fatal error: Class undefined: HH\string in /home/sstur/runtime.php on line 849
+
 JSON:
   $thing->callMethod('toJSON')
   $thing->callMethod('valueOf')

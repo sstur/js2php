@@ -37,20 +37,19 @@ var CodeMirrorEditor = React.createClass({displayName: 'CodeMirrorEditor',
 
   handleChange: function() {
     if (!this.props.readOnly) {
-      this.props.onChange && this.props.onChange(this.editor.getValue());
+      var source = this.editor.getValue();
+      this.props.onChange && this.props.onChange(source);
     }
   },
 
   render: function() {
     // wrap in a div to fully contain CodeMirror
     var editor;
-
     if (IS_MOBILE) {
       editor = React.DOM.pre( {style:{overflow: 'scroll'}}, this.props.codeText);
     } else {
       editor = React.DOM.textarea( {ref:"editor", defaultValue:this.props.codeText} );
     }
-
     return (
       React.DOM.div( {style:this.props.style, className:this.props.className}, 
         editor
@@ -72,15 +71,12 @@ var selfCleaningTimeout = {
 
 var ReactPlayground = React.createClass({displayName: 'ReactPlayground',
   mixins: [selfCleaningTimeout],
-
   MODES: {JS: 'JS', PHP: 'PHP'},
-
   propTypes: {
     codeText: React.PropTypes.string.isRequired,
     transformer: React.PropTypes.func.isRequired,
     renderCode: React.PropTypes.bool
   },
-
 
   getInitialState: function() {
     return {
@@ -105,9 +101,16 @@ var ReactPlayground = React.createClass({displayName: 'ReactPlayground',
   render: function() {
     var isPHP = this.state.mode === this.MODES.PHP;
     var compiledCode = '';
-    try {
+    if (window.noCatch) {
+      //allow error to be thrown for debugging
       compiledCode = this.compileCode();
-    } catch (err) {}
+    } else {
+      try {
+        compiledCode = this.compileCode();
+      } catch (e) {}
+    }
+    //for debugging
+    window.output = compiledCode;
 
     var PHPContent =
       CodeMirrorEditor(
@@ -129,15 +132,6 @@ var ReactPlayground = React.createClass({displayName: 'ReactPlayground',
 
     var JSTabClassName =
       'playground-tab' + (isPHP ? '' : ' playground-tab-active');
-    var PHPTabClassName =
-      'playground-tab' + (isPHP ? ' playground-tab-active' : '');
-
-    var PHPTab =
-      React.DOM.div(
-        {className:PHPTabClassName,
-        onClick:this.handleCodeModeSwitch.bind(this, this.MODES.PHP)},
-          "Compiled PHP"
-      );
 
     var JSTab =
       React.DOM.div(
@@ -149,7 +143,7 @@ var ReactPlayground = React.createClass({displayName: 'ReactPlayground',
     return (
       React.DOM.div( {className:"playground"}, 
         React.DOM.div(null, 
-          JSTab//, PHPTab
+          JSTab
         ),
         React.DOM.div( {className:"playgroundCode"}, 
           isPHP ? PHPContent : JSContent

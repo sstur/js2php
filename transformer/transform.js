@@ -25,7 +25,8 @@
     //fs.writeFileSync('./_output.js', js, 'utf8');
     var php = codegen.generate(ast);
     if (opts.outpath && opts.buildRuntime !== false) {
-      buildRuntime(opts);
+      var runtime = buildRuntime();
+      fs.writeFileSync(path.join(opts.outpath, 'runtime.php'), runtime, 'utf8');
     }
     return '<?php\n' + 'require_once("runtime.php");\n\n' + php;
   };
@@ -280,7 +281,7 @@
     var timezone = new Date().toString().slice(-4, -1);
     output.unshift('define("LOCAL_TZ", "' + timezone + '");');
     source = output.join('\n') + '\n';
-    fs.writeFileSync(path.join(opts.outpath, 'runtime.php'), '<?php\n' + source, 'utf8');
+    return '<?php\n' + source;
   }
 
 

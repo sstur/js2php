@@ -12,9 +12,15 @@
   <link rel="stylesheet" href="css/react.css">
 
   <!-- CodeMirror Files -->
-  <script src="js/codemirror.js"></script>
-  <script src="js/javascript.js"></script>
-  <script src="js/php.js"></script>
+  <script src="js/codemirror/codemirror.js"></script>
+  <script src="js/codemirror/javascript.js"></script>
+  <script src="js/codemirror/php.js"></script>
+  <!-- PHP Runtime serialized to string -->
+  <script src="js/php-runtime.js"></script>
+  <!-- php.js from http://phpjs.hertzen.com/console.html -->
+  <script src="js/phpjs/php.js"></script>
+  <!--script src="js/phpjs/php.ini.js"></script>
+  <!--script src="js/phpjs/adapters/filesystem/dummy.js"></script>
   <!-- This file is built with browserify -->
   <script src="js/transformer.js"></script>
   <script src="js/react.js"></script>
@@ -25,7 +31,7 @@
   <div class="es6Compiler">
     <h1>JS to PHP</h1>
     <p>
-      This tool transforms JS to PHP. Just for fun.
+      This tool transforms JS to PHP. Just for fun. Kind of like <a href="http://phpjs.hertzen.com/">php.js</a> but the opposite.
     </p>
     <div id="output-pane"></div>
     <script src="js/demo.js"></script>
