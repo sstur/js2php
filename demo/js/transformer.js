@@ -13714,7 +13714,7 @@ exports.moonwalk = function moonwalk(ast, fn){
   function genVariableDeclaration(node, opts) {
     var results = [];
     node.declarations.forEach(function(node) {
-      results.push(encodeVar(node.id.name) + ' = null;')
+      results.push(encodeVar(node.id.name) + ' = null;');
     });
     return results.join(' ') + '\n';
   }
@@ -13985,7 +13985,7 @@ exports.moonwalk = function moonwalk(ast, fn){
     if (type === 'number') {
       value = value.toString();
       //todo: 1e2
-      return ~value.indexOf('.') ? value : value + '.';
+      return ~value.indexOf('.') ? value : value + '.0';
     }
     throw new Error('No handler for literal of type: ' + util.inspect(value));
   }
@@ -14426,7 +14426,8 @@ if (typeof module === 'object') {
     //fs.writeFileSync('./_output.js', js, 'utf8');
     var php = codegen.generate(ast);
     if (opts.outpath && opts.buildRuntime !== false) {
-      buildRuntime(opts);
+      var runtime = buildRuntime();
+      fs.writeFileSync(path.join(opts.outpath, 'runtime.php'), runtime, 'utf8');
     }
     return '<?php\n' + 'require_once("runtime.php");\n\n' + php;
   };
@@ -14674,14 +14675,14 @@ if (typeof module === 'object') {
     source = source.slice(0, index);
     var output = [];
     source.replace(/require_once\('(.+?)'\)/g, function(_, file) {
-      var source = fs.readFileSync(path.join('.', file), 'utf8');
+      var source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
       source = source.replace('<?php\n', '');
       output.push.apply(output, source.split('\n'));
     });
     var timezone = new Date().toString().slice(-4, -1);
     output.unshift('define("LOCAL_TZ", "' + timezone + '");');
     source = output.join('\n') + '\n';
-    fs.writeFileSync(path.join(opts.outpath, 'runtime.php'), '<?php\n' + source, 'utf8');
+    return '<?php\n' + source;
   }
 
 

@@ -16,7 +16,7 @@ var ReactPlayground;
       if (IS_MOBILE) return;
 
       this.editor = CodeMirror.fromTextArea(this.refs.editor.getDOMNode(), {
-        mode: 'javascript',
+        mode: this.props.mode || 'javascript',
         lineNumbers: false,
         lineWrapping: true,
         smartIndent: false,
@@ -34,10 +34,8 @@ var ReactPlayground;
     },
 
     handleChange: function() {
-      if (!this.props.readOnly) {
-        var source = this.editor.getValue();
-        this.props.onChange && this.props.onChange(source);
-      }
+      var source = this.editor.getValue();
+      this.props.onChange && this.props.onChange(source);
     },
 
     render: function() {
@@ -69,7 +67,6 @@ var ReactPlayground;
 
   ReactPlayground = React.createClass({displayName: 'ReactPlayground',
     mixins: [selfCleaningTimeout],
-    MODES: {JS: 'JS', PHP: 'PHP'},
     propTypes: {
       codeText: React.PropTypes.string.isRequired,
       transformer: React.PropTypes.func.isRequired,
@@ -78,73 +75,48 @@ var ReactPlayground;
 
     getInitialState: function() {
       return {
-        mode: this.MODES.JS,
         code: this.props.codeText
       };
     },
 
     handleCodeChange: function(value) {
       this.setState({code: value});
-      this.executeCode();
+      this.updateCode();
     },
 
-    handleCodeModeSwitch: function(mode) {
-      this.setState({mode: mode});
-    },
-
-    compileCode: function() {
-      return this.props.transformer(this.state.code);
-    },
-
-    render: function() {
-      var isPHP = this.state.mode === this.MODES.PHP;
-      var compiledCode = '';
+    transformCode: function() {
+      var sourceCode = this.state.code;
+      var transformedCode = '';
       if (window.noCatch) {
         //allow error to be thrown for debugging
-        compiledCode = this.compileCode();
+        transformedCode = this.props.transformer(sourceCode);
       } else {
         try {
-          compiledCode = this.compileCode();
+          transformedCode = this.props.transformer(sourceCode);
         } catch (e) {}
       }
       //for debugging
-      window.output = compiledCode;
+      window.sourceCode = sourceCode;
+      window.outputCode = transformedCode;
+      return transformedCode;
+    },
 
-      var PHPContent =
-        CodeMirrorEditor(
-          {key:"php",
-            className:"playgroundStage CodeMirror-readonly",
-            onChange:this.handleCodeChange,
-            codeText:compiledCode,
-            readOnly:true,
-            mode:'php'}
-        );
+    render: function() {
+      var transformedCode = this.transformCode();
 
       var JSContent =
-        CodeMirrorEditor(
-          {key:"js",
-            onChange:this.handleCodeChange,
-            className:"playgroundStage",
-            codeText:this.state.code}
-        );
-
-      var JSTabClassName =
-        'playground-tab' + (isPHP ? '' : ' playground-tab-active');
-
-      var JSTab =
-        React.DOM.div(
-          {className:JSTabClassName,
-            onClick:this.handleCodeModeSwitch.bind(this, this.MODES.JSX)},
-          "Live Editor"
-        );
+        CodeMirrorEditor({
+          key: "js",
+          onChange: this.handleCodeChange,
+          className: "playgroundStage",
+          codeText: this.state.code,
+          mode: 'javascript'
+        });
 
       return (
         React.DOM.div( {className:"playground"},
-          React.DOM.div(null,
-            JSTab
-          ),
           React.DOM.div( {className:"playgroundCode"},
-            isPHP ? PHPContent : JSContent
+            JSContent
           ),
           React.DOM.div( {className:"playgroundPreview"},
             React.DOM.div( {ref:"mount"} )
@@ -154,41 +126,32 @@ var ReactPlayground;
     },
 
     componentDidMount: function() {
-      this.executeCode();
+      this.updateCode();
     },
 
     componentWillUpdate: function(nextProps, nextState) {
       // execute code only when the state's not being updated by switching tab
       // this avoids re-displaying the error, which comes after a certain delay
       if (this.state.code !== nextState.code) {
-        this.executeCode();
+        this.updateCode();
       }
     },
 
-    executeCode: function() {
+    updateCode: function() {
       var mountNode = this.refs.mount.getDOMNode();
-
       try {
         React.unmountComponentAtNode(mountNode);
       } catch (e) { }
-
-      try {
-        var compiledCode = this.compileCode();
-        if (this.props.renderCode) {
-          React.renderComponent(
-            CodeMirrorEditor( {codeText:compiledCode, readOnly:true} ),
-            mountNode
-          );
-        } else {
-          eval(compiledCode);
-        }
-      } catch (err) {
-        this.setTimeout(function() {
-          React.renderComponent(
-            React.DOM.div( {className:"playgroundError"}, err.toString()),
-            mountNode
-          );
-        }, 500);
+      var transformedCode = this.transformCode();
+      if (this.props.renderCode) {
+        React.renderComponent(
+          CodeMirrorEditor({
+            codeText: transformedCode,
+            readOnly: true,
+            mode: 'php'
+          }),
+          mountNode
+        );
       }
     }
   });

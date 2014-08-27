@@ -1,5 +1,5 @@
 var PHP = function( code, opts ) {
-    var opts = opts || {};
+    opts = opts || {};
     opts.filesystem = opts.filesystem || typeof(window) !== "undefined" ? new PHP.Adapters.XHRFileSystem() : require('fs');
     opts.SERVER = opts.SERVER || {};
     opts.SERVER.SCRIPT_FILENAME = opts.SERVER.SCRIPT_FILENAME || "";
@@ -15304,7 +15304,7 @@ PHP.Adapters.XHRFileSystem = function() {
 
 PHP.Adapters.XHRFileSystem.prototype.lstatSync = function( filename ) {
     
-    if (localStorage[ filename ] === undefined ) {
+    if (PHP.localStorage[ filename ] === undefined ) {
         throw Error; 
     } else {
         return true;
@@ -15321,7 +15321,7 @@ PHP.Adapters.XHRFileSystem.prototype.error = function( e ) {
 PHP.Adapters.XHRFileSystem.prototype.writeFileSync = function( filename, data ) {
     
     
-    localStorage[ filename ] = data;
+    PHP.localStorage[ filename ] = data;
     
 /*
     if ( this.db === false ) {
@@ -15355,6 +15355,7 @@ PHP.Adapters.XHRFileSystem.prototype.writeFileSync = function( filename, data ) 
     
 };
 
+PHP.localStorage = {};
 PHP.Adapters.XHRFileSystem.prototype.readFileSync = function( filename, xhr ) {
     
     if ( xhr === undefined ) {
@@ -15373,10 +15374,10 @@ PHP.Adapters.XHRFileSystem.prototype.readFileSync = function( filename, xhr ) {
     
         return response;
     } else {
-        if (localStorage[ filename ] === undefined ) {
+        if (PHP.localStorage[ filename ] === undefined ) {
             throw Error; 
         } else {
-            return localStorage[ filename ];
+            return PHP.localStorage[ filename ];
         }
     }
 
