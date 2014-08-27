@@ -11,20 +11,18 @@
   <link rel="stylesheet" href="css/codemirror.css">
   <link rel="stylesheet" href="css/react.css">
 
+  <script src="js/react.js"></script>
   <!-- CodeMirror Files -->
   <script src="js/codemirror/codemirror.js"></script>
   <script src="js/codemirror/javascript.js"></script>
   <script src="js/codemirror/php.js"></script>
-  <!-- PHP Runtime serialized to string -->
-  <script src="js/php-runtime.js"></script>
-  <!-- php.js from http://phpjs.hertzen.com/console.html -->
+  <!-- php.js from http://phpjs.hertzen.com/ -->
   <script src="js/phpjs/php.js"></script>
-  <!--script src="js/phpjs/php.ini.js"></script>
-  <!--script src="js/phpjs/adapters/filesystem/dummy.js"></script>
-  <!-- This file is built with browserify -->
+  <!-- built with browserify -->
   <script src="js/transformer.js"></script>
-  <script src="js/react.js"></script>
-  <script src="js/live_editor.js"></script>
+  <!-- contains our code -->
+  <script src="js/playground.js"></script>
+  <script src="js/init.js"></script>
 </head>
 <body>
 <div class="container">
@@ -34,7 +32,6 @@
       This tool transforms JS to PHP. Just for fun. Kind of like <a href="http://phpjs.hertzen.com/">php.js</a> but the opposite.
     </p>
     <div id="output-pane"></div>
-    <script src="js/demo.js"></script>
   </div>
   <footer class="wrap">
     <div class="left">A Hackathon 44 creation.</div>
