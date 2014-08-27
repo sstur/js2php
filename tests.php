@@ -1,35 +1,35 @@
 <?php
 define('LOCAL_TZ', 'PST');
 
-require_once('lib/helpers/operators.php');
-require_once('lib/helpers/type-juggling.php');
+require_once('php/helpers/operators.php');
+require_once('php/helpers/type-juggling.php');
 
-require_once('lib/classes/Null.php');
-require_once('lib/classes/NaN.php');
-require_once('lib/classes/Object.php');
-require_once('lib/classes/Function.php');
-require_once('lib/classes/Global.php');
-require_once('lib/classes/Array.php');
-require_once('lib/classes/Date.php');
-require_once('lib/classes/RegExp.php');
-require_once('lib/classes/String.php');
-require_once('lib/classes/Number.php');
-require_once('lib/classes/Boolean.php');
+require_once('php/classes/Null.php');
+require_once('php/classes/NaN.php');
+require_once('php/classes/Object.php');
+require_once('php/classes/Function.php');
+require_once('php/classes/Global.php');
+require_once('php/classes/Array.php');
+require_once('php/classes/Date.php');
+require_once('php/classes/RegExp.php');
+require_once('php/classes/String.php');
+require_once('php/classes/Number.php');
+require_once('php/classes/Boolean.php');
 
-require_once('lib/globals/Object.php');
-require_once('lib/globals/Array.php');
-require_once('lib/globals/Date.php');
-require_once('lib/globals/RegExp.php');
-require_once('lib/globals/String.php');
-require_once('lib/globals/Number.php');
-require_once('lib/globals/Boolean.php');
-require_once('lib/globals/globals.php');
-require_once('lib/globals/Math.php');
-require_once('lib/globals/JSON.php');
-require_once('lib/globals/console.php');
+require_once('php/globals/Object.php');
+require_once('php/globals/Array.php');
+require_once('php/globals/Date.php');
+require_once('php/globals/RegExp.php');
+require_once('php/globals/String.php');
+require_once('php/globals/Number.php');
+require_once('php/globals/Boolean.php');
+require_once('php/globals/globals.php');
+require_once('php/globals/Math.php');
+require_once('php/globals/JSON.php');
+require_once('php/globals/console.php');
 
-require_once('lib/helpers/Test.php');
-require_once('lib/helpers/Debug.php');
+require_once('php/helpers/Test.php');
+require_once('php/helpers/Debug.php');
 //</BOILERPLATE>
 
 //set global

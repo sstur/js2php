@@ -1,4 +1,4 @@
-browserify transformer/transform.js --standalone Transformer -o demo/js/transformer.js
+sbrowserify transformer/transform.js --standalone Transformer -o demo/js/transformer.js
 rsync -av ../js2php dev:~/
 
 Divergence from JavaScript
