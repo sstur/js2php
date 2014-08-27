@@ -22,7 +22,7 @@
   function genVariableDeclaration(node, opts) {
     var results = [];
     node.declarations.forEach(function(node) {
-      results.push(encodeVar(node.id.name) + ' = null;')
+      results.push(encodeVar(node.id.name) + ' = null;');
     });
     return results.join(' ') + '\n';
   }
@@ -293,7 +293,7 @@
     if (type === 'number') {
       value = value.toString();
       //todo: 1e2
-      return ~value.indexOf('.') ? value : value + '.';
+      return ~value.indexOf('.') ? value : value + '.0';
     }
     throw new Error('No handler for literal of type: ' + util.inspect(value));
   }

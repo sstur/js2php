@@ -6,7 +6,10 @@ class GlobalObject extends Object {
   }
 
   function get($key) {
-    //todo: translate $key
+    $key = preg_replace('/_$/', '__', $key);
+    //$key = preg_replace_callback('/[^a-z0-9_]/', function($ch) {
+    //  //todo
+    //}, $key);
     return $GLOBALS[$key];
   }
 
