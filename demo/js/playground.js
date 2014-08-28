@@ -1,5 +1,6 @@
 /*global React, CodeMirror */
 var ReactPlayground;
+var evalCode;
 (function() {
   var IS_MOBILE = (
     navigator.userAgent.match(/Android/i)
@@ -127,6 +128,16 @@ var ReactPlayground;
 
     componentDidMount: function() {
       this.updateCode();
+      var runtimeCode = phpRuntime.split('\n');
+      evalCode = function() {
+        var code = window.outputCode.split('\n').slice(2);
+        code = runtimeCode.concat(code).join('\n');
+        //todo
+        console.log(code);
+        var engine = new PHP(code);
+        var output = engine.vm.OUTPUT_BUFFER;
+        console.log(output);
+      };
     },
 
     componentWillUpdate: function(nextProps, nextState) {

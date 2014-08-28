@@ -14003,9 +14003,13 @@ exports.moonwalk = function moonwalk(ast, fn){
   }
 
   function encodeVarChar(ch) {
-    var hex = ch.charCodeAt(0).toString(16);
-    hex = ('0' + hex).slice(-2);
-    return '«' + hex + '»';
+    var code = ch.charCodeAt(0);
+    if (code < 128) {
+      var hex = code.toString(16);
+      hex = hex.length === 1 ? '0' + hex : hex;
+      return '«' + hex + '»';
+    }
+    return encodeURI(ch).replace(/%(..)/g, '«$1»').toLowerCase();
   }
 
   function repeat(str, count) {
