@@ -11,8 +11,8 @@ class GlobalObject extends Object {
     return $GLOBALS[$key];
   }
 
-  static function encodeChar($ch) {
-    return '«' . bin2hex($ch) . '»';
+  static function encodeChar($matches) {
+    return '«' . bin2hex($matches[0]) . '»';
   }
 
 }

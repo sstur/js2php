@@ -32,8 +32,10 @@ require_once('php/helpers/Test.php');
 require_once('php/helpers/Debug.php');
 //</BOILERPLATE>
 
-//set global
+//set some implicit globals
 $foo = 'test';
+$«24» = '$';
+$«c3»«bc»r = 'ür';
 
 call_method($console, 'log', 'Begin', 'Tests:');
 
@@ -56,6 +58,28 @@ Test::suite(
 );
 
 Test::suite(
+  'global',
+  function() {
+    Test::assert(
+      'props reflect global vars',
+      Object::$global->get('foo') === 'test'
+    );
+    Test::assert(
+      'has circular ref',
+      Object::$global->get('global') === Object::$global
+    );
+    Test::assert(
+      'can access escaped vars',
+      Object::$global->get('$') === $GLOBALS['«24»']
+    );
+    Test::assert(
+      'can access escaped vars unicode',
+      Object::$global->get('ür') === 'ür'
+    );
+  }
+);
+
+Test::suite(
   'Object.prototype',
   function() use ($Object) {
     Test::assert(
@@ -69,20 +93,6 @@ Test::suite(
     Test::assert(
       'check toString',
       $Object->get('prototype')->get('toString') === Object::$protoObject->get('toString')
-    );
-  }
-);
-
-Test::suite(
-  'global',
-  function() {
-    Test::assert(
-      'props reflect global vars',
-      Object::$global->get('foo') === 'test'
-    );
-    Test::assert(
-      'has circular ref',
-      Object::$global->get('global') === Object::$global
     );
   }
 );
