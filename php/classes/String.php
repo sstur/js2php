@@ -16,10 +16,12 @@ class String extends Object {
   static function initProtoObject() {
     $methods = array(
       'charAt' => function($this_, $arguments, $i) {
-        return $this_->value[$i];
+        $ch = mb_substr($this_->value, 0, 1, 'utf-8');
+        return ($ch === false) ? '' : $ch;
       },
       'charCodeAt' => function($this_, $arguments, $i) {
-        return ord($this_->value[$i]);
+        $ch = mb_substr($this_->value, 0, 1, 'utf-8');
+        return ($ch === false) ? NaN::$nan : ord($ch);
       },
       'valueOf' => function($this_) {
         return $this_->value;

@@ -47,7 +47,7 @@ function to_number($value) {
     return NaN::$nan;
   }
   if ($value === Null::$null) {
-    return 0.;
+    return 0.0;
   }
   if ($value === NaN::$nan) {
     return NaN::$nan;
@@ -56,7 +56,7 @@ function to_number($value) {
     return is_nan($value) ? NaN::$nan : (float)$value;
   }
   if (is_bool($value)) {
-    return ($value ? 1. : 0.);
+    return ($value ? 1.0 : 0.0);
   }
   if ($value instanceof Object) {
     return to_number(to_primitive($value));
@@ -64,7 +64,7 @@ function to_number($value) {
   //trim whitespace
   $value = preg_replace('/^[\\t\\x0B\\f \\xA0\\r\\n]+|[\\t\\x0B\\f \\xA0\\r\\n]+$/', '', $value);
   if ($value === '') {
-    return 0.;
+    return 0.0;
   }
   if ($value === 'Infinity' || $value === '+Infinity') {
     return INF;

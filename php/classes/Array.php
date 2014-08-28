@@ -11,7 +11,7 @@ class Arr extends Object implements JsonSerializable {
     if (count($args) > 0) {
       $this->_init($args);
     } else {
-      $this->data->length = new Property(0., true, false, false);
+      $this->data->length = new Property(0.0, true, false, false);
     }
   }
 
