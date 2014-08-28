@@ -1,5 +1,5 @@
 <?php
-class Boolean extends Object {
+class Bln extends Object {
   public $className = "[object Boolean]";
   public $value = null;
 
@@ -27,4 +27,4 @@ class Boolean extends Object {
   }
 }
 
-Boolean::initProtoObject();
+Bln::initProtoObject();

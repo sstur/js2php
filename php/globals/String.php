@@ -1,14 +1,14 @@
 <?php
 $String = call_user_func(function() {
   $String = new Func(function($this_, $arguments, $value) {
-    if ($this_ instanceof String) {
+    if ($this_ instanceof Str) {
       $this_->value = to_string($value);
     } else {
       return to_string($value);
     }
   });
   $String->instantiate = function() {
-    return new String();
+    return new Str();
   };
   $String->set('prototype', RegExp::$protoObject);
   //define "static" methods

@@ -269,13 +269,13 @@ Test::suite(
   'String object',
   function() use ($String, $Object) {
     $str = $String->construct('hi');
-    Test::assert('instanceof', $str instanceof String);
+    Test::assert('instanceof', $str instanceof Str);
     Test::assert('type is object', js_typeof($str) === 'object');
     Test::assert('has value', $str->value === 'hi');
     Test::assert('has value', $str->callMethod('toString') === 'hi');
     Test::assert('has value', $str->callMethod('charAt', 0) === 'h');
     $str = $String->call(null, 'hi');
-    Test::assert('is not object', !($str instanceof String));
+    Test::assert('is not object', !($str instanceof Str));
     Test::assert('primitive', js_typeof($str) === 'string');
     Test::assert('can call on primitive', call_method($str, 'charAt', 0) === 'h');
   }
@@ -290,7 +290,7 @@ Test::suite(
     Test::assert('has value', $num->value === 5.);
     Test::assert('to string', $num->callMethod('toString') === '5');
     $num = $Number->call(null, '5');
-    Test::assert('is not object', !($num instanceof String));
+    Test::assert('is not object', !($num instanceof Str));
     Test::assert('primitive', js_typeof($num) === 'number');
     Test::assert('can call on primitive', call_method($num, 'toString') === '5');
     $num = $Number->call(null, '');

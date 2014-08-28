@@ -1,5 +1,5 @@
 <?php
-class String extends Object {
+class Str extends Object {
   public $className = "[object String]";
   public $value = null;
 
@@ -35,4 +35,4 @@ class String extends Object {
   }
 }
 
-String::initProtoObject();
+Str::initProtoObject();

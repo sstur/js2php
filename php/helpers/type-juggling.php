@@ -102,11 +102,11 @@ function catch_nan($num) {
 function objectify($value) {
   $type = gettype($value);
   if ($type === 'string') {
-    return new String($value);
+    return new Str($value);
   } elseif ($type === 'integer' || $type === 'double') {
     return new Number($value);
   } elseif ($type === 'boolean') {
-    return new Boolean($value);
+    return new Bln($value);
   }
   return $value;
 }
