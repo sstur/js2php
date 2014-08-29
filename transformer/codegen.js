@@ -303,7 +303,13 @@
   }
 
   function encodeProp(node) {
-    return (node.computed) ? encodeVar(node.property.name) : encodeLiteral(node.property.name);
+    if (node.computed) {
+      //a[0] or a[b]
+      return (node.property.type === 'Literal') ? encodeLiteral(node.property.value) : encodeVar(node.property.name);
+    } else {
+      //a.b
+      return encodeLiteral(node.property.name);
+    }
   }
 
   function encodeVar(name) {
