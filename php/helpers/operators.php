@@ -53,6 +53,27 @@ function js_or($a, $b) {
   return $a ? $a : $b;
 }
 
+/**
+ * @param string $key
+ * @param Object $obj
+ * @return bool
+ * @throws Exception
+ */
+function js_in($key, $obj) {
+  $key = to_string($key);
+  if (!($obj instanceof Object)) {
+    throw new Exception("Cannot use 'in' operator to search for '" . $key . "' in " . to_string($obj));
+  }
+  while ($obj !== null) {
+    $data = $obj->data;
+    if (property_exists($data, $key)) {
+      return true;
+    }
+    $obj = $obj->proto;
+  }
+  return false;
+}
+
 function js_typeof($value) {
   if ($value === null) {
     return 'undefined';
