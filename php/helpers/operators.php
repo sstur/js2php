@@ -58,6 +58,9 @@ function js_or($a, $b) {
  * @param string $key
  */
 function js_delete($obj, $key) {
+  if (func_num_args() !== 2) {
+    throw new Exception("Don't delete things that aren't properties.");
+  }
   unset($obj->data->{$key});
   return true;
 }

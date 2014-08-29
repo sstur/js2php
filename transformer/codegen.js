@@ -155,6 +155,10 @@
     if (op in OPERATOR_MAP) {
       op = OPERATOR_MAP[op];
     }
+    //special case here because `delete a.b.c` needs to compute a.b and then delete c
+    if (op === 'delete' && node.argument.type === 'MemberExpression') {
+      return 'js_delete(' + generate(node.argument.object, opts) + ', ' + encodeProp(node.argument) + ')';
+    }
     if (op.match(/^[a-z]+$/)) {
       return 'js_' + op + '(' + generate(node.argument, opts) + ')';
     }
