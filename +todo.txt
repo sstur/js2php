@@ -1,4 +1,6 @@
-Fatal error: Class undefined: HH\string in /home/sstur/runtime.php on line 849
+allow --fragment or --no-runtime to compile without the require
+
+js_and -> x_and
 
 JSON:
   $thing->callMethod('toJSON')
@@ -7,6 +9,9 @@ JSON:
 wrap(new Exception())
 
 to_number('x') + 1 -> 1 (should be NaN)
+
+operators:
+  ~, >>> (bitwise)
 
 $Number
   "NaN", "MAX_VALUE", "MIN_VALUE", "NEGATIVE_INFINITY", "POSITIVE_INFINITY"
