@@ -61,6 +61,15 @@
     return results.join('') + '\n';
   }
 
+  function genWhileStatement(node, opts) {
+    var results = ['while ('];
+    results.push(generate(node.test, opts));
+    results.push(') {\n');
+    results.push(genBody(node.body, opts));
+    results.push(repeat('  ', opts.indentLevel) + '}');
+    return results.join('') + '\n';
+  }
+
   function genFuncExp(node, opts) {
     var results = ['new Func('];
     if (node.id) {
@@ -192,7 +201,6 @@
       case 'SwitchCase':
       case 'ThrowStatement':
       case 'TryStatement':
-      case 'WhileStatement':
       case 'WithStatement':
         result = 'unsupported("' + node.type + '");\n';
         break;
@@ -213,6 +221,9 @@
         break;
       case 'ForStatement':
         result = genForStatement(node, opts);
+        break;
+      case 'WhileStatement':
+        result = genWhileStatement(node, opts);
         break;
 
       //EXPRESSIONS
