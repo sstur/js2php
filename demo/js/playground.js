@@ -85,6 +85,10 @@ var evalCode;
       this.updateCode();
     },
 
+    handleOutputCodeChange: function(value) {
+      window.outputCode = value;
+    },
+
     transformCode: function() {
       var sourceCode = this.state.code;
       var transformedCode = '';
@@ -128,12 +132,9 @@ var evalCode;
 
     componentDidMount: function() {
       this.updateCode();
-      var runtimeCode = phpRuntime.split('\n');
+      var runtimeCode = phpRuntime.split('\n').slice(1).join('\n');
       evalCode = function() {
-        var code = window.outputCode.split('\n').slice(2);
-        code = runtimeCode.concat(code).join('\n');
-        //todo
-        console.log(code);
+        var code = window.outputCode.replace('require_once("runtime.php");', runtimeCode);
         var engine = new PHP(code);
         var output = engine.vm.OUTPUT_BUFFER;
         console.log(output);
@@ -158,7 +159,8 @@ var evalCode;
         React.renderComponent(
           CodeMirrorEditor({
             codeText: transformedCode,
-            readOnly: true,
+            onChange: this.handleOutputCodeChange,
+            readOnly: false,
             mode: 'php'
           }),
           mountNode

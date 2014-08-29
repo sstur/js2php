@@ -115,7 +115,7 @@ function objectify($value) {
 //getters, setters and function callers
 function get($obj, $name) {
   if ($obj === null || $obj === Null::$null) {
-    throw new Exception("TypeError: Cannot read property '$name' of " . to_string($obj));
+    throw new Exception("TypeError: Cannot read property '" . $name . "' of " . to_string($obj));
   }
   $obj = objectify($obj);
   return $obj->get($name);
@@ -123,7 +123,7 @@ function get($obj, $name) {
 
 function set($obj, $name, $value) {
   if ($obj === null || $obj === Null::$null) {
-    throw new Exception("TypeError: Cannot set property '$name' of " . to_string($obj));
+    throw new Exception("TypeError: Cannot set property '" . $name . "' of " . to_string($obj));
   }
   $obj = objectify($obj);
   return $obj->set($name, $value);
@@ -139,7 +139,7 @@ function call($fn) {
 
 function call_method($obj, $name) {
   if ($obj === null || $obj === Null::$null) {
-    throw new Exception("TypeError: Cannot read property '$name' of " . to_string($obj));
+    throw new Exception("TypeError: Cannot read property '" . $name . "' of " . to_string($obj));
   }
   $obj = objectify($obj);
   $fn = $obj->get($name);
