@@ -199,6 +199,9 @@
       scope.children.forEach(function(scope) {
         if (scope.type === 'block') return;
         var keys = scope.undeclared.items();
+        keys = keys.filter(function(key) {
+          return (key !== 'arguments');
+        });
         if (keys.length) {
           functions.push(scope.node);
           setData(scope.node, 'lexUse', keys);
