@@ -1,6 +1,5 @@
 /*global React, CodeMirror */
 var ReactPlayground;
-var evalCode;
 (function() {
   var IS_MOBILE = (
     navigator.userAgent.match(/Android/i)
@@ -80,12 +79,13 @@ var evalCode;
       };
     },
 
-    handleCodeChange: function(value) {
+    handleInputCodeChange: function(value) {
       this.setState({code: value});
       this.updateCode();
     },
 
     handleOutputCodeChange: function(value) {
+      //for debugging
       window.outputCode = value;
     },
 
@@ -112,7 +112,7 @@ var evalCode;
       var JSContent =
         CodeMirrorEditor({
           key: "js",
-          onChange: this.handleCodeChange,
+          onChange: this.handleInputCodeChange,
           className: "playgroundStage",
           codeText: this.state.code,
           mode: 'javascript'
@@ -132,13 +132,6 @@ var evalCode;
 
     componentDidMount: function() {
       this.updateCode();
-      var runtimeCode = phpRuntime.split('\n').slice(1).join('\n');
-      evalCode = function() {
-        var code = window.outputCode.replace('require_once("runtime.php");', runtimeCode);
-        var engine = new PHP(code);
-        var output = engine.vm.OUTPUT_BUFFER;
-        console.log(output);
-      };
     },
 
     componentWillUpdate: function(nextProps, nextState) {

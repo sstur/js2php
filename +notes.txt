@@ -1,6 +1,4 @@
 browserify transformer/transform.js --standalone Transformer -o demo/js/transformer.js
-node js2php --runtime>runtime.php
-node -e "console.log('var phpRuntime = %s;', JSON.stringify(require('fs').readFileSync('./runtime.php', 'utf8')))">demo/js/php-runtime.js
 rsync -av ../js2php dev:~/
 
 Divergence from JavaScript
