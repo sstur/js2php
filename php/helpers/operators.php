@@ -54,6 +54,15 @@ function js_or($a, $b) {
 }
 
 /**
+ * @param Object $obj
+ * @param string $key
+ */
+function js_delete($obj, $key) {
+  unset($obj->data->{$key});
+  return true;
+}
+
+/**
  * @param string $key
  * @param Object $obj
  * @return bool

@@ -52,6 +52,14 @@ class Object implements JsonSerializable {
     return $value;
   }
 
+  /**
+   * @param string $key
+   * @param mixed $value
+   * @param bool $writable
+   * @param bool $enumerable
+   * @param bool $configurable
+   * @return mixed
+   */
   function setProperty($key, $value, $writable, $enumerable, $configurable) {
     $data = $this->data;
     if (property_exists($data, $key)) {
