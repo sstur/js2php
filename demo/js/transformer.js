@@ -13699,205 +13699,223 @@ exports.moonwalk = function moonwalk(ast, fn){
     '||': 'or'
   };
 
-  function genBody(node, opts) {
-    var results = [];
-    opts.indentLevel += 1;
-    node.body.forEach(function(node) {
-      results.push(repeat('  ', opts.indentLevel) + generate(node, opts));
-    });
-    if (opts.indentLevel > 0) {
-      opts.indentLevel -= 1;
-    }
-    return results.join('');
-  }
+  var gen = {
+    'Body': function(node, opts) {
+      var results = [];
+      opts.indentLevel += 1;
+      node.body.forEach(function(node) {
+        results.push(repeat('  ', opts.indentLevel) + generate(node, opts));
+      });
+      if (opts.indentLevel > 0) {
+        opts.indentLevel -= 1;
+      }
+      return results.join('');
+    },
 
-  function genVariableDeclaration(node, opts) {
-    var results = [];
-    node.declarations.forEach(function(node) {
-      results.push(encodeVar(node.id.name) + ' = null;');
-    });
-    return results.join(' ') + '\n';
-  }
+    'VariableDeclaration': function(node, opts) {
+      var results = [];
+      node.declarations.forEach(function(node) {
+        results.push(encodeVar(node.id.name) + ' = null;');
+      });
+      return results.join(' ') + '\n';
+    },
 
-  function genIfStatement(node, opts) {
-    var results = ['if ('];
-    results.push(generate(node.test, opts));
-    results.push(') {\n');
-    results.push(genBody(node.consequent, opts));
-    results.push(repeat('  ', opts.indentLevel) + '}');
-    if (node.alternate) {
-      results.push(' else ');
-      if (node.alternate.type === 'BlockStatement') {
-        results.push('{\n');
-        results.push(genBody(node.alternate, opts));
-        results.push(repeat('  ', opts.indentLevel) + '}\n');
+    'IfStatement': function(node, opts) {
+      var results = ['if ('];
+      results.push(generate(node.test, opts));
+      results.push(') {\n');
+      results.push(gen.Body(node.consequent, opts));
+      results.push(repeat('  ', opts.indentLevel) + '}');
+      if (node.alternate) {
+        results.push(' else ');
+        if (node.alternate.type === 'BlockStatement') {
+          results.push('{\n');
+          results.push(gen.Body(node.alternate, opts));
+          results.push(repeat('  ', opts.indentLevel) + '}\n');
+        } else {
+          results.push(generate(node.alternate, opts));
+        }
+      }
+      return results.join('') + '\n';
+    },
+
+    'ConditionalExpression': function(node, opts) {
+      return generate(node.test, opts) + ' ? ' + generate(node.consequent, opts) + ' : ' + generate(node.alternate, opts);
+    },
+
+    'ForStatement': function(node, opts) {
+      var results = ['for ('];
+      results.push(generate(node.init, opts) + '; ');
+      results.push(generate(node.test, opts) + '; ');
+      results.push(generate(node.update, opts));
+      results.push(') {\n');
+      results.push(gen.Body(node.body, opts));
+      results.push(repeat('  ', opts.indentLevel) + '}');
+      return results.join('') + '\n';
+    },
+
+    'ForInStatement': function(node, opts) {
+      var results = [];
+      if (node.left.type === 'VariableDeclaration') {
+        var identifier = node.left.declarations[0].id;
+      } else
+      if (node.left.type === 'Identifier') {
+        identifier = node.left;
       } else {
-        results.push(generate(node.alternate, opts));
+        throw new Error('Unknown left part of for..in `' + node.left.type + '`');
+      }
+      results.push('foreach (keys(');
+      results.push(generate(node.right, opts) + ') as $i_ => ' + encodeVar(identifier.name) + ') {\n');
+      results.push(gen.Body(node.body, opts));
+      results.push(repeat('  ', opts.indentLevel) + '}');
+      return results.join('') + '\n';
+    },
+
+    'WhileStatement': function(node, opts) {
+      var results = ['while ('];
+      results.push(generate(node.test, opts));
+      results.push(') {\n');
+      results.push(gen.Body(node.body, opts));
+      results.push(repeat('  ', opts.indentLevel) + '}');
+      return results.join('') + '\n';
+    },
+
+    'FunctionExpression': function(node, opts) {
+      var results = ['new Func('];
+      if (node.id) {
+        results.push(encodeString(node.id.name) + ', ');
+      }
+      var params = node.params.map(function(param) {
+        return encodeVar(param.name);
+      });
+      params.unshift('$arguments');
+      params.unshift('$this_');
+      var lexicalVars = '';
+      if (node.body.startToken.prev.type === 'BlockComment') {
+        var value = node.body.startToken.prev.value;
+        if (value.match(/^\[use:(.+?)\]$/)) {
+          var vars = value.slice(5, -1).split(', ');
+          lexicalVars = 'use (&' + vars.map(encodeVar).join(', &') + ') ';
+        }
+      }
+      results.push('function(' + params.join(', ') + ') ' + lexicalVars + '{\n');
+      results.push(gen.Body(node.body, opts));
+      results.push(repeat('  ', opts.indentLevel) + '})');
+      return results.join('');
+    },
+
+    'ArrayExpression': function(node, opts) {
+      var items = node.elements.map(function(el) {
+        return generate(el, opts);
+      });
+      return 'new Arr(' + items.join(', ') + ')';
+    },
+
+    'ObjectExpression': function(node, opts) {
+      var items = [];
+      node.properties.forEach(function(node) {
+        items.push(encodeString(node.key.name));
+        items.push(generate(node.value, opts));
+      });
+      return 'new Object(' + items.join(', ') + ')';
+    },
+
+    'CallExpression': function(node, opts) {
+      var args = node.arguments.map(function(arg) {
+        return generate(arg, opts);
+      });
+      if (node.callee.type === 'MemberExpression') {
+        return 'call_method(' + generate(node.callee.object, opts) + ', ' + encodeProp(node.callee) + (args.length ? ', ' + args.join(', ') : '') + ')';
+      } else {
+        return 'call(' + generate(node.callee, opts) + (args.length ? ', ' + args.join(', ') : '') + ')';
+      }
+    },
+
+    'MemberExpression': function(node, opts) {
+      return 'get(' + generate(node.object, opts) + ', ' + encodeProp(node) + ')';
+    },
+
+    'NewExpression': function(node, opts) {
+      var args = node.arguments.map(function(arg) {
+        return generate(arg, opts);
+      });
+      return 'js_new(' + generate(node.callee, opts) + (args.length ? ', ' + args.join(', ') : '') + ')';
+    },
+
+    'AssignmentExpression': function(node, opts) {
+      if (node.left.type === 'MemberExpression') {
+        return 'set(' + generate(node.left.object, opts) + ', ' + encodeProp(node.left) + ', ' + generate(node.right, opts) + ')';
+      }
+      return encodeVar(node.left.name) + ' ' + node.operator + ' ' + generate(node.right, opts);
+    },
+
+    'BinaryExpression': function(node, opts) {
+      var op = node.operator;
+      if (op in OPERATOR_MAP) {
+        op = OPERATOR_MAP[op];
+      }
+      if (op.match(/^[a-z]+$/)) {
+        return 'js_' + op + '(' + generate(node.left, opts) + ', ' + generate(node.right, opts) + ')';
+      }
+      return generate(node.left, opts) + ' ' + op + ' ' + generate(node.right, opts);
+    },
+
+    'UnaryExpression': function(node, opts) {
+      var op = node.operator;
+      if (op in OPERATOR_MAP) {
+        op = OPERATOR_MAP[op];
+      }
+      //special case here because `delete a.b.c` needs to compute a.b and then delete c
+      if (op === 'delete' && node.argument.type === 'MemberExpression') {
+        return 'js_delete(' + generate(node.argument.object, opts) + ', ' + encodeProp(node.argument) + ')';
+      }
+      if (op.match(/^[a-z]+$/)) {
+        return 'js_' + op + '(' + generate(node.argument, opts) + ')';
+      }
+      return op + generate(node.argument, opts);
+    },
+
+    'SequenceExpression': function(node, opts) {
+      var expressions = node.expressions.map(function(node) {
+        return generate(node, opts);
+      });
+      return expressions.join(', ');
+    },
+
+    'UpdateExpression': function(node, opts) {
+      if (node.prefix) {
+        return node.operator + generate(node.argument, opts);
+      } else {
+        return generate(node.argument, opts) + node.operator;
       }
     }
-    return results.join('') + '\n';
-  }
-
-  function genConditionalExpression(node, opts) {
-    return generate(node.test, opts) + ' ? ' + generate(node.consequent, opts) + ' : ' + generate(node.alternate, opts);
-  }
-
-  function genForStatement(node, opts) {
-    var results = ['for ('];
-    results.push(generate(node.init, opts) + '; ');
-    results.push(generate(node.test, opts) + '; ');
-    results.push(generate(node.update, opts));
-    results.push(') {\n');
-    results.push(genBody(node.body, opts));
-    results.push(repeat('  ', opts.indentLevel) + '}');
-    return results.join('') + '\n';
-  }
-
-  function genForInStatement(node, opts) {
-    var results = [];
-    if (node.left.type === 'VariableDeclaration') {
-      var identifier = node.left.declarations[0].id;
-    } else
-    if (node.left.type === 'Identifier') {
-      identifier = node.left;
-    } else {
-      throw new Error('Unknown left part of for..in `' + node.left.type + '`');
-    }
-    results.push('foreach (keys(');
-    results.push(generate(node.right, opts) + ') as $i_ => ' + encodeVar(identifier.name) + ') {\n');
-    results.push(genBody(node.body, opts));
-    results.push(repeat('  ', opts.indentLevel) + '}');
-    return results.join('') + '\n';
-  }
-
-  function genWhileStatement(node, opts) {
-    var results = ['while ('];
-    results.push(generate(node.test, opts));
-    results.push(') {\n');
-    results.push(genBody(node.body, opts));
-    results.push(repeat('  ', opts.indentLevel) + '}');
-    return results.join('') + '\n';
-  }
-
-  function genFuncExp(node, opts) {
-    var results = ['new Func('];
-    if (node.id) {
-      results.push(encodeString(node.id.name) + ', ');
-    }
-    var params = node.params.map(function(param) {
-      return encodeVar(param.name);
-    });
-    params.unshift('$arguments');
-    params.unshift('$this_');
-    var lexicalVars = '';
-    if (node.body.startToken.prev.type === 'BlockComment') {
-      var value = node.body.startToken.prev.value;
-      if (value.match(/^\[use:(.+?)\]$/)) {
-        var vars = value.slice(5, -1).split(', ');
-        lexicalVars = 'use (&' + vars.map(encodeVar).join(', &') + ') ';
-      }
-    }
-    results.push('function(' + params.join(', ') + ') ' + lexicalVars + '{\n');
-    results.push(genBody(node.body, opts));
-    results.push(repeat('  ', opts.indentLevel) + '})');
-    return results.join('');
-  }
-
-  function genArrayExpression(node, opts) {
-    var items = node.elements.map(function(el) {
-      return generate(el, opts);
-    });
-    return 'new Arr(' + items.join(', ') + ')';
-  }
-
-  function genObjectExpression(node, opts) {
-    var items = [];
-    node.properties.forEach(function(node) {
-      items.push(encodeString(node.key.name));
-      items.push(generate(node.value, opts));
-    });
-    return 'new Object(' + items.join(', ') + ')';
-  }
-
-  function genCallExpression(node, opts) {
-    var args = node.arguments.map(function(arg) {
-      return generate(arg, opts);
-    });
-    if (node.callee.type === 'MemberExpression') {
-      return 'call_method(' + generate(node.callee.object, opts) + ', ' + encodeProp(node.callee) + (args.length ? ', ' + args.join(', ') : '') + ')';
-    } else {
-      return 'call(' + generate(node.callee, opts) + (args.length ? ', ' + args.join(', ') : '') + ')';
-    }
-  }
-
-  function genMemberExpression(node, opts) {
-    return 'get(' + generate(node.object, opts) + ', ' + encodeProp(node) + ')';
-  }
-
-  function genNewExpression(node, opts) {
-    var args = node.arguments.map(function(arg) {
-      return generate(arg, opts);
-    });
-    return 'js_new(' + generate(node.callee, opts) + (args.length ? ', ' + args.join(', ') : '') + ')';
-  }
-
-  function genAssignmentExpression(node, opts) {
-    if (node.left.type === 'MemberExpression') {
-      return 'set(' + generate(node.left.object, opts) + ', ' + encodeProp(node.left) + ', ' + generate(node.right, opts) + ')';
-    }
-    return encodeVar(node.left.name) + ' ' + node.operator + ' ' + generate(node.right, opts);
-  }
-
-  function genBinaryExpression(node, opts) {
-    var op = node.operator;
-    if (op in OPERATOR_MAP) {
-      op = OPERATOR_MAP[op];
-    }
-    if (op.match(/^[a-z]+$/)) {
-      return 'js_' + op + '(' + generate(node.left, opts) + ', ' + generate(node.right, opts) + ')';
-    }
-    return generate(node.left, opts) + ' ' + op + ' ' + generate(node.right, opts);
-  }
-
-  function genUnaryExpression(node, opts) {
-    var op = node.operator;
-    if (op in OPERATOR_MAP) {
-      op = OPERATOR_MAP[op];
-    }
-    //special case here because `delete a.b.c` needs to compute a.b and then delete c
-    if (op === 'delete' && node.argument.type === 'MemberExpression') {
-      return 'js_delete(' + generate(node.argument.object, opts) + ', ' + encodeProp(node.argument) + ')';
-    }
-    if (op.match(/^[a-z]+$/)) {
-      return 'js_' + op + '(' + generate(node.argument, opts) + ')';
-    }
-    return op + generate(node.argument, opts);
-  }
-
-  function genSequenceExpression(node, opts) {
-    var expressions = node.expressions.map(function(node) {
-      return generate(node, opts);
-    });
-    return expressions.join(', ');
-  }
-
-  function genUpdateExpression(node, opts) {
-    if (node.prefix) {
-      return node.operator + generate(node.argument, opts);
-    } else {
-      return generate(node.argument, opts) + node.operator;
-    }
-  }
-
+  };
 
   function generate(node, opts) {
     opts = opts || {};
     if (opts.indentLevel == null) {
       opts.indentLevel = -1;
     }
+    var type = node.type;
     var result;
-    switch (node.type) {
+    switch (type) {
       //STATEMENTS
+      case 'Program':
+        result = gen.Body(node, opts);
+        break;
+      case 'ExpressionStatement':
+        result = generate(node.expression, opts) + ';\n';
+        break;
+      case 'ReturnStatement':
+        result = 'return ' + generate(node.argument) + ';\n';
+        break;
+      case 'VariableDeclaration':
+      case 'IfStatement':
+      case 'ForStatement':
+      case 'ForInStatement':
+      case 'WhileStatement':
+        result = gen[type](node, opts);
+        break;
       case 'BlockStatement':
       case 'BreakStatement':
       case 'CatchClause':
@@ -13916,76 +13934,30 @@ exports.moonwalk = function moonwalk(ast, fn){
       case 'WithStatement':
         result = 'unsupported("' + node.type + '");\n';
         break;
-      case 'Program':
-        result = genBody(node, opts);
-        break;
-      case 'ExpressionStatement':
-        result = generate(node.expression, opts) + ';\n';
-        break;
-      case 'ReturnStatement':
-        result = 'return ' + generate(node.argument) + ';\n';
-        break;
-      case 'VariableDeclaration':
-        result = genVariableDeclaration(node, opts);
-        break;
-      case 'IfStatement':
-        result = genIfStatement(node, opts);
-        break;
-      case 'ForStatement':
-        result = genForStatement(node, opts);
-        break;
-      case 'ForInStatement':
-        result = genForInStatement(node, opts);
-        break;
-      case 'WhileStatement':
-        result = genWhileStatement(node, opts);
-        break;
 
       //EXPRESSIONS
-      case 'FunctionExpression':
-        result = genFuncExp(node, opts);
-        break;
-      case 'AssignmentExpression':
-        result = genAssignmentExpression(node, opts);
-        break;
       case 'Literal':
         result = encodeLiteral(node.value, opts);
-        break;
-      case 'CallExpression':
-        result = genCallExpression(node, opts);
         break;
       case 'Identifier':
         result = encodeVar(node.name);
         break;
-      case 'MemberExpression':
-        result = genMemberExpression(node, opts);
-        break;
-      case 'NewExpression':
-        result = genNewExpression(node, opts);
-        break;
       case 'ThisExpression':
         result = '$this_';
         break;
+      case 'FunctionExpression':
+      case 'AssignmentExpression':
+      case 'CallExpression':
+      case 'MemberExpression':
+      case 'NewExpression':
       case 'ArrayExpression':
-        result = genArrayExpression(node, opts);
-        break;
       case 'ObjectExpression':
-        result = genObjectExpression(node, opts);
-        break;
       case 'UnaryExpression':
-        result = genUnaryExpression(node, opts);
-        break;
       case 'BinaryExpression':
-        result = genBinaryExpression(node, opts);
-        break;
       case 'SequenceExpression':
-        result = genSequenceExpression(node, opts);
-        break;
       case 'UpdateExpression':
-        result = genUpdateExpression(node, opts);
-        break;
       case 'ConditionalExpression':
-        result = genConditionalExpression(node, opts);
+        result = gen[type](node, opts);
         break;
       case 'ArrayPattern':
       case 'LogicalExpression':
