@@ -101,6 +101,17 @@ Test::suite(
 );
 
 Test::suite(
+  'Object',
+  function() use ($Object) {
+    $o = new Object("a", 1.0, "b", 2.0);
+    Test::assert(
+      'for..in helper',
+      join(',', keys($o)) === 'a,b'
+    );
+  }
+);
+
+Test::suite(
   'Array.prototype',
   function() use ($Object, $Array) {
     Test::assert(

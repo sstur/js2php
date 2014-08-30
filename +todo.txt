@@ -1,4 +1,5 @@
 allow --fragment or --no-runtime to compile without the require
+fix: not building at compile time
 
 js_and -> x_and
 

@@ -1,5 +1,27 @@
 <?php
 
+/**
+ * used in for..in
+ * @param Object $obj
+ * @param array $arr
+ * @return array
+ */
+function keys($obj, $arr = array()) {
+  if (!($obj instanceof Object)) {
+    return $arr;
+  }
+  foreach ($obj->data as $key => $prop) {
+    if ($prop->enumerable) {
+      array_push($arr, $key);
+    }
+  }
+  $proto = $obj->getProto();
+  if ($proto !== Null::$null) {
+    keys($proto, $arr);
+  }
+  return $arr;
+}
+
 function is_primitive($value) {
   return ($value === null || is_scalar($value) || $value === Null::$null || $value === NaN::$nan);
 }
