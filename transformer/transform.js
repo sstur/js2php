@@ -39,30 +39,14 @@
     //first we grab the index of each point where we wish to splice the code
     var splicePoints = [];
 
-    //wrap statement in block
-    var wrapStatement = function(node) {
-      splicePoints.push({
-        index: node.startToken.range[0],
-        insert: '{'
-      });
-      splicePoints.push({
-        index: node.endToken.range[1],
-        insert: '}'
-      });
-    };
-
-    //determine if var statement should be split (not in if/for/while)
-    function shouldSplitVar(parentType) {
-      return (parentType === 'Program' || parentType === 'BlockStatement');
-    }
-
     var scopesWithFunctionDeclarations = [];
     var functionsDeclarations = [];
 
     rocambole.recursive(ast, function(node) {
       //split comma-separated var statements
       if (node.type === 'VariableDeclaration') {
-        if (!shouldSplitVar(node.parent.type)) return;
+        //don't split vars in `for`
+        if (!isBlockLevelVar(node)) return;
         node.declarations.forEach(function(decl) {
           var sep = decl.endToken && decl.endToken.next;
           if (sep && sep.type === 'Punctuator' && sep.value === ',') {
@@ -76,14 +60,27 @@
         return;
       }
 
+      //wrap statement in block
+      var wrapStmtInBlock = function(node) {
+        splicePoints.push({
+          index: node.startToken.range[0],
+          insert: '{'
+        });
+        splicePoints.push({
+          index: node.endToken.range[1],
+          insert: '}'
+        });
+      };
+
       //enforce all if/else to use blocks
       if (node.type === 'IfStatement') {
         if (node.consequent.type !== 'BlockStatement') {
-          wrapStatement(node.consequent);
+          wrapStmtInBlock(node.consequent);
         }
         if (node.alternate) {
+          //wrap else part if it's not a block or another if statement
           if (node.alternate.type !== 'BlockStatement' && node.alternate.type !== 'IfStatement') {
-            wrapStatement(node.alternate);
+            wrapStmtInBlock(node.alternate);
           }
         }
         return;
@@ -92,7 +89,7 @@
       //force all while, for, for..in to use blocks
       if (node.type === 'WhileStatement' || node.type === 'ForStatement' || node.type === 'ForInStatement') {
         if (node.body.type !== 'BlockStatement') {
-          wrapStatement(node.body);
+          wrapStmtInBlock(node.body);
         }
       }
 
@@ -107,7 +104,7 @@
       }
     });
 
-    //mark functions for hoisting
+    //mark functions for hoisting [hacky]
     var count = 0;
     scopesWithFunctionDeclarations.forEach(function(scope) {
       var toHoist = [];
@@ -147,18 +144,26 @@
 
     //traverse for var declarations
     rocambole.recursive(ast, function(node) {
-      if (node.type !== 'VariableDeclaration') return;
-      if (node.declarations.length === 1 && node.declarations[0].init === null) {
-        var endIndex = node.range[1];
-        if (node.endToken.next && node.endToken.next.type === 'Punctuator') {
-          endIndex = node.endToken.next.range[0];
-        }
-        splicePoints.push({
-          index: node.range[0],
-          removeCount: endIndex - node.range[0]
-        });
+      //don't proceed unless node is a var declaration
+      if (node.type !== 'VariableDeclaration') {
         return;
       }
+
+      //if it's a `var` without an `=`, remove it completely (unless we're in a for..in)
+      //if (node.declarations[0].init === null) {
+      //  var endIndex = node.range[1];
+      //  if (node.endToken.next && node.endToken.next.type === 'Punctuator') {
+      //    endIndex = node.endToken.next.range[0];
+      //  }
+      //  splicePoints.push({
+      //    index: node.range[0],
+      //    removeCount: endIndex - node.range[0]
+      //  });
+      //  return;
+      //}
+
+      //add each decl to the list of var names of the parent scope
+      //there will be only one declaration, unless it's in a `for`
       node.declarations.forEach(function(decl) {
         var scope = getParentScope(node);
         if (scopesWithVars.indexOf(scope) === -1) {
@@ -169,6 +174,18 @@
           varNames.push(decl.id.name);
         }
       });
+      //if it's a `var` without an `=`, remove it completely (unless we're in a `for`)
+      if (node.declarations.length === 1 && node.declarations[0].init === null && isBlockLevelVar(node)) {
+        var endIndex = node.range[1];
+        if (node.endToken.next && node.endToken.next.type === 'Punctuator') {
+          endIndex = node.endToken.next.range[0];
+        }
+        splicePoints.push({
+          index: node.range[0],
+          removeCount: endIndex - node.range[0]
+        });
+        return;
+      }
       splicePoints.push({
         index: node.range[0],
         removeCount: 3
@@ -250,6 +267,11 @@
     return (parent.type === 'Program') ? parent : parent.body;
   }
 
+
+  //determine if var statement is in code block (not in `for`)
+  function isBlockLevelVar(node) {
+    return (node.parent.type === 'Program' || node.parent.type === 'BlockStatement');
+  }
 
   function hoistFromMarkers(source) {
     var match;

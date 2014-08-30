@@ -61,6 +61,23 @@
     return results.join('') + '\n';
   }
 
+  function genForInStatement(node, opts) {
+    var results = [];
+    if (node.left.type === 'VariableDeclaration') {
+      var identifier = node.left.declarations[0].id;
+    } else
+    if (node.left.type === 'Identifier') {
+      identifier = node.left;
+    } else {
+      throw new Error('Unknown left part of for..in `' + node.left.type + '`');
+    }
+    results.push('foreach (keys(');
+    results.push(generate(node.right, opts) + ') as $i_ => ' + encodeVar(identifier.name) + ') {\n');
+    results.push(genBody(node.body, opts));
+    results.push(repeat('  ', opts.indentLevel) + '}');
+    return results.join('') + '\n';
+  }
+
   function genWhileStatement(node, opts) {
     var results = ['while ('];
     results.push(generate(node.test, opts));
@@ -197,7 +214,6 @@
       case 'DoWhileStatement':
       case 'DebuggerStatement':
       case 'EmptyStatement':
-      case 'ForInStatement':
       case 'ForOfStatement':
       case 'FunctionDeclaration':
       case 'LabeledStatement':
@@ -225,6 +241,9 @@
         break;
       case 'ForStatement':
         result = genForStatement(node, opts);
+        break;
+      case 'ForInStatement':
+        result = genForInStatement(node, opts);
         break;
       case 'WhileStatement':
         result = genWhileStatement(node, opts);
