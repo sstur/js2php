@@ -121,9 +121,12 @@
 
     'ObjectExpression': function(node, opts) {
       var items = [];
-      node.properties.forEach(function(node) {
-        items.push(encodeString(node.key.name));
-        items.push(generate(node.value, opts));
+      node.properties.forEach(function(nod) {
+        var key = nod.key;
+        //key can be a literal or an identifier (quoted or not)
+        var keyName = (key.type === 'Identifier') ? key.name : key.value;
+        items.push(encodeString(keyName));
+        items.push(generate(nod.value, opts));
       });
       return 'new Object(' + items.join(', ') + ')';
     },
@@ -203,6 +206,10 @@
     opts = opts || {};
     if (opts.indentLevel == null) {
       opts.indentLevel = -1;
+    }
+    //we might get a null call `for (; i < l; i++) { ... }`
+    if (node == null) {
+      return '';
     }
     var type = node.type;
     var result;
@@ -305,7 +312,9 @@
   }
 
   function encodeString(str) {
-    return JSON.stringify(str).replace(/\$/g, '\\$');
+    //JSON.stringify(undefined) === undefined
+    str = JSON.stringify(str) || '';
+    return str.replace(/\$/g, '\\$');
   }
 
   function encodeProp(node) {
