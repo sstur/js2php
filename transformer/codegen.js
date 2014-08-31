@@ -88,6 +88,13 @@
       return results.join('') + '\n';
     },
 
+    'BlockStatement': function(node, opts) {
+      var results = ['{\n'];
+      results.push(gen.Body(node, opts));
+      results.push(repeat('  ', opts.indentLevel) + '}');
+      return results.join('') + '\n';
+    },
+
     'FunctionExpression': function(node, opts) {
       var results = ['new Func('];
       if (node.id) {
@@ -224,21 +231,23 @@
       case 'ReturnStatement':
         result = 'return ' + generate(node.argument) + ';\n';
         break;
+      case 'EmptyStatement':
+        result = '';
+        break;
       case 'VariableDeclaration':
       case 'IfStatement':
       case 'ForStatement':
       case 'ForInStatement':
       case 'WhileStatement':
+      case 'BlockStatement':
         result = gen[type](node, opts);
         break;
-      case 'BlockStatement':
       case 'BreakStatement':
       case 'CatchClause':
       case 'ContinueStatement':
       case 'DirectiveStatement':
       case 'DoWhileStatement':
       case 'DebuggerStatement':
-      case 'EmptyStatement':
       case 'ForOfStatement':
       case 'FunctionDeclaration':
       case 'LabeledStatement':
