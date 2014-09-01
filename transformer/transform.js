@@ -93,7 +93,7 @@
         }
       }
 
-      //function declarations
+      //function declarations (to be hoisted)
       if (node.type === 'FunctionDeclaration') {
         var scope = getParentScope(node);
         if (scopesWithFunctionDeclarations.indexOf(scope) === -1) {
@@ -144,23 +144,9 @@
 
     //traverse for var declarations
     rocambole.recursive(ast, function(node) {
-      //don't proceed unless node is a var declaration
       if (node.type !== 'VariableDeclaration') {
         return;
       }
-
-      //if it's a `var` without an `=`, remove it completely (unless we're in a for..in)
-      //if (node.declarations[0].init === null) {
-      //  var endIndex = node.range[1];
-      //  if (node.endToken.next && node.endToken.next.type === 'Punctuator') {
-      //    endIndex = node.endToken.next.range[0];
-      //  }
-      //  splicePoints.push({
-      //    index: node.range[0],
-      //    removeCount: endIndex - node.range[0]
-      //  });
-      //  return;
-      //}
 
       //add each decl to the list of var names of the parent scope
       //there will be only one declaration, unless it's in a `for`
@@ -214,7 +200,10 @@
     var functions = [];
     function walkChildren(scope) {
       scope.children.forEach(function(scope) {
-        if (scope.type === 'block') return;
+        if (scope.type === 'block') {
+          walkChildren(scope);
+          return;
+        }
         var keys = scope.undeclared.items();
         keys = keys.filter(function(key) {
           return (key !== 'arguments');
@@ -235,7 +224,7 @@
         insert: '/*[use:' + names.join(', ') + ']*/'
       });
     });
-    //fs.writeFileSync('./_scope.txt', util.inspect(scope), 'utf8');
+    //fs.writeFileSync('./_scope.txt', util.inspect(scope, {depth: 4}), 'utf8');
     source = spliceString(splicePoints, source);
     return source;
   }
