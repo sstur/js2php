@@ -336,10 +336,25 @@
     throw new Error('No handler for literal of type: ' + util.inspect(value));
   }
 
-  function encodeString(str) {
-    //JSON.stringify(undefined) === undefined
-    str = JSON.stringify(str) || '';
-    return str.replace(/\$/g, '\\$');
+  function encodeString(string) {
+    // table of character substitutions
+    var meta = {
+      '\b': '\\b',
+      '\t': '\\t',
+      '\n': '\\n',
+      '\f': '\\f',
+      '\r': '\\r',
+      '"' : '\\"',
+      '$' : '\\$',
+      '\\': '\\\\'
+    };
+    string = string.replace(/[\\"\$\x00-\x1f\x7f-\xff]/g, function(ch) {
+      return (ch in meta) ? meta[ch] : '\\x' + ('0' + ch.charCodeAt(0).toString(16)).slice(-2);
+    });
+    string = string.replace(/[\u0100-\uffff]/g, function(ch) {
+      return encodeURI(ch).toLowerCase().split('%').join('\\x');
+    });
+    return '"' + string + '"';
   }
 
   function encodeProp(node) {
