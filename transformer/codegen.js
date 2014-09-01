@@ -2,9 +2,20 @@
   var util = require('util');
 
   var OPERATOR_MAP = {
-    '+': 'plus',
-    '&&': 'and',
-    '||': 'or'
+    //unary operators
+    'u:+': 'unary_plus',
+    'u:-': 'unary_negate',
+    'u:~': 'bitwise_not',
+    //binary operators
+    'b:+': 'plus',
+    'b:&&': 'and',
+    'b:||': 'or',
+    'b:&': 'bitwise_and',
+    'b:|': 'bitwise_or',
+    'b:^': 'bitwise_xor',
+    'b:<<': 'bitwise_ls', //Left shift
+    'b:>>': 'bitwise_sprs', //Sign-propagating right shift
+    'b:>>>': 'bitwise_zfrs' //Zero-fill right shift
   };
 
   var gen = {
@@ -172,10 +183,11 @@
 
     'BinaryExpression': function(node, opts) {
       var op = node.operator;
-      if (op in OPERATOR_MAP) {
-        op = OPERATOR_MAP[op];
+      var name = 'b:' + op;
+      if (name in OPERATOR_MAP) {
+        op = OPERATOR_MAP[name];
       }
-      if (op.match(/^[a-z]+$/)) {
+      if (op.match(/^[a-z_]+$/)) {
         return 'js_' + op + '(' + generate(node.left, opts) + ', ' + generate(node.right, opts) + ')';
       }
       return generate(node.left, opts) + ' ' + op + ' ' + generate(node.right, opts);
@@ -183,14 +195,15 @@
 
     'UnaryExpression': function(node, opts) {
       var op = node.operator;
-      if (op in OPERATOR_MAP) {
-        op = OPERATOR_MAP[op];
+      var name = 'u:' + op;
+      if (name in OPERATOR_MAP) {
+        op = OPERATOR_MAP[name];
       }
       //special case here because `delete a.b.c` needs to compute a.b and then delete c
       if (op === 'delete' && node.argument.type === 'MemberExpression') {
         return 'js_delete(' + generate(node.argument.object, opts) + ', ' + encodeProp(node.argument) + ')';
       }
-      if (op.match(/^[a-z]+$/)) {
+      if (op.match(/^[a-z_]+$/)) {
         return 'js_' + op + '(' + generate(node.argument, opts) + ')';
       }
       return op + generate(node.argument, opts);
