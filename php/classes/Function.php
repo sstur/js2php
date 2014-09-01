@@ -56,6 +56,7 @@ class Func extends Object {
   static function makeArgs($args, $callee) {
     $obj = new Object();
     $obj->args = $args;
+    $obj->callee = $callee;
     $len = count($args);
     for ($i = 0; $i < $len; $i++) {
       $obj->set($i, $args[$i]);

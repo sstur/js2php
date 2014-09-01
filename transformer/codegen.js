@@ -12,7 +12,7 @@
       var results = [];
       opts.indentLevel += 1;
       node.body.forEach(function(node) {
-        results.push(repeat('  ', opts.indentLevel) + generate(node, opts));
+        results.push(indent(opts.indentLevel) + generate(node, opts));
       });
       if (opts.indentLevel > 0) {
         opts.indentLevel -= 1;
@@ -33,13 +33,13 @@
       results.push(generate(node.test, opts));
       results.push(') {\n');
       results.push(gen.Body(node.consequent, opts));
-      results.push(repeat('  ', opts.indentLevel) + '}');
+      results.push(indent(opts.indentLevel) + '}');
       if (node.alternate) {
         results.push(' else ');
         if (node.alternate.type === 'BlockStatement') {
           results.push('{\n');
           results.push(gen.Body(node.alternate, opts));
-          results.push(repeat('  ', opts.indentLevel) + '}\n');
+          results.push(indent(opts.indentLevel) + '}\n');
         } else {
           results.push(generate(node.alternate, opts));
         }
@@ -58,7 +58,7 @@
       results.push(generate(node.update, opts));
       results.push(') {\n');
       results.push(gen.Body(node.body, opts));
-      results.push(repeat('  ', opts.indentLevel) + '}');
+      results.push(indent(opts.indentLevel) + '}');
       return results.join('') + '\n';
     },
 
@@ -75,7 +75,7 @@
       results.push('foreach (keys(');
       results.push(generate(node.right, opts) + ') as $i_ => ' + encodeVar(identifier.name) + ') {\n');
       results.push(gen.Body(node.body, opts));
-      results.push(repeat('  ', opts.indentLevel) + '}');
+      results.push(indent(opts.indentLevel) + '}');
       return results.join('') + '\n';
     },
 
@@ -84,14 +84,14 @@
       results.push(generate(node.test, opts));
       results.push(') {\n');
       results.push(gen.Body(node.body, opts));
-      results.push(repeat('  ', opts.indentLevel) + '}');
+      results.push(indent(opts.indentLevel) + '}');
       return results.join('') + '\n';
     },
 
     'BlockStatement': function(node, opts) {
       var results = ['{\n'];
       results.push(gen.Body(node, opts));
-      results.push(repeat('  ', opts.indentLevel) + '}');
+      results.push(indent(opts.indentLevel) + '}');
       return results.join('') + '\n';
     },
 
@@ -114,8 +114,11 @@
         }
       }
       results.push('function(' + params.join(', ') + ') ' + lexicalVars + '{\n');
+      if (node.id) {
+        results.push(indent(opts.indentLevel + 1) + encodeVar(node.id.name) + ' = $arguments->callee;\n');
+      }
       results.push(gen.Body(node.body, opts));
-      results.push(repeat('  ', opts.indentLevel) + '})');
+      results.push(indent(opts.indentLevel) + '})');
       return results.join('');
     },
 
@@ -348,6 +351,10 @@
       return '«' + hex + '»';
     }
     return encodeURI(ch).replace(/%(..)/g, '«$1»').toLowerCase();
+  }
+
+  function indent(count) {
+    return repeat('  ', count);
   }
 
   function repeat(str, count) {
