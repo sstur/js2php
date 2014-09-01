@@ -3,8 +3,8 @@
 
   var OPERATOR_MAP = {
     //unary operators
+    'u:-': 'negate',
     'u:+': 'unary_plus',
-    'u:-': 'unary_negate',
     'u:~': 'bitwise_not',
     //binary operators
     'b:+': 'plus',
@@ -181,6 +181,10 @@
       return encodeVar(node.left.name) + ' ' + node.operator + ' ' + generate(node.right, opts);
     },
 
+    'LogicalExpression': function(node, opts) {
+      return gen.BinaryExpression(node, opts);
+    },
+
     'BinaryExpression': function(node, opts) {
       var op = node.operator;
       var name = 'b:' + op;
@@ -294,13 +298,13 @@
       case 'ObjectExpression':
       case 'UnaryExpression':
       case 'BinaryExpression':
+      case 'LogicalExpression':
       case 'SequenceExpression':
       case 'UpdateExpression':
       case 'ConditionalExpression':
         result = gen[type](node, opts);
         break;
       case 'ArrayPattern':
-      case 'LogicalExpression':
       case 'ObjectPattern':
       case 'Property':
         result = 'unsupported("' + node.type + '")';
