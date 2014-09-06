@@ -3,8 +3,7 @@ allow --embed-runtime to produce single file
 
 attach scope variables to function node before passing to codegen
   function d() { return d } -> $d = $arguments->callee (if d not declared)
-get(a, b)++, --, +=, -=, *=, /=
-operators: bitwise, negate, unary_plus, ...
+operators: negate, unary_plus, bitwise, ...
 
 test:
   keys() for `for..in`
@@ -13,6 +12,7 @@ test:
 
 transform:
   change clearData/setData/getData -> new Data(); data.set; data.get
+  don't count catch variable in `use`
 
 js_and -> x_and
 
@@ -20,9 +20,7 @@ JSON:
   $thing->callMethod('toJSON')
   $thing->callMethod('valueOf')
 
-wrap(new Exception())
-
-to_number('x') + 1 -> 1 (should be NaN)
+`to_number('x') + 1` should be NaN
 
 $Number
   "NaN", "MAX_VALUE", "MIN_VALUE", "NEGATIVE_INFINITY", "POSITIVE_INFINITY"

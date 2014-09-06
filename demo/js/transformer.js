@@ -13915,9 +13915,30 @@ exports.moonwalk = function moonwalk(ast, fn){
 
     'AssignmentExpression': function(node, opts) {
       if (node.left.type === 'MemberExpression') {
-        return 'set(' + generate(node.left.object, opts) + ', ' + encodeProp(node.left) + ', ' + generate(node.right, opts) + ')';
+        //`a.b = 1` -> `set(a, "b", 1)` but `a.b += 1` -> `set(a, "b", 1, "+=")`
+        if (node.operator === '=') {
+          return 'set(' + generate(node.left.object, opts) + ', ' + encodeProp(node.left) + ', ' + generate(node.right, opts) + ')';
+        } else {
+          return 'set(' + generate(node.left.object, opts) + ', ' + encodeProp(node.left) + ', ' + generate(node.right, opts) + ', "' + node.operator + '")';
+        }
       }
       return encodeVar(node.left.name) + ' ' + node.operator + ' ' + generate(node.right, opts);
+    },
+
+    'UpdateExpression': function(node, opts) {
+      if (node.argument.type === 'MemberExpression') {
+        //convert `++a` to `a += 1`
+        var operator = (node.operator === '++') ? '+=' : '-=';
+        // ++i returns the new (updated) value; i++ returns the old value
+        var returnOld = node.prefix ? false : true;
+        return 'set(' + generate(node.argument.object, opts) + ', ' + encodeProp(node.argument) + ', 1, "' + operator + '", ' + returnOld + ')';
+      }
+      //todo: [hacky] this works only work on numbers
+      if (node.prefix) {
+        return node.operator + generate(node.argument, opts);
+      } else {
+        return generate(node.argument, opts) + node.operator;
+      }
     },
 
     'LogicalExpression': function(node, opts) {
@@ -13933,7 +13954,12 @@ exports.moonwalk = function moonwalk(ast, fn){
       if (op.match(/^[a-z_]+$/)) {
         return 'js_' + op + '(' + generate(node.left, opts) + ', ' + generate(node.right, opts) + ')';
       }
-      return generate(node.left, opts) + ' ' + op + ' ' + generate(node.right, opts);
+      var parentType = node.parent && node.parent.type;
+      var result = generate(node.left, opts) + ' ' + op + ' ' + generate(node.right, opts);
+      if (parentType === 'BinaryExpression' || parentType === 'LogicalExpression') {
+        return '(' + result + ')';
+      }
+      return result;
     },
 
     'UnaryExpression': function(node, opts) {
@@ -13957,14 +13983,6 @@ exports.moonwalk = function moonwalk(ast, fn){
         return generate(node, opts);
       });
       return expressions.join(', ');
-    },
-
-    'UpdateExpression': function(node, opts) {
-      if (node.prefix) {
-        return node.operator + generate(node.argument, opts);
-      } else {
-        return generate(node.argument, opts) + node.operator;
-      }
     }
   };
 

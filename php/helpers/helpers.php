@@ -143,12 +143,35 @@ function get($obj, $name) {
   return $obj->get($name);
 }
 
-function set($obj, $name, $value) {
+function set($obj, $name, $value, $op = '=', $returnOld = false) {
   if ($obj === null || $obj === Null::$null) {
     throw new Exception("TypeError: Cannot set property '" . $name . "' of " . to_string($obj));
   }
   $obj = objectify($obj);
-  return $obj->set($name, $value);
+  if ($op === '=') {
+    return $obj->set($name, $value);
+  }
+  $oldValue = $obj->get($name);
+  //todo: bitwise operators: << >> & ^ |
+  switch ($op) {
+    case '+=':
+      $newValue = js_plus($oldValue, $value);
+      break;
+    case '-=':
+      $newValue = $oldValue - $value;
+      break;
+    case '*=':
+      $newValue = $oldValue * $value;
+      break;
+    case '/=':
+      $newValue = $oldValue / $value;
+      break;
+    case '%=':
+      $newValue = $oldValue % $value;
+      break;
+  }
+  $obj->set($name, $newValue);
+  return $returnOld ? $oldValue : $newValue;
 }
 
 function call($fn) {
