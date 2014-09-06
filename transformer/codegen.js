@@ -305,6 +305,7 @@
         result = 'break;\n';
         break;
       case 'EmptyStatement':
+      case 'DebuggerStatement':
         result = '';
         break;
       case 'VariableDeclaration':
@@ -319,19 +320,18 @@
       case 'ThrowStatement':
         result = gen[type](node, opts);
         break;
-      //these should never be reached here because they are handled elsewhere
+      //these should never be encountered here because they are handled elsewhere
       case 'SwitchCase':
       case 'CatchClause':
       case 'FunctionDeclaration':
-        result = 'unsupported("' + type + '");\n';
+        throw new Error('should never encounter: "' + type + '"');
         break;
       //these are not implemented (some are es6, some are irrelevant)
       case 'DirectiveStatement':
-      case 'DebuggerStatement':
       case 'ForOfStatement':
       case 'LabeledStatement':
       case 'WithStatement':
-        result = 'unsupported("' + type + '");\n';
+        throw new Error('unsupported: "' + type + '"');
         break;
 
       //EXPRESSIONS
@@ -363,11 +363,11 @@
       case 'ArrayPattern':
       case 'ObjectPattern':
       case 'Property':
-        result = 'unsupported("' + type + '")';
+        throw new Error('unsupported: "' + type + '"');
         break;
 
       default:
-        throw new Error('Unknown node type: ' + type);
+        throw new Error('unknown node type: "' + type + '"');
     }
 
     return result;
