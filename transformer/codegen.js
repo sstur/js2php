@@ -241,7 +241,12 @@
       if (op.match(/^[a-z_]+$/)) {
         return 'js_' + op + '(' + generate(node.left, opts) + ', ' + generate(node.right, opts) + ')';
       }
-      return generate(node.left, opts) + ' ' + op + ' ' + generate(node.right, opts);
+      var parentType = node.parent && node.parent.type;
+      var result = generate(node.left, opts) + ' ' + op + ' ' + generate(node.right, opts);
+      if (parentType === 'BinaryExpression' || parentType === 'LogicalExpression') {
+        return '(' + result + ')';
+      }
+      return result;
     },
 
     'UnaryExpression': function(node, opts) {

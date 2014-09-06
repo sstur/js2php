@@ -1,10 +1,9 @@
 allow --fragment or --no-runtime to compile without the require
-fix: not building at compile time
+allow --embed-runtime to produce single file
 
 attach scope variables to function node before passing to codegen
   function d() { return d } -> $d = $arguments->callee (if d not declared)
-wrap throw in Ex extends Exception
-ContinueStatement, ThrowStatement, DoWhileStatement
+get(a, b)++, --, +=, -=, *=, /=
 operators: bitwise, negate, unary_plus, ...
 
 test:
