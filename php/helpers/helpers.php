@@ -152,7 +152,7 @@ function set($obj, $name, $value, $op = '=', $returnOld = false) {
     return $obj->set($name, $value);
   }
   $oldValue = $obj->get($name);
-  //todo: bitwise operators: << >> & ^ |
+  //todo: bitwise operators: << >> >>> & ^ |
   switch ($op) {
     case '+=':
       $newValue = x_plus($oldValue, $value);
