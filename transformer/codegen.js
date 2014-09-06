@@ -361,7 +361,14 @@
       //todo: 1e2
       return ~value.indexOf('.') ? value : value + '.0';
     }
-    throw new Error('No handler for literal of type: ' + util.inspect(value));
+    if (Object.prototype.toString.call(value) === '[object RegExp]') {
+      var flags = '';
+      if (value.global) flags += 'g';
+      if (value.ignoreCase) flags += 'i';
+      if (value.multiline) flags += 'm';
+      return 'new RegExp(' + encodeString(value.source) + ', ' + encodeString(flags) + ')';
+    }
+    throw new Error('No handler for literal of type: ' + type + ': ' + util.inspect(value));
   }
 
   function encodeString(string) {
