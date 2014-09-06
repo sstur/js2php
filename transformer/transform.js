@@ -5,8 +5,9 @@
   var util = require('util');
 
   var rocambole = require('rocambole');
+  var escope = require('escope');
 
-  var scopify = require('./scopify');
+  //var scopify = require('./scopify');
   var codegen = require('./codegen');
 
   //these constructs contain variable scope (technically, there's catch scope and ES6 let)
@@ -203,23 +204,51 @@
 
   Transformer.prototype.mutateThirdPass = function() {
     var ast = this.ast;
-    var scope = scopify(ast);
-    //fs.writeFileSync('./_scope.txt', util.inspect(scope, {depth: 4}), 'utf8');
-    function walkChildren(scope) {
-      scope.children.forEach(function(scope) {
-        if (scope.type === 'block') {
-          walkChildren(scope);
-          return;
-        }
-        var undeclared = scope.undeclared.items();
-        undeclared = undeclared.filter(function(key) {
-          return (key !== 'arguments');
+    var scopes = escope.analyze(ast).scopes;
+    scopes.forEach(function(scope) {
+      if (scope.type === 'function') {
+        var undeclaredVars = [];
+        scope.references.forEach(function(ref) {
+          if (ref.from !== scope) {
+            undeclaredVars.push(ref.identifier.name);
+          }
         });
-        set(scope.node, 'undeclaredVars', undeclared);
-        walkChildren(scope);
-      });
-    }
-    walkChildren(scope);
+        set(scope.block, 'undeclaredVars', undeclaredVars);
+      }
+    });
+    //used to append to variables that need to be renamed unique
+    var count = 0;
+    scopes.forEach(function(scope) {
+      if (scope.type === 'catch') {
+        //var param = scope.block.param;
+        var param = scope.variables[0];
+        var identifiers = [param.identifiers[0]];
+        param.references.forEach(function(ref) {
+          identifiers.push(ref.identifier);
+        });
+        var suffix = '_' + (++count) + '_';
+        identifiers.forEach(function(identifier) {
+          identifier.appendSuffix = suffix;
+        });
+      }
+    });
+//    var scope = scopify(ast);
+//    //fs.writeFileSync('./_scope.txt', util.inspect(scope, {depth: 4}), 'utf8');
+//    function walkChildren(scope) {
+//      scope.children.forEach(function(scope) {
+//        if (scope.type === 'block') {
+//          walkChildren(scope);
+//          return;
+//        }
+//        var undeclared = scope.undeclared.items();
+//        undeclared = undeclared.filter(function(key) {
+//          return (key !== 'arguments');
+//        });
+//        set(scope.node, 'undeclaredVars', undeclared);
+//        walkChildren(scope);
+//      });
+//    }
+//    walkChildren(scope);
   };
 
 
