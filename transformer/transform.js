@@ -5,7 +5,6 @@
   var util = require('util');
 
   var rocambole = require('rocambole');
-  var escodegen = require('escodegen');
 
   var scopify = require('./scopify');
   var codegen = require('./codegen');
@@ -32,6 +31,7 @@
     this.mutateFirstPass();
     this.mutateSecondPass();
     this.mutateThirdPass();
+    //var escodegen = require('escodegen');
     //var js = escodegen.generate(this.ast, {format: {indent: {style: '  '}}});
     //fs.writeFileSync('./_output.js', js, 'utf8');
     var php = codegen.generate(this.ast);
