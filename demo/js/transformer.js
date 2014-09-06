@@ -14079,8 +14079,8 @@ exports.moonwalk = function moonwalk(ast, fn){
 
   function encodeProp(node) {
     if (node.computed) {
-      //a[0] or a[b]
-      return (node.property.type === 'Literal') ? encodeLiteral(node.property.value) : encodeVar(node.property.name);
+      //a[0] or a[b] or a[b + 1]
+      return generate(node.property);
     } else {
       //a.b
       return encodeLiteral(node.property.name);
