@@ -52,7 +52,7 @@ Test::suite(
     );
     Test::assert(
       'check typeof',
-      js_typeof(Null::$null) === 'object'
+      x_typeof(Null::$null) === 'object'
     );
     Test::assert(
       'check to_string',
@@ -198,11 +198,11 @@ Test::suite(
     $dog = $Dog->construct();
     Test::assert('has method', $dog->get('speak') instanceof Func);
     Test::assert('method call', $dog->callMethod('speak') === 'hi');
-    Test::assert('proto inherit', js_instanceof($dog, $Dog));
-    Test::assert('proto inherit parent', js_instanceof($dog, $Animal));
-    Test::assert('proto inherit top', js_instanceof($dog, $Object));
+    Test::assert('proto inherit', x_instanceof($dog, $Dog));
+    Test::assert('proto inherit parent', x_instanceof($dog, $Animal));
+    Test::assert('proto inherit top', x_instanceof($dog, $Object));
     $Thing = new Func(function($this_) {});
-    Test::assert('proto not instance foreign', !js_instanceof($dog, $Thing));
+    Test::assert('proto not instance foreign', !x_instanceof($dog, $Thing));
     $Dog->get('prototype')->set('speak', new Func(function($this_) {
       return 'woof';
     }));
@@ -285,13 +285,13 @@ Test::suite(
   function() use ($String, $Object) {
     $str = $String->construct('hi');
     Test::assert('instanceof', $str instanceof Str);
-    Test::assert('type is object', js_typeof($str) === 'object');
+    Test::assert('type is object', x_typeof($str) === 'object');
     Test::assert('has value', $str->value === 'hi');
     Test::assert('has value', $str->callMethod('toString') === 'hi');
     Test::assert('has value', $str->callMethod('charAt', 0) === 'h');
     $str = $String->call(null, 'hi');
     Test::assert('is not object', !($str instanceof Str));
-    Test::assert('primitive', js_typeof($str) === 'string');
+    Test::assert('primitive', x_typeof($str) === 'string');
     Test::assert('can call on primitive', call_method($str, 'charAt', 0) === 'h');
   }
 );
@@ -301,12 +301,12 @@ Test::suite(
   function() use ($Number, $Object) {
     $num = $Number->construct(5.);
     Test::assert('instanceof', $num instanceof Number);
-    Test::assert('type is object', js_typeof($num) === 'object');
+    Test::assert('type is object', x_typeof($num) === 'object');
     Test::assert('has value', $num->value === 5.);
     Test::assert('to string', $num->callMethod('toString') === '5');
     $num = $Number->call(null, '5');
     Test::assert('is not object', !($num instanceof Str));
-    Test::assert('primitive', js_typeof($num) === 'number');
+    Test::assert('primitive', x_typeof($num) === 'number');
     Test::assert('can call on primitive', call_method($num, 'toString') === '5');
     $num = $Number->call(null, '');
     Test::assert('empty coerced', $num === 0.);

@@ -155,7 +155,7 @@ function set($obj, $name, $value, $op = '=', $returnOld = false) {
   //todo: bitwise operators: << >> & ^ |
   switch ($op) {
     case '+=':
-      $newValue = js_plus($oldValue, $value);
+      $newValue = x_plus($oldValue, $value);
       break;
     case '-=':
       $newValue = $oldValue - $value;
@@ -176,7 +176,7 @@ function set($obj, $name, $value, $op = '=', $returnOld = false) {
 
 function call($fn) {
   if (!($fn instanceof Func)) {
-    throw new Exception("TypeError: " . js_typeof($fn) . " is not a function");
+    throw new Exception("TypeError: " . x_typeof($fn) . " is not a function");
   }
   $args = array_slice(func_get_args(), 1);
   return $fn->apply(Object::$global, $args);
@@ -189,7 +189,7 @@ function call_method($obj, $name) {
   $obj = objectify($obj);
   $fn = $obj->get($name);
   if (!($fn instanceof Func)) {
-    throw new Exception("TypeError: " . js_typeof($fn) . " is not a function");
+    throw new Exception("TypeError: " . x_typeof($fn) . " is not a function");
   }
   $args = array_slice(func_get_args(), 2);
   return $fn->apply($obj, $args);

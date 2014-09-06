@@ -1,12 +1,12 @@
 <?php
 
-function js_void() {}
+function x_void() {}
 
 /**
  * @param Func $fn
  * @return Object
  */
-function js_new($fn) {
+function x_new($fn) {
   if (property_exists($fn, 'instantiate')) {
     $instantiate = $fn->instantiate;
     $obj = $instantiate();
@@ -24,7 +24,7 @@ function js_new($fn) {
  * @param Func $fn
  * @return bool
  */
-function js_instanceof($obj, $fn) {
+function x_instanceof($obj, $fn) {
   $proto = $obj->getProto();
   $prototype = $fn->get('prototype');
   while ($proto !== null) {
@@ -36,7 +36,7 @@ function js_instanceof($obj, $fn) {
   return false;
 }
 
-function js_plus($a, $b) {
+function x_plus($a, $b) {
   //todo: to_primitive() [object -> string]
   if (gettype($a) === 'string' || gettype($a) === 'string') {
     return to_string($a) . to_string($b);
@@ -45,11 +45,11 @@ function js_plus($a, $b) {
   return $a + $b;
 }
 
-function js_and($a, $b) {
+function x_and($a, $b) {
   return $a ? $b : $a;
 }
 
-function js_or($a, $b) {
+function x_or($a, $b) {
   return $a ? $a : $b;
 }
 
@@ -57,7 +57,7 @@ function js_or($a, $b) {
  * @param Object $obj
  * @param string $key
  */
-function js_delete($obj, $key) {
+function x_delete($obj, $key) {
   if (func_num_args() !== 2) {
     throw new Exception("Don't delete things that aren't properties.");
   }
@@ -71,7 +71,7 @@ function js_delete($obj, $key) {
  * @return bool
  * @throws Exception
  */
-function js_in($key, $obj) {
+function x_in($key, $obj) {
   $key = to_string($key);
   if (!($obj instanceof Object)) {
     throw new Exception("Cannot use 'in' operator to search for '" . $key . "' in " . to_string($obj));
@@ -86,7 +86,7 @@ function js_in($key, $obj) {
   return false;
 }
 
-function js_typeof($value) {
+function x_typeof($value) {
   if ($value === null) {
     return 'undefined';
   }

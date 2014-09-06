@@ -14,8 +14,6 @@ transform:
   change clearData/setData/getData -> new Data(); data.set; data.get
   don't count catch variable in `use`
 
-js_and -> x_and
-
 JSON:
   $thing->callMethod('toJSON')
   $thing->callMethod('valueOf')

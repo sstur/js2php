@@ -13910,7 +13910,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       var args = node.arguments.map(function(arg) {
         return generate(arg, opts);
       });
-      return 'js_new(' + generate(node.callee, opts) + (args.length ? ', ' + args.join(', ') : '') + ')';
+      return 'x_new(' + generate(node.callee, opts) + (args.length ? ', ' + args.join(', ') : '') + ')';
     },
 
     'AssignmentExpression': function(node, opts) {
@@ -13952,7 +13952,7 @@ exports.moonwalk = function moonwalk(ast, fn){
         op = OPERATOR_MAP[name];
       }
       if (op.match(/^[a-z_]+$/)) {
-        return 'js_' + op + '(' + generate(node.left, opts) + ', ' + generate(node.right, opts) + ')';
+        return 'x_' + op + '(' + generate(node.left, opts) + ', ' + generate(node.right, opts) + ')';
       }
       var parentType = node.parent && node.parent.type;
       var result = generate(node.left, opts) + ' ' + op + ' ' + generate(node.right, opts);
@@ -13970,10 +13970,10 @@ exports.moonwalk = function moonwalk(ast, fn){
       }
       //special case here because `delete a.b.c` needs to compute a.b and then delete c
       if (op === 'delete' && node.argument.type === 'MemberExpression') {
-        return 'js_delete(' + generate(node.argument.object, opts) + ', ' + encodeProp(node.argument) + ')';
+        return 'x_delete(' + generate(node.argument.object, opts) + ', ' + encodeProp(node.argument) + ')';
       }
       if (op.match(/^[a-z_]+$/)) {
-        return 'js_' + op + '(' + generate(node.argument, opts) + ')';
+        return 'x_' + op + '(' + generate(node.argument, opts) + ')';
       }
       return op + generate(node.argument, opts);
     },
