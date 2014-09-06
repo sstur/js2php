@@ -6176,7 +6176,7 @@ exports.moonwalk = function moonwalk(ast, fn){
     'VariableDeclaration': function(node, opts) {
       var results = [];
       node.declarations.forEach(function(node) {
-        results.push(encodeVar(node.id.name) + ' = null;');
+        results.push(encodeVar(node.id) + ' = null;');
       });
       return results.join(' ') + '\n';
     },
@@ -6249,7 +6249,7 @@ exports.moonwalk = function moonwalk(ast, fn){
         throw new Error('Unknown left part of for..in `' + node.left.type + '`');
       }
       results.push('foreach (keys(');
-      results.push(generate(node.right, opts) + ') as $i_ => ' + encodeVar(identifier.name) + ') {\n');
+      results.push(generate(node.right, opts) + ') as $i_ => ' + encodeVar(identifier) + ') {\n');
       results.push(gen.Body(node.body, opts));
       results.push(indent(opts.indentLevel) + '}');
       return results.join('') + '\n';
@@ -6283,7 +6283,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       var results = ['try {\n'];
       results.push(gen.Body(node.block, opts));
       results.push(indent(opts.indentLevel) + '} catch(Exception $e_) {\n');
-      results.push(indent(opts.indentLevel + 1) + encodeVar(catchClause.param.name) + ' = $e_ instanceof Ex ? $e_->value : $e_;\n');
+      results.push(indent(opts.indentLevel + 1) + encodeVar(catchClause.param) + ' = $e_ instanceof Ex ? $e_->value : $e_;\n');
       results.push(gen.Body(catchClause.body, opts));
       results.push(indent(opts.indentLevel) + '}');
       return results.join('') + '\n';
@@ -6299,7 +6299,7 @@ exports.moonwalk = function moonwalk(ast, fn){
         results.push(encodeString(node.id.name) + ', ');
       }
       var params = node.params.map(function(param) {
-        return encodeVar(param.name);
+        return encodeVar(param);
       });
       params.unshift('$arguments');
       params.unshift('$this_');
@@ -6311,10 +6311,10 @@ exports.moonwalk = function moonwalk(ast, fn){
           lexicalVars.splice(functionNameIndex, 1);
         }
       }
-      var useClause = lexicalVars.length ? 'use (&' + lexicalVars.map(encodeVar).join(', &') + ') ' : '';
+      var useClause = lexicalVars.length ? 'use (&' + lexicalVars.map(encodeVarName).join(', &') + ') ' : '';
       results.push('function(' + params.join(', ') + ') ' + useClause + '{\n');
       if (functionName && functionNameIndex !== -1) {
-        results.push(indent(opts.indentLevel + 1) + encodeVar(functionName) + ' = $arguments->callee;\n');
+        results.push(indent(opts.indentLevel + 1) + encodeVarName(functionName) + ' = $arguments->callee;\n');
       }
       results.push(gen.Body(node.body, opts));
       results.push(indent(opts.indentLevel) + '})');
@@ -6371,7 +6371,7 @@ exports.moonwalk = function moonwalk(ast, fn){
           return 'set(' + generate(node.left.object, opts) + ', ' + encodeProp(node.left) + ', ' + generate(node.right, opts) + ', "' + node.operator + '")';
         }
       }
-      return encodeVar(node.left.name) + ' ' + node.operator + ' ' + generate(node.right, opts);
+      return encodeVar(node.left) + ' ' + node.operator + ' ' + generate(node.right, opts);
     },
 
     'UpdateExpression': function(node, opts) {
@@ -6498,7 +6498,7 @@ exports.moonwalk = function moonwalk(ast, fn){
         result = encodeLiteral(node.value, opts);
         break;
       case 'Identifier':
-        result = encodeVar(node.name);
+        result = encodeVar(node);
         break;
       case 'ThisExpression':
         result = '$this_';
@@ -6601,7 +6601,17 @@ exports.moonwalk = function moonwalk(ast, fn){
     }
   }
 
-  function encodeVar(name) {
+  function encodeVar(identifier) {
+    var name = identifier.name;
+    if (identifier.appendSuffix) {
+      name += identifier.appendSuffix;
+    } else {
+      name = name.replace(/_$/, '__');
+    }
+    return '$' + name.replace(/[^a-z0-9_]/ig, encodeVarChar);
+  }
+
+  function encodeVarName(name) {
     return '$' + name.replace(/_$/, '__').replace(/[^a-z0-9_]/ig, encodeVarChar);
   }
 
@@ -6849,7 +6859,6 @@ exports.moonwalk = function moonwalk(ast, fn){
     var count = 0;
     scopes.forEach(function(scope) {
       if (scope.type === 'catch') {
-        console.log('catch', scope.block.param.name, scope.block.param === scope.variables[0].identifiers[0]);
         //var param = scope.block.param;
         var param = scope.variables[0];
         var identifiers = [param.identifiers[0]];
