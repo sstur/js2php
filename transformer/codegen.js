@@ -99,6 +99,13 @@
       return results.join('') + '\n';
     },
 
+    'DoWhileStatement': function(node, opts) {
+      var results = ['do {\n'];
+      results.push(gen.Body(node.body, opts));
+      results.push(indent(opts.indentLevel) + '} while (' + generate(node.test, opts) + ');');
+      return results.join('') + '\n';
+    },
+
     'BlockStatement': function(node, opts) {
       var results = ['{\n'];
       results.push(gen.Body(node, opts));
@@ -266,6 +273,9 @@
       case 'ReturnStatement':
         result = 'return ' + generate(node.argument) + ';\n';
         break;
+      case 'ContinueStatement':
+        result = 'continue;\n';
+        break;
       case 'EmptyStatement':
         result = '';
         break;
@@ -274,6 +284,7 @@
       case 'ForStatement':
       case 'ForInStatement':
       case 'WhileStatement':
+      case 'DoWhileStatement':
       case 'BlockStatement':
       case 'TryStatement':
       case 'ThrowStatement':
@@ -281,9 +292,7 @@
         break;
       case 'BreakStatement':
       case 'CatchClause':
-      case 'ContinueStatement':
       case 'DirectiveStatement':
-      case 'DoWhileStatement':
       case 'DebuggerStatement':
       case 'ForOfStatement':
       case 'FunctionDeclaration':
