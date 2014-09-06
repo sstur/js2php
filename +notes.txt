@@ -3,21 +3,81 @@ rsync -av ../js2php dev:~/
 
 Divergence from JavaScript
   Cannot Implement:
-    "0" -> truthy
     arguments.caller
   Not Implemented:
+    "0" -> truthy
     function.length
     Implicitly setting globals
     eval or new Function(string)
 
 Compiling:
-  keyword literals: null -> _Null::$null, undefined -> null
-  {a: 1} -> new _Object('a', 1)
-  [1, 2] -> new _Array(1, 2)
-  function () {} -> new _Function(function() use (...) {})
-  /abc/i -> new _RegExp('abc', 'i')
-  operators to functions (add, typeof, instance_of, or_, and_, eq)
-  compute a function's `use` (lexical scope) at compile time
+  keyword literals: null -> Null::$null, undefined -> null
+  {a: 1} -> new Object('a', 1)
+  [1, 2] -> new Arr(1, 2)
+  /abc/i -> new RegExp('abc', 'i')
+  operators to functions (x_add, x_typeof, x_instanceof, x_or, x_and, x_eq)
+  function () {} -> new Func(function() use (...) {})
+  compute a function's `use` (lexical references) at compile time
 
-Optimisations:
-  functions can be instantiated using $Array->construct()
+Optimizations:
+  functions can be instantiated like $Array->construct()
+
+
+Array -> Arr
+Boolean -> Bln
+Buffer [todo]
+Date
+Error
+Function -> Func
+Number
+Object
+RegExp
+String -> Str
+--
+Global -> GlobalObject
+NaN
+Null
+--
+Ex (exception wrapper)
+
+
+class Thing { function __construct() { $args = func_get_args(); echo count($args) . "\n"; } }
+new Thing(1, 2)
+$Thing = new ReflectionClass('Thing');
+$Thing->newInstanceArgs(array('a', 'b', 'c'))
+
+
+<?php
+mb_internal_encoding("UTF-8");
+$string = '↗Զ';
+$char = mb_substr($string, 0, 1);
+var_dump(bin2hex($char)); //hex
+var_dump(hexdec(bin2hex($char))); //decimal
+
+
+
+
+$data = stream_get_contents(STDIN);
+--OR--
+while(!feof(STDIN)){
+    $line = fgets(STDIN);
+}
+--
+STDIN is just short for fopen("php://stdin", "r");
+
+
+------
+
+PHPJet
+
+all variables and functions => $var
+[] => array() --or-- new ArrayObject(array(), ArrayObject::ARRAY_AS_PROPS)
+  or use getters/setters so $arr->{0} becomes $arr[0]
+{} => createStdClass()
+obj.prop => $obj->prop
+obj[prop] => $obj->{$prop}
+Obj.prop => Obj::prop
+built-in functions organized into classes like:
+Math.log(num) => Math::log($num)
+String.length(str) => String::length($str) --or-- String(str).length => String::create($str)->length
+

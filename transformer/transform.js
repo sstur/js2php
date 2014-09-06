@@ -202,20 +202,54 @@
     this.ast = rocambole.parse(this.source);
   };
 
+  function varByName(scope, name) {
+    var variables = scope.variables;
+    for (var i = 0, len = variables.length; i < len; i++) {
+      var variable = variables[i];
+      if (variable.name === name) {
+        return variable;
+      }
+    }
+    throw new Error('variable definition not found: ' + name);
+  }
+
   Transformer.prototype.mutateThirdPass = function() {
     var ast = this.ast;
     var scopes = escope.analyze(ast).scopes;
-    scopes.forEach(function(scope) {
-      if (scope.type === 'function') {
-        var undeclaredVars = [];
-        scope.references.forEach(function(ref) {
-          if (ref.from !== scope) {
-            undeclaredVars.push(ref.identifier.name);
+    var getReferences = function(scope) {
+      var references = Object.create(null);
+      scope.references.forEach(function(ref) {
+        var name = ref.identifier.name;
+        var fromScope = ref.from;
+        if (!references[name] && fromScope !== scope) {
+          references[name] = varByName(fromScope, name);
+        }
+      });
+      var childScopes = scopes.childScopes || [];
+      childScopes.forEach(function(childScope) {
+        var childReferences = getReferences(childScope);
+        Object.keys(childReferences).forEach(function(name) {
+          var fromScope = childReferences[name].scope;
+          if (!references[name] && fromScope !== scope) {
+            references[name] = varByName(fromScope, name);
           }
         });
-        set(scope.block, 'undeclaredVars', undeclaredVars);
-      }
-    });
+      });
+      set(scope.block, 'undeclaredRefs', references);
+      return references;
+    };
+    getReferences(scopes[0]);
+    //scopes.forEach(function(scope) {
+    //  if (scope.type === 'function') {
+    //    var undeclaredRefs = [];
+    //    scope.references.forEach(function(ref) {
+    //      if (ref.from !== scope) {
+    //        undeclaredRefs.push(ref.identifier.name);
+    //      }
+    //    });
+    //    set(scope.block, 'undeclaredRefs', undeclaredRefs);
+    //  }
+    //});
     //used to append to variables that need to be renamed unique
     var count = 0;
     scopes.forEach(function(scope) {
@@ -244,7 +278,7 @@
 //        undeclared = undeclared.filter(function(key) {
 //          return (key !== 'arguments');
 //        });
-//        set(scope.node, 'undeclaredVars', undeclared);
+//        set(scope.node, 'undeclaredRefs', undeclared);
 //        walkChildren(scope);
 //      });
 //    }

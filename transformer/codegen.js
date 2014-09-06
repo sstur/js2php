@@ -164,7 +164,7 @@
       });
       params.unshift('$arguments');
       params.unshift('$this_');
-      var lexicalVars = node.undeclaredVars || [];
+      var lexicalVars = node.undeclaredRefs || [];
       if (node.id) {
         var functionName = node.id.name;
         var functionNameIndex = lexicalVars.indexOf(functionName);
