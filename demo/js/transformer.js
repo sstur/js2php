@@ -6280,10 +6280,11 @@ exports.moonwalk = function moonwalk(ast, fn){
 
     'TryStatement': function(node, opts) {
       var catchClause = node.handlers[0];
+      var param = catchClause.param;
       var results = ['try {\n'];
       results.push(gen.Body(node.block, opts));
-      results.push(indent(opts.indentLevel) + '} catch(Exception $e_) {\n');
-      results.push(indent(opts.indentLevel + 1) + encodeVar(catchClause.param) + ' = $e_ instanceof Ex ? $e_->value : $e_;\n');
+      results.push(indent(opts.indentLevel) + '} catch(Exception ' + encodeVar(param) + ') {\n');
+      results.push(indent(opts.indentLevel + 1) + 'if (' + encodeVar(param) + ' instanceof Ex) ' + encodeVar(param) + ' = ' + encodeVar(param) + '->value;\n');
       results.push(gen.Body(catchClause.body, opts));
       results.push(indent(opts.indentLevel) + '}');
       return results.join('') + '\n';
