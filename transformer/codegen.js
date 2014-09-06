@@ -1,6 +1,8 @@
 (function() {
   var util = require('util');
 
+  var toString = Object.prototype.toString;
+
   var OPERATOR_MAP = {
     //unary operators
     'u:-': 'negate',
@@ -391,14 +393,22 @@
       //todo: 1e2
       return ~value.indexOf('.') ? value : value + '.0';
     }
-    if (Object.prototype.toString.call(value) === '[object RegExp]') {
-      var flags = '';
-      if (value.global) flags += 'g';
-      if (value.ignoreCase) flags += 'i';
-      if (value.multiline) flags += 'm';
-      return 'new RegExp(' + encodeString(value.source) + ', ' + encodeString(flags) + ')';
+    if (toString.call(value) === '[object RegExp]') {
+      return encodeRegExp(value);
     }
     throw new Error('No handler for literal of type: ' + type + ': ' + util.inspect(value));
+  }
+
+  function encodeRegExp(value) {
+    var flags = '';
+    if (value.global) flags += 'g';
+    if (value.ignoreCase) flags += 'i';
+    if (value.multiline) flags += 'm';
+    //normalize source to ensure no forward slashes are "escaped"
+    var source = value.source.replace(/\\./g, function(s) {
+      return (s === '\\/') ? '/' : s;
+    });
+    return 'new RegExp(' + encodeString(source) + ', ' + encodeString(flags) + ')';
   }
 
   function encodeString(string) {
