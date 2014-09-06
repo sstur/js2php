@@ -13750,6 +13750,29 @@ exports.moonwalk = function moonwalk(ast, fn){
       return results.join('') + '\n';
     },
 
+    'SwitchStatement': function(node, opts) {
+      var results = ['switch ('];
+      results.push(generate(node.discriminant, opts));
+      results.push(') {\n');
+      opts.indentLevel += 1;
+      node.cases.forEach(function(node) {
+        results.push(indent(opts.indentLevel));
+        if (node.test === null) {
+          results.push('default:\n');
+        } else {
+          results.push('case ' + generate(node.test, opts) + ':\n');
+        }
+        opts.indentLevel += 1;
+        node.consequent.forEach(function(node) {
+          results.push(indent(opts.indentLevel) + generate(node, opts));
+        });
+        opts.indentLevel -= 1;
+      });
+      opts.indentLevel -= 1;
+      results.push(indent(opts.indentLevel) + '}');
+      return results.join('') + '\n';
+    },
+
     'ConditionalExpression': function(node, opts) {
       return generate(node.test, opts) + ' ? ' + generate(node.consequent, opts) + ' : ' + generate(node.alternate, opts);
     },
@@ -13968,11 +13991,15 @@ exports.moonwalk = function moonwalk(ast, fn){
       case 'ContinueStatement':
         result = 'continue;\n';
         break;
+      case 'BreakStatement':
+        result = 'break;\n';
+        break;
       case 'EmptyStatement':
         result = '';
         break;
       case 'VariableDeclaration':
       case 'IfStatement':
+      case 'SwitchStatement':
       case 'ForStatement':
       case 'ForInStatement':
       case 'WhileStatement':
@@ -13982,17 +14009,19 @@ exports.moonwalk = function moonwalk(ast, fn){
       case 'ThrowStatement':
         result = gen[type](node, opts);
         break;
-      case 'BreakStatement':
+      //these should never be reached here because they are handled elsewhere
+      case 'SwitchCase':
       case 'CatchClause':
+      case 'FunctionDeclaration':
+        result = 'unsupported("' + type + '");\n';
+        break;
+      //these are not implemented (some are es6, some are irrelevant)
       case 'DirectiveStatement':
       case 'DebuggerStatement':
       case 'ForOfStatement':
-      case 'FunctionDeclaration':
       case 'LabeledStatement':
-      case 'SwitchStatement':
-      case 'SwitchCase':
       case 'WithStatement':
-        result = 'unsupported("' + node.type + '");\n';
+        result = 'unsupported("' + type + '");\n';
         break;
 
       //EXPRESSIONS
@@ -14020,14 +14049,15 @@ exports.moonwalk = function moonwalk(ast, fn){
       case 'ConditionalExpression':
         result = gen[type](node, opts);
         break;
+      //these are not implemented (es6?)
       case 'ArrayPattern':
       case 'ObjectPattern':
       case 'Property':
-        result = 'unsupported("' + node.type + '")';
+        result = 'unsupported("' + type + '")';
         break;
 
       default:
-        throw new Error('Unknown node type: ' + node.type);
+        throw new Error('Unknown node type: ' + type);
     }
 
     return result;
@@ -14053,7 +14083,14 @@ exports.moonwalk = function moonwalk(ast, fn){
       //todo: 1e2
       return ~value.indexOf('.') ? value : value + '.0';
     }
-    throw new Error('No handler for literal of type: ' + util.inspect(value));
+    if (Object.prototype.toString.call(value) === '[object RegExp]') {
+      var flags = '';
+      if (value.global) flags += 'g';
+      if (value.ignoreCase) flags += 'i';
+      if (value.multiline) flags += 'm';
+      return 'new RegExp(' + encodeString(value.source) + ', ' + encodeString(flags) + ')';
+    }
+    throw new Error('No handler for literal of type: ' + type + ': ' + util.inspect(value));
   }
 
   function encodeString(string) {
