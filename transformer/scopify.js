@@ -52,10 +52,6 @@ var scopify = (function() {
       && node.kind !== 'var';
   }
 
-  // ###############
-  // ### HashSet ###
-  // ###############
-
   function HashSet(items) {
     this.data = Object.create(null);
     this.size = 0;
@@ -123,11 +119,8 @@ var scopify = (function() {
     }
   });
 
-  // #############
-  // ### Scope ###
-  // #############
-
-  function Scope() {
+  function Scope(node) {
+    this.node = node;
     this.declared = new HashSet();
     this.undeclared = null;
     this.used = new HashSet();
@@ -148,20 +141,12 @@ var scopify = (function() {
     }
   });
 
-  // ###################
-  // ### GlobalScope ###
-  // ###################
-
-  function GlobalScope() {
+  function GlobalScope(node) {
     this.type = 'global';
-    Scope.call(this);
+    Scope.call(this, node);
   }
 
   inherit(GlobalScope, Scope, {});
-
-  // #####################
-  // ### FunctionScope ###
-  // #####################
 
   function FunctionScope(node, outer) {
     this.type = 'function';
@@ -169,8 +154,7 @@ var scopify = (function() {
     if (node.type === 'FunctionExpression') {
       this.expression = true;
     }
-    Scope.call(this);
-    this.node = node;
+    Scope.call(this, node);
     hide(this, 'node');
     this.outer = outer;
     hide(this, 'outer');
@@ -187,13 +171,9 @@ var scopify = (function() {
     }
   });
 
-  // ##################
-  // ### BlockScope ###
-  // ##################
-
-  function BlockScope(outer) {
+  function BlockScope(node, outer) {
     this.type = 'block';
-    Scope.call(this);
+    Scope.call(this, node);
     this.outer = outer;
     hide(this, 'outer');
     outer.children.push(this);
@@ -244,13 +224,13 @@ var scopify = (function() {
       });
     },
     BlockStatement: function(node, scope) {
-      var childScope = new BlockScope(scope);
+      var childScope = new BlockScope(node, scope);
       scanEach(node.body, childScope);
       childScope.close();
     },
     ForStatement: function(node, scope) {
       if (node.init && isLexicalDeclaration(node.init)) {
-        var childScope = new BlockScope(scope);
+        var childScope = new BlockScope(node, scope);
         scanEach(node, childScope);
         childScope.close();
       } else {
@@ -259,7 +239,7 @@ var scopify = (function() {
     },
     ForInStatement: function(node, scope) {
       if (isLexicalDeclaration(node.left)) {
-        var childScope = new BlockScope(scope);
+        var childScope = new BlockScope(node, scope);
         scanEach(node, childScope);
         childScope.close();
       } else {
@@ -312,17 +292,17 @@ var scopify = (function() {
     }
   };
 
-  function getName(memberExpr) {
-    var object = memberExpr.object;
-    if (object.type === 'ThisExpression') {
-      return 'this';
-    } else
-    if (object.type === 'MemberExpression') {
-      return getName(object) + '.' + object.property.name;
-    } else {
-      return object.name;
-    }
-  }
+  //function getName(memberExpr) {
+  //  var object = memberExpr.object;
+  //  if (object.type === 'ThisExpression') {
+  //    return 'this';
+  //  } else
+  //  if (object.type === 'MemberExpression') {
+  //    return getName(object) + '.' + object.property.name;
+  //  } else {
+  //    return object.name;
+  //  }
+  //}
 
   // recursive AST node walkers
   var DO_NOT_SCAN = {
@@ -366,7 +346,7 @@ var scopify = (function() {
 
   var scopify = function scopify(input) {
     var node = isObject(input) ? input : esprima.parse(input);
-    var scope = new GlobalScope();
+    var scope = new GlobalScope(node);
     scanEach(node.body, scope);
     scope.close();
     return scope;
