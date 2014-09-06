@@ -225,6 +225,9 @@ var scopify = (function() {
     },
     BlockStatement: function(node, scope) {
       var childScope = new BlockScope(node, scope);
+      if (node.parent.type === 'CatchClause') {
+        childScope.declare('let', node.parent.param.name);
+      }
       scanEach(node.body, childScope);
       childScope.close();
     },
