@@ -106,6 +106,16 @@
       return results.join('') + '\n';
     },
 
+    'TryStatement': function(node, opts) {
+      var catchClause = node.handlers[0];
+      var results = ['try {\n'];
+      results.push(gen.Body(node.block, opts));
+      results.push(indent(opts.indentLevel) + '} catch(Exception ' + encodeVar(catchClause.param.name) + ') {\n');
+      results.push(gen.Body(catchClause.body, opts));
+      results.push(indent(opts.indentLevel) + '}');
+      return results.join('') + '\n';
+    },
+
     'FunctionExpression': function(node, opts) {
       var results = ['new Func('];
       if (node.id) {
@@ -260,6 +270,7 @@
       case 'ForInStatement':
       case 'WhileStatement':
       case 'BlockStatement':
+      case 'TryStatement':
         result = gen[type](node, opts);
         break;
       case 'BreakStatement':
@@ -274,7 +285,6 @@
       case 'SwitchStatement':
       case 'SwitchCase':
       case 'ThrowStatement':
-      case 'TryStatement':
       case 'WithStatement':
         result = 'unsupported("' + node.type + '");\n';
         break;

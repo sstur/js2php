@@ -1,8 +1,18 @@
 allow --fragment or --no-runtime to compile without the require
 fix: not building at compile time
 
-n = +n
+attach scope variables to function node before passing to codegen
+  function d() { return d } -> $d = $arguments->callee (if d not declared)
+wrap throw in Ex extends Exception
+ContinueStatement, ThrowStatement, DoWhileStatement
+operators: bitwise, negate, unary_plus, ...
 
+test:
+  keys() for `for..in`
+  js_in
+
+transform:
+  change clearData/setData/getData -> new Data(); data.set; data.get
 
 js_and -> x_and
 
@@ -13,9 +23,6 @@ JSON:
 wrap(new Exception())
 
 to_number('x') + 1 -> 1 (should be NaN)
-
-operators:
-  ~, >>> (bitwise)
 
 $Number
   "NaN", "MAX_VALUE", "MIN_VALUE", "NEGATIVE_INFINITY", "POSITIVE_INFINITY"
