@@ -110,10 +110,15 @@
       var catchClause = node.handlers[0];
       var results = ['try {\n'];
       results.push(gen.Body(node.block, opts));
-      results.push(indent(opts.indentLevel) + '} catch(Exception ' + encodeVar(catchClause.param.name) + ') {\n');
+      results.push(indent(opts.indentLevel) + '} catch(Exception $e_) {\n');
+      results.push(indent(opts.indentLevel + 1) + encodeVar(catchClause.param.name) + ' = $e_ instanceof Ex ? $e_->value : $e_;\n');
       results.push(gen.Body(catchClause.body, opts));
       results.push(indent(opts.indentLevel) + '}');
       return results.join('') + '\n';
+    },
+
+    'ThrowStatement': function(node, opts) {
+      return 'throw new Ex(' + generate(node.argument, opts) + ');\n';
     },
 
     'FunctionExpression': function(node, opts) {
@@ -271,6 +276,7 @@
       case 'WhileStatement':
       case 'BlockStatement':
       case 'TryStatement':
+      case 'ThrowStatement':
         result = gen[type](node, opts);
         break;
       case 'BreakStatement':
@@ -284,7 +290,6 @@
       case 'LabeledStatement':
       case 'SwitchStatement':
       case 'SwitchCase':
-      case 'ThrowStatement':
       case 'WithStatement':
         result = 'unsupported("' + node.type + '");\n';
         break;
