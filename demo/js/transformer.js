@@ -14608,7 +14608,6 @@ if (typeof module === 'object') {
 
   Transformer.prototype.mutateFirstPass = function() {
     var ast = this.ast;
-    var data = new Data();
     //first we grab the index of each point where we wish to splice the code
     var splicePoints = [];
 
@@ -14672,7 +14671,7 @@ if (typeof module === 'object') {
         if (scopesWithFunctionDeclarations.indexOf(scope) === -1) {
           scopesWithFunctionDeclarations.push(scope);
         }
-        data.set(node, 'parentScope', scope);
+        set(node, 'parentScope', scope);
         functionsDeclarations.push(node);
       }
     });
@@ -14682,7 +14681,7 @@ if (typeof module === 'object') {
     scopesWithFunctionDeclarations.forEach(function(scope) {
       var toHoist = [];
       functionsDeclarations.forEach(function(func) {
-        if (data.get(func, 'parentScope') !== scope) return;
+        if (func.parentScope !== scope) return;
         //drop in comment placeholders for later hoisting
         var index = ++count;
         toHoist.push('/*!' + index + ':' + func.id.name + '!*/');
@@ -14713,7 +14712,6 @@ if (typeof module === 'object') {
 
   Transformer.prototype.mutateSecondPass = function() {
     var ast = this.ast;
-    var data = new Data();
     //first we grab the index of each point where we wish to splice the code
     var splicePoints = [];
     var scopesWithVars = [];
@@ -14731,7 +14729,7 @@ if (typeof module === 'object') {
         if (scopesWithVars.indexOf(scope) === -1) {
           scopesWithVars.push(scope);
         }
-        var varNames = data.get(scope, 'vars') || data.set(scope, 'vars', []);
+        var varNames = scope.vars || set(scope, 'vars', []);
         if (varNames.indexOf(decl.id.name) === -1) {
           varNames.push(decl.id.name);
         }
@@ -14756,7 +14754,7 @@ if (typeof module === 'object') {
 
     //hoist var declarations
     scopesWithVars.forEach(function(scope) {
-      var vars = data.get(scope, 'vars') || [];
+      var vars = scope.vars || [];
       splicePoints.push({
         index: scope.type === 'Program' ? scope.startToken.range[0] : scope.startToken.range[1],
         insert: '\nvar ' + vars.join(', ') + ';\n'
@@ -14865,33 +14863,8 @@ if (typeof module === 'object') {
       writable: true,
       configurable: true
     });
+    return value;
   }
-
-
-  function Data() {
-    this.objects = [];
-    this.dataSets = {};
-  }
-
-  Data.prototype.get = function(object, name) {
-    var objects = this.objects;
-    var dataSets = this.dataSets;
-    var index = objects.indexOf(object);
-    var data = (index !== -1) && dataSets[index] || {};
-    return data[name];
-  };
-
-  Data.prototype.set = function(object, name, value) {
-    var objects = this.objects;
-    var dataSets = this.dataSets;
-    var index = objects.indexOf(object);
-    if (index === -1) {
-      objects.push(object);
-      index = objects.length - 1;
-    }
-    var data = dataSets[index] || (dataSets[index] = {});
-    return (data[name] = value);
-  };
 
 })();
 }).call(this,"/")
