@@ -174,7 +174,7 @@
       }
       splicePoints.push({
         index: node.range[0],
-        removeCount: 3
+        removeCount: 4
       });
     });
 
