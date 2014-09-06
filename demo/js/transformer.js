@@ -13694,9 +13694,20 @@ exports.moonwalk = function moonwalk(ast, fn){
   var util = _dereq_('util');
 
   var OPERATOR_MAP = {
-    '+': 'plus',
-    '&&': 'and',
-    '||': 'or'
+    //unary operators
+    'u:-': 'negate',
+    'u:+': 'unary_plus',
+    'u:~': 'bitwise_not',
+    //binary operators
+    'b:+': 'plus',
+    'b:&&': 'and',
+    'b:||': 'or',
+    'b:&': 'bitwise_and',
+    'b:|': 'bitwise_or',
+    'b:^': 'bitwise_xor',
+    'b:<<': 'bitwise_ls', //Left shift
+    'b:>>': 'bitwise_sprs', //Sign-propagating right shift
+    'b:>>>': 'bitwise_zfrs' //Zero-fill right shift
   };
 
   var gen = {
@@ -13704,7 +13715,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       var results = [];
       opts.indentLevel += 1;
       node.body.forEach(function(node) {
-        results.push(repeat('  ', opts.indentLevel) + generate(node, opts));
+        results.push(indent(opts.indentLevel) + generate(node, opts));
       });
       if (opts.indentLevel > 0) {
         opts.indentLevel -= 1;
@@ -13725,13 +13736,13 @@ exports.moonwalk = function moonwalk(ast, fn){
       results.push(generate(node.test, opts));
       results.push(') {\n');
       results.push(gen.Body(node.consequent, opts));
-      results.push(repeat('  ', opts.indentLevel) + '}');
+      results.push(indent(opts.indentLevel) + '}');
       if (node.alternate) {
         results.push(' else ');
         if (node.alternate.type === 'BlockStatement') {
           results.push('{\n');
           results.push(gen.Body(node.alternate, opts));
-          results.push(repeat('  ', opts.indentLevel) + '}\n');
+          results.push(indent(opts.indentLevel) + '}\n');
         } else {
           results.push(generate(node.alternate, opts));
         }
@@ -13750,7 +13761,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       results.push(generate(node.update, opts));
       results.push(') {\n');
       results.push(gen.Body(node.body, opts));
-      results.push(repeat('  ', opts.indentLevel) + '}');
+      results.push(indent(opts.indentLevel) + '}');
       return results.join('') + '\n';
     },
 
@@ -13767,7 +13778,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       results.push('foreach (keys(');
       results.push(generate(node.right, opts) + ') as $i_ => ' + encodeVar(identifier.name) + ') {\n');
       results.push(gen.Body(node.body, opts));
-      results.push(repeat('  ', opts.indentLevel) + '}');
+      results.push(indent(opts.indentLevel) + '}');
       return results.join('') + '\n';
     },
 
@@ -13776,8 +13787,37 @@ exports.moonwalk = function moonwalk(ast, fn){
       results.push(generate(node.test, opts));
       results.push(') {\n');
       results.push(gen.Body(node.body, opts));
-      results.push(repeat('  ', opts.indentLevel) + '}');
+      results.push(indent(opts.indentLevel) + '}');
       return results.join('') + '\n';
+    },
+
+    'DoWhileStatement': function(node, opts) {
+      var results = ['do {\n'];
+      results.push(gen.Body(node.body, opts));
+      results.push(indent(opts.indentLevel) + '} while (' + generate(node.test, opts) + ');');
+      return results.join('') + '\n';
+    },
+
+    'BlockStatement': function(node, opts) {
+      var results = ['{\n'];
+      results.push(gen.Body(node, opts));
+      results.push(indent(opts.indentLevel) + '}');
+      return results.join('') + '\n';
+    },
+
+    'TryStatement': function(node, opts) {
+      var catchClause = node.handlers[0];
+      var results = ['try {\n'];
+      results.push(gen.Body(node.block, opts));
+      results.push(indent(opts.indentLevel) + '} catch(Exception $e_) {\n');
+      results.push(indent(opts.indentLevel + 1) + encodeVar(catchClause.param.name) + ' = $e_ instanceof Ex ? $e_->value : $e_;\n');
+      results.push(gen.Body(catchClause.body, opts));
+      results.push(indent(opts.indentLevel) + '}');
+      return results.join('') + '\n';
+    },
+
+    'ThrowStatement': function(node, opts) {
+      return 'throw new Ex(' + generate(node.argument, opts) + ');\n';
     },
 
     'FunctionExpression': function(node, opts) {
@@ -13799,8 +13839,11 @@ exports.moonwalk = function moonwalk(ast, fn){
         }
       }
       results.push('function(' + params.join(', ') + ') ' + lexicalVars + '{\n');
+      if (node.id) {
+        results.push(indent(opts.indentLevel + 1) + encodeVar(node.id.name) + ' = $arguments->callee;\n');
+      }
       results.push(gen.Body(node.body, opts));
-      results.push(repeat('  ', opts.indentLevel) + '})');
+      results.push(indent(opts.indentLevel) + '})');
       return results.join('');
     },
 
@@ -13813,9 +13856,12 @@ exports.moonwalk = function moonwalk(ast, fn){
 
     'ObjectExpression': function(node, opts) {
       var items = [];
-      node.properties.forEach(function(node) {
-        items.push(encodeString(node.key.name));
-        items.push(generate(node.value, opts));
+      node.properties.forEach(function(nod) {
+        var key = nod.key;
+        //key can be a literal or an identifier (quoted or not)
+        var keyName = (key.type === 'Identifier') ? key.name : key.value;
+        items.push(encodeString(keyName));
+        items.push(generate(nod.value, opts));
       });
       return 'new Object(' + items.join(', ') + ')';
     },
@@ -13849,12 +13895,17 @@ exports.moonwalk = function moonwalk(ast, fn){
       return encodeVar(node.left.name) + ' ' + node.operator + ' ' + generate(node.right, opts);
     },
 
+    'LogicalExpression': function(node, opts) {
+      return gen.BinaryExpression(node, opts);
+    },
+
     'BinaryExpression': function(node, opts) {
       var op = node.operator;
-      if (op in OPERATOR_MAP) {
-        op = OPERATOR_MAP[op];
+      var name = 'b:' + op;
+      if (name in OPERATOR_MAP) {
+        op = OPERATOR_MAP[name];
       }
-      if (op.match(/^[a-z]+$/)) {
+      if (op.match(/^[a-z_]+$/)) {
         return 'js_' + op + '(' + generate(node.left, opts) + ', ' + generate(node.right, opts) + ')';
       }
       return generate(node.left, opts) + ' ' + op + ' ' + generate(node.right, opts);
@@ -13862,14 +13913,15 @@ exports.moonwalk = function moonwalk(ast, fn){
 
     'UnaryExpression': function(node, opts) {
       var op = node.operator;
-      if (op in OPERATOR_MAP) {
-        op = OPERATOR_MAP[op];
+      var name = 'u:' + op;
+      if (name in OPERATOR_MAP) {
+        op = OPERATOR_MAP[name];
       }
       //special case here because `delete a.b.c` needs to compute a.b and then delete c
       if (op === 'delete' && node.argument.type === 'MemberExpression') {
         return 'js_delete(' + generate(node.argument.object, opts) + ', ' + encodeProp(node.argument) + ')';
       }
-      if (op.match(/^[a-z]+$/)) {
+      if (op.match(/^[a-z_]+$/)) {
         return 'js_' + op + '(' + generate(node.argument, opts) + ')';
       }
       return op + generate(node.argument, opts);
@@ -13896,6 +13948,10 @@ exports.moonwalk = function moonwalk(ast, fn){
     if (opts.indentLevel == null) {
       opts.indentLevel = -1;
     }
+    //we might get a null call `for (; i < l; i++) { ... }`
+    if (node == null) {
+      return '';
+    }
     var type = node.type;
     var result;
     switch (type) {
@@ -13909,28 +13965,32 @@ exports.moonwalk = function moonwalk(ast, fn){
       case 'ReturnStatement':
         result = 'return ' + generate(node.argument) + ';\n';
         break;
+      case 'ContinueStatement':
+        result = 'continue;\n';
+        break;
+      case 'EmptyStatement':
+        result = '';
+        break;
       case 'VariableDeclaration':
       case 'IfStatement':
       case 'ForStatement':
       case 'ForInStatement':
       case 'WhileStatement':
+      case 'DoWhileStatement':
+      case 'BlockStatement':
+      case 'TryStatement':
+      case 'ThrowStatement':
         result = gen[type](node, opts);
         break;
-      case 'BlockStatement':
       case 'BreakStatement':
       case 'CatchClause':
-      case 'ContinueStatement':
       case 'DirectiveStatement':
-      case 'DoWhileStatement':
       case 'DebuggerStatement':
-      case 'EmptyStatement':
       case 'ForOfStatement':
       case 'FunctionDeclaration':
       case 'LabeledStatement':
       case 'SwitchStatement':
       case 'SwitchCase':
-      case 'ThrowStatement':
-      case 'TryStatement':
       case 'WithStatement':
         result = 'unsupported("' + node.type + '");\n';
         break;
@@ -13954,13 +14014,13 @@ exports.moonwalk = function moonwalk(ast, fn){
       case 'ObjectExpression':
       case 'UnaryExpression':
       case 'BinaryExpression':
+      case 'LogicalExpression':
       case 'SequenceExpression':
       case 'UpdateExpression':
       case 'ConditionalExpression':
         result = gen[type](node, opts);
         break;
       case 'ArrayPattern':
-      case 'LogicalExpression':
       case 'ObjectPattern':
       case 'Property':
         result = 'unsupported("' + node.type + '")';
@@ -13996,8 +14056,25 @@ exports.moonwalk = function moonwalk(ast, fn){
     throw new Error('No handler for literal of type: ' + util.inspect(value));
   }
 
-  function encodeString(str) {
-    return JSON.stringify(str).replace(/\$/g, '\\$');
+  function encodeString(string) {
+    // table of character substitutions
+    var meta = {
+      '\b': '\\b',
+      '\t': '\\t',
+      '\n': '\\n',
+      '\f': '\\f',
+      '\r': '\\r',
+      '"' : '\\"',
+      '$' : '\\$',
+      '\\': '\\\\'
+    };
+    string = string.replace(/[\\"\$\x00-\x1f\x7f-\xff]/g, function(ch) {
+      return (ch in meta) ? meta[ch] : '\\x' + ('0' + ch.charCodeAt(0).toString(16)).slice(-2);
+    });
+    string = string.replace(/[\u0100-\uffff]/g, function(ch) {
+      return encodeURI(ch).toLowerCase().split('%').join('\\x');
+    });
+    return '"' + string + '"';
   }
 
   function encodeProp(node) {
@@ -14022,6 +14099,10 @@ exports.moonwalk = function moonwalk(ast, fn){
       return '«' + hex + '»';
     }
     return encodeURI(ch).replace(/%(..)/g, '«$1»').toLowerCase();
+  }
+
+  function indent(count) {
+    return repeat('  ', count);
   }
 
   function repeat(str, count) {
@@ -14510,7 +14591,7 @@ if (typeof module === 'object') {
         }
       }
 
-      //function declarations
+      //function declarations (to be hoisted)
       if (node.type === 'FunctionDeclaration') {
         var scope = getParentScope(node);
         if (scopesWithFunctionDeclarations.indexOf(scope) === -1) {
@@ -14561,23 +14642,9 @@ if (typeof module === 'object') {
 
     //traverse for var declarations
     rocambole.recursive(ast, function(node) {
-      //don't proceed unless node is a var declaration
       if (node.type !== 'VariableDeclaration') {
         return;
       }
-
-      //if it's a `var` without an `=`, remove it completely (unless we're in a for..in)
-      //if (node.declarations[0].init === null) {
-      //  var endIndex = node.range[1];
-      //  if (node.endToken.next && node.endToken.next.type === 'Punctuator') {
-      //    endIndex = node.endToken.next.range[0];
-      //  }
-      //  splicePoints.push({
-      //    index: node.range[0],
-      //    removeCount: endIndex - node.range[0]
-      //  });
-      //  return;
-      //}
 
       //add each decl to the list of var names of the parent scope
       //there will be only one declaration, unless it's in a `for`
@@ -14631,7 +14698,10 @@ if (typeof module === 'object') {
     var functions = [];
     function walkChildren(scope) {
       scope.children.forEach(function(scope) {
-        if (scope.type === 'block') return;
+        if (scope.type === 'block') {
+          walkChildren(scope);
+          return;
+        }
         var keys = scope.undeclared.items();
         keys = keys.filter(function(key) {
           return (key !== 'arguments');
@@ -14652,7 +14722,7 @@ if (typeof module === 'object') {
         insert: '/*[use:' + names.join(', ') + ']*/'
       });
     });
-    //fs.writeFileSync('./_scope.txt', util.inspect(scope), 'utf8');
+    //fs.writeFileSync('./_scope.txt', util.inspect(scope, {depth: 4}), 'utf8');
     source = spliceString(splicePoints, source);
     return source;
   }

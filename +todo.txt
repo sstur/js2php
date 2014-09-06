@@ -10,6 +10,7 @@ operators: bitwise, negate, unary_plus, ...
 test:
   keys() for `for..in`
   js_in
+  throw/catch primitive
 
 transform:
   change clearData/setData/getData -> new Data(); data.set; data.get

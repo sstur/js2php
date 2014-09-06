@@ -18,6 +18,7 @@ require_once('php/classes/RegExp.php');
 require_once('php/classes/String.php');
 require_once('php/classes/Number.php');
 require_once('php/classes/Boolean.php');
+require_once('php/classes/Exception.php');
 
 require_once('php/globals/Object.php');
 require_once('php/globals/Array.php');
