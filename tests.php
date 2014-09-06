@@ -1,7 +1,4 @@
 <?php
-/**
- * todo: a[0], a[b], a.b
- */
 define('LOCAL_TZ', 'PST');
 
 require_once('php/helpers/operators.php');

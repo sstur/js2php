@@ -163,17 +163,18 @@
       });
       params.unshift('$arguments');
       params.unshift('$this_');
-      var lexicalVars = '';
-      if (node.body.startToken.prev.type === 'BlockComment') {
-        var value = node.body.startToken.prev.value;
-        if (value.match(/^\[use:(.+?)\]$/)) {
-          var vars = value.slice(5, -1).split(', ');
-          lexicalVars = 'use (&' + vars.map(encodeVar).join(', &') + ') ';
+      var lexicalVars = node.undeclaredVars || [];
+      if (node.id) {
+        var functionName = node.id.name;
+        var functionNameIndex = lexicalVars.indexOf(functionName);
+        if (functionNameIndex !== -1) {
+          lexicalVars.splice(functionNameIndex, 1);
         }
       }
-      results.push('function(' + params.join(', ') + ') ' + lexicalVars + '{\n');
-      if (node.id) {
-        results.push(indent(opts.indentLevel + 1) + encodeVar(node.id.name) + ' = $arguments->callee;\n');
+      var useClause = lexicalVars.length ? 'use (&' + lexicalVars.map(encodeVar).join(', &') + ') ' : '';
+      results.push('function(' + params.join(', ') + ') ' + useClause + '{\n');
+      if (functionName && functionNameIndex !== -1) {
+        results.push(indent(opts.indentLevel + 1) + encodeVar(functionName) + ' = $arguments->callee;\n');
       }
       results.push(gen.Body(node.body, opts));
       results.push(indent(opts.indentLevel) + '})');

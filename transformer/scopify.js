@@ -180,9 +180,9 @@ var scopify = (function() {
   inherit(FunctionScope, Scope, {
     close: function() {
       Scope.prototype.close.call(this);
-      if (this.name && this.expression) {
-        this.undeclared.remove(this.name);
-      }
+      //if (this.name && this.expression) {
+      //  this.undeclared.remove(this.name);
+      //}
       this.outer.use(this.undeclared);
     }
   });

@@ -1,12 +1,11 @@
 allow --fragment or --no-runtime to compile without the require
 allow --embed-runtime to produce single file
 
-attach scope variables to function node before passing to codegen
-  function d() { return d } -> $d = $arguments->callee (if d not declared)
 operators: negate, unary_plus, bitwise, ...
 
 test:
   keys() for `for..in`
+  a[0], a[b], a.b
   js_in
   throw/catch primitive
 

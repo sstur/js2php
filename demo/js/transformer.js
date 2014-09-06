@@ -13707,9 +13707,9 @@ exports.moonwalk = function moonwalk(ast, fn){
     'b:&': 'bitwise_and',
     'b:|': 'bitwise_or',
     'b:^': 'bitwise_xor',
-    'b:<<': 'bitwise_ls', //Left shift
-    'b:>>': 'bitwise_sprs', //Sign-propagating right shift
-    'b:>>>': 'bitwise_zfrs' //Zero-fill right shift
+    'b:<<': 'bitwise_ls', //left shift
+    'b:>>': 'bitwise_sprs', //sign-propagating right shift
+    'b:>>>': 'bitwise_zfrs' //zero-fill right shift
   };
 
   var gen = {
@@ -13855,17 +13855,18 @@ exports.moonwalk = function moonwalk(ast, fn){
       });
       params.unshift('$arguments');
       params.unshift('$this_');
-      var lexicalVars = '';
-      if (node.body.startToken.prev.type === 'BlockComment') {
-        var value = node.body.startToken.prev.value;
-        if (value.match(/^\[use:(.+?)\]$/)) {
-          var vars = value.slice(5, -1).split(', ');
-          lexicalVars = 'use (&' + vars.map(encodeVar).join(', &') + ') ';
+      var lexicalVars = node.undeclaredVars || [];
+      if (node.id) {
+        var functionName = node.id.name;
+        var functionNameIndex = lexicalVars.indexOf(functionName);
+        if (functionNameIndex !== -1) {
+          lexicalVars.splice(functionNameIndex, 1);
         }
       }
-      results.push('function(' + params.join(', ') + ') ' + lexicalVars + '{\n');
-      if (node.id) {
-        results.push(indent(opts.indentLevel + 1) + encodeVar(node.id.name) + ' = $arguments->callee;\n');
+      var useClause = lexicalVars.length ? 'use (&' + lexicalVars.map(encodeVar).join(', &') + ') ' : '';
+      results.push('function(' + params.join(', ') + ') ' + useClause + '{\n');
+      if (functionName && functionNameIndex !== -1) {
+        results.push(indent(opts.indentLevel + 1) + encodeVar(functionName) + ' = $arguments->callee;\n');
       }
       results.push(gen.Body(node.body, opts));
       results.push(indent(opts.indentLevel) + '})');
@@ -14359,9 +14360,9 @@ var scopify = (function() {
   inherit(FunctionScope, Scope, {
     close: function() {
       Scope.prototype.close.call(this);
-      if (this.name && this.expression) {
-        this.undeclared.remove(this.name);
-      }
+      //if (this.name && this.expression) {
+      //  this.undeclared.remove(this.name);
+      //}
       this.outer.use(this.undeclared);
     }
   });
@@ -14577,16 +14578,27 @@ if (typeof module === 'object') {
   var SCOPE_TYPES = {FunctionDeclaration: 1, FunctionExpression: 1, Program: 1};
 
   module.exports = function(opts) {
-    var source = opts.source || fs.readFileSync(opts.infile, 'utf8');
-    source = mutateFirstPass(source);
-    //todo: fix a weird bug when the first character starts a var declaration
-    source = '\n' + source;
-    source = mutateSecondPass(source);
-    source = mutateThirdPass(source);
-    var ast = rocambole.parse(source);
-    //var js = escodegen.generate(ast, {format: {indent: {style: '  '}}});
+    var transformer = new Transformer();
+    return transformer.process(opts);
+  };
+
+  module.exports.Transformer = Transformer;
+  module.exports.buildRuntime = buildRuntime;
+
+  function Transformer() {
+    return (this instanceof Transformer) ? this : new Transformer();
+  }
+
+  Transformer.prototype.process = function(opts) {
+    this.opts = opts || (opts = {});
+    this.source = opts.source || fs.readFileSync(opts.infile, 'utf8');
+    this.ast = rocambole.parse(this.source);
+    this.mutateFirstPass();
+    this.mutateSecondPass();
+    this.mutateThirdPass();
+    //var js = escodegen.generate(this.ast, {format: {indent: {style: '  '}}});
     //fs.writeFileSync('./_output.js', js, 'utf8');
-    var php = codegen.generate(ast);
+    var php = codegen.generate(this.ast);
     if (opts.outpath && opts.buildRuntime !== false) {
       var runtime = buildRuntime();
       fs.writeFileSync(path.join(opts.outpath, 'runtime.php'), runtime, 'utf8');
@@ -14594,11 +14606,9 @@ if (typeof module === 'object') {
     return '<?php\n' + 'require_once("runtime.php");\n\n' + php;
   };
 
-  module.exports.buildRuntime = buildRuntime;
-
-  function mutateFirstPass(source) {
-    clearData();
-    var ast = rocambole.parse(source);
+  Transformer.prototype.mutateFirstPass = function() {
+    var ast = this.ast;
+    var data = new Data();
     //first we grab the index of each point where we wish to splice the code
     var splicePoints = [];
 
@@ -14662,7 +14672,7 @@ if (typeof module === 'object') {
         if (scopesWithFunctionDeclarations.indexOf(scope) === -1) {
           scopesWithFunctionDeclarations.push(scope);
         }
-        setData(node, 'parentScope', scope);
+        data.set(node, 'parentScope', scope);
         functionsDeclarations.push(node);
       }
     });
@@ -14672,7 +14682,7 @@ if (typeof module === 'object') {
     scopesWithFunctionDeclarations.forEach(function(scope) {
       var toHoist = [];
       functionsDeclarations.forEach(function(func) {
-        if (getData(func, 'parentScope') !== scope) return;
+        if (data.get(func, 'parentScope') !== scope) return;
         //drop in comment placeholders for later hoisting
         var index = ++count;
         toHoist.push('/*!' + index + ':' + func.id.name + '!*/');
@@ -14692,15 +14702,18 @@ if (typeof module === 'object') {
 
     });
 
+    var source = this.source;
     source = spliceString(splicePoints, source);
     source = hoistFromMarkers(source);
-    return source;
-  }
+    //todo: fix a weird bug when the first character starts a var declaration
+    source = '\n' + source;
+    this.source = source;
+    this.ast = rocambole.parse(source);
+  };
 
-
-  function mutateSecondPass(source) {
-    clearData();
-    var ast = rocambole.parse(source);
+  Transformer.prototype.mutateSecondPass = function() {
+    var ast = this.ast;
+    var data = new Data();
     //first we grab the index of each point where we wish to splice the code
     var splicePoints = [];
     var scopesWithVars = [];
@@ -14718,7 +14731,7 @@ if (typeof module === 'object') {
         if (scopesWithVars.indexOf(scope) === -1) {
           scopesWithVars.push(scope);
         }
-        var varNames = getData(scope, 'vars') || setData(scope, 'vars', []);
+        var varNames = data.get(scope, 'vars') || data.set(scope, 'vars', []);
         if (varNames.indexOf(decl.id.name) === -1) {
           varNames.push(decl.id.name);
         }
@@ -14743,54 +14756,38 @@ if (typeof module === 'object') {
 
     //hoist var declarations
     scopesWithVars.forEach(function(scope) {
-      var vars = getData(scope, 'vars') || [];
+      var vars = data.get(scope, 'vars') || [];
       splicePoints.push({
         index: scope.type === 'Program' ? scope.startToken.range[0] : scope.startToken.range[1],
         insert: '\nvar ' + vars.join(', ') + ';\n'
       });
     });
 
-    source = spliceString(splicePoints, source);
-    return source;
-  }
+    this.source = spliceString(splicePoints, this.source);
+    this.ast = rocambole.parse(this.source);
+  };
 
-
-  function mutateThirdPass(source) {
-    clearData();
-    var ast = rocambole.parse(source);
-    var splicePoints = [];
+  Transformer.prototype.mutateThirdPass = function() {
+    var ast = this.ast;
     var scope = scopify(ast);
-    var functions = [];
+    //fs.writeFileSync('./_scope.txt', util.inspect(scope, {depth: 4}), 'utf8');
     function walkChildren(scope) {
       scope.children.forEach(function(scope) {
         if (scope.type === 'block') {
           walkChildren(scope);
           return;
         }
-        var keys = scope.undeclared.items();
-        keys = keys.filter(function(key) {
+        var undeclared = scope.undeclared.items();
+        undeclared = undeclared.filter(function(key) {
           return (key !== 'arguments');
         });
-        if (keys.length) {
-          functions.push(scope.node);
-          setData(scope.node, 'lexUse', keys);
-        }
+        set(scope.node, 'undeclaredVars', undeclared);
         walkChildren(scope);
       });
     }
     walkChildren(scope);
-    //hoist var declarations
-    functions.forEach(function(func) {
-      var names = getData(func, 'lexUse') || [];
-      splicePoints.push({
-        index: func.body.startToken.range[0],
-        insert: '/*[use:' + names.join(', ') + ']*/'
-      });
-    });
-    //fs.writeFileSync('./_scope.txt', util.inspect(scope, {depth: 4}), 'utf8');
-    source = spliceString(splicePoints, source);
-    return source;
-  }
+  };
+
 
 
   function spliceString(splicePoints, source) {
@@ -14842,7 +14839,7 @@ if (typeof module === 'object') {
   }
 
 
-  function buildRuntime(opts) {
+  function buildRuntime() {
     var source = fs.readFileSync(path.join(__dirname, '../tests.php'), 'utf8');
     var index = source.indexOf('//</BOILERPLATE>');
     if (index === -1) {
@@ -14861,10 +14858,32 @@ if (typeof module === 'object') {
     return '<?php\n' + source;
   }
 
+  function set(object, name, value) {
+    Object.defineProperty(object, name, {
+      value: value,
+      enumerable: false,
+      writable: true,
+      configurable: true
+    });
+  }
 
-  function setData(object, name, value) {
-    var objects = setData.objects || (setData.objects = []);
-    var dataSets = setData.dataSets || (setData.dataSets = {});
+
+  function Data() {
+    this.objects = [];
+    this.dataSets = {};
+  }
+
+  Data.prototype.get = function(object, name) {
+    var objects = this.objects;
+    var dataSets = this.dataSets;
+    var index = objects.indexOf(object);
+    var data = (index !== -1) && dataSets[index] || {};
+    return data[name];
+  };
+
+  Data.prototype.set = function(object, name, value) {
+    var objects = this.objects;
+    var dataSets = this.dataSets;
     var index = objects.indexOf(object);
     if (index === -1) {
       objects.push(object);
@@ -14872,20 +14891,7 @@ if (typeof module === 'object') {
     }
     var data = dataSets[index] || (dataSets[index] = {});
     return (data[name] = value);
-  }
-
-  function getData(object, name) {
-    var objects = setData.objects || [];
-    var dataSets = setData.dataSets || {};
-    var index = objects.indexOf(object);
-    var data = (index !== -1) && dataSets[index] || {};
-    return data[name];
-  }
-
-  function clearData() {
-    setData.objects = [];
-    setData.dataSets = {};
-  }
+  };
 
 })();
 }).call(this,"/")
