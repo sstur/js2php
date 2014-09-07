@@ -1,9 +1,11 @@
 allow --fragment or --no-runtime to compile without the require
 allow --embed-runtime to produce single file
 
+fix: when removing var, trim space
 operators: negate, unary_plus, bitwise, ...
 
 test:
+  function scope stuff including named function expression
   keys() for `for..in`
   a[0], a[b], a.b
   js_in

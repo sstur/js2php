@@ -226,7 +226,12 @@
 
 
 
+  //index a scope, calculating lists of defined, referenced and unresolved vars
   function indexScope(scope) {
+    if (scope.functionExpressionScope) {
+      //named function expressions are wrapped in an extra scope; skip over this
+      return indexScope(scope.childScopes[0]);
+    }
     //get variable names defined in this scope
     var defined = Object.create(null);
     scope.variables.forEach(function(variable) {
