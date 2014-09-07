@@ -164,15 +164,15 @@
       });
       params.unshift('$arguments');
       params.unshift('$this_');
-      var lexicalVars = node.undeclaredRefs || [];
+      var unresolvedVars = node.unresolvedRefs ? Object.keys(node.unresolvedRefs) : [];
       if (node.id) {
         var functionName = node.id.name;
-        var functionNameIndex = lexicalVars.indexOf(functionName);
+        var functionNameIndex = unresolvedVars.indexOf(functionName);
         if (functionNameIndex !== -1) {
-          lexicalVars.splice(functionNameIndex, 1);
+          unresolvedVars.splice(functionNameIndex, 1);
         }
       }
-      var useClause = lexicalVars.length ? 'use (&' + lexicalVars.map(encodeVarName).join(', &') + ') ' : '';
+      var useClause = unresolvedVars.length ? 'use (&' + unresolvedVars.map(encodeVarName).join(', &') + ') ' : '';
       results.push('function(' + params.join(', ') + ') ' + useClause + '{\n');
       if (functionName && functionNameIndex !== -1) {
         results.push(indent(opts.indentLevel + 1) + encodeVarName(functionName) + ' = $arguments->callee;\n');

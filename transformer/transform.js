@@ -216,45 +216,46 @@
   Transformer.prototype.mutateThirdPass = function() {
     var ast = this.ast;
     var scopes = escope.analyze(ast).scopes;
-    var getReferences = function(scope) {
-      var references = Object.create(null);
-      scope.references.forEach(function(ref) {
-        var name = ref.identifier.name;
-        var fromScope = ref.from;
-        if (!references[name] && fromScope !== scope) {
-          references[name] = varByName(fromScope, name);
-        }
-      });
-      var childScopes = scopes.childScopes || [];
-      childScopes.forEach(function(childScope) {
-        var childReferences = getReferences(childScope);
-        Object.keys(childReferences).forEach(function(name) {
-          var fromScope = childReferences[name].scope;
-          if (!references[name] && fromScope !== scope) {
-            references[name] = varByName(fromScope, name);
-          }
-        });
-      });
-      set(scope.block, 'undeclaredRefs', references);
-      return references;
-    };
-    getReferences(scopes[0]);
-    //scopes.forEach(function(scope) {
-    //  if (scope.type === 'function') {
-    //    var undeclaredRefs = [];
-    //    scope.references.forEach(function(ref) {
-    //      if (ref.from !== scope) {
-    //        undeclaredRefs.push(ref.identifier.name);
+
+    //var getReferences = function(scope) {
+    //  var references = Object.create(null);
+    //  scope.references.forEach(function(ref) {
+    //    var name = ref.identifier.name;
+    //    var fromScope = ref.from;
+    //    if (!references[name] && fromScope !== scope) {
+    //      references[name] = varByName(fromScope, name);
+    //    }
+    //  });
+    //  var childScopes = scopes.childScopes || [];
+    //  childScopes.forEach(function(childScope) {
+    //    var childReferences = getReferences(childScope);
+    //    Object.keys(childReferences).forEach(function(name) {
+    //      var fromScope = childReferences[name].scope;
+    //      if (!references[name] && fromScope !== scope) {
+    //        references[name] = varByName(fromScope, name);
     //      }
     //    });
-    //    set(scope.block, 'undeclaredRefs', undeclaredRefs);
-    //  }
-    //});
+    //  });
+    //  set(scope.block, 'unresolvedRefs', references);
+    //  return references;
+    //};
+    //getReferences(scopes[0]);
+
+    scopes.forEach(function(scope) {
+      var unresolvedRefs = Object.create(null);
+      scope.references.forEach(function(ref) {
+        if (!ref.resolved || ref.resolved.scope !== scope) {
+          var name = ref.identifier.name;
+          unresolvedRefs[name] = true;
+        }
+      });
+      set(scope.block, 'unresolvedRefs', unresolvedRefs);
+    });
+
     //used to append to variables that need to be renamed unique
     var count = 0;
     scopes.forEach(function(scope) {
       if (scope.type === 'catch') {
-        //var param = scope.block.param;
         var param = scope.variables[0];
         var identifiers = [param.identifiers[0]];
         param.references.forEach(function(ref) {
@@ -278,7 +279,7 @@
 //        undeclared = undeclared.filter(function(key) {
 //          return (key !== 'arguments');
 //        });
-//        set(scope.node, 'undeclaredRefs', undeclared);
+//        set(scope.node, 'unresolvedRefs', undeclared);
 //        walkChildren(scope);
 //      });
 //    }
