@@ -88,7 +88,7 @@ a:focus {
   height: 348px;
   background-color: #f8f5ec;
   color: #657b83;
-  text-shadow: #eee8d5 0 1px;
+  text-shadow: none;
 }
 
 .CodeMirror-lines {
@@ -100,7 +100,11 @@ a:focus {
 }
 
 .cm-s-solarized.cm-s-light .CodeMirror-gutters {
+  background-color: #f9f7f3;
+}
 
+.cm-s-solarized .CodeMirror-linenumber {
+  color: #98a5a7;
 }
 
 .cm-s-solarized span.cm-keyword { color: #268bd2 }
