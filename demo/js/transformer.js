@@ -6823,7 +6823,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       }
       splicePoints.push({
         index: node.range[0],
-        removeCount: 3
+        removeCount: 4
       });
     });
 
@@ -6864,6 +6864,7 @@ exports.moonwalk = function moonwalk(ast, fn){
 
 
 
+  //index a scope, calculating lists of defined, referenced and unresolved vars
   function indexScope(scope) {
     if (scope.functionExpressionScope) {
       //named function expressions are wrapped in an extra scope; skip over this

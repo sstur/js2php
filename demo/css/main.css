@@ -1,165 +1,94 @@
-/*****************************************************************************/
-/*
-/* Common
-/*
-/*****************************************************************************/
-
-/* Global Reset */
-* {
-  margin: 0;
-  padding: 0;
+html {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: 300;
+  color: #484848;
+  line-height: 1.28;
+  background: #f9f9f9
 }
-
-html, body { height: 100%; }
-
 body {
-  background-color: #FFF;
-  font: 13.34px Helvetica, Arial, sans-serif;
-  font-size: small;
-  text-align: center;
+  width: 1220px;
+  margin: 0 auto;
 }
-
+body:before,
+body:after {
+  content: "";
+  display: table;
+  height: 0;
+}
 h1, h2, h3, h4, h5, h6 {
-  font-size: 100%; }
-
-h1 { margin-bottom: 1em; }
-p { margin: 1em 0; }
-
-a         { color: #00a; }
-a:hover   { color: #000; }
-a:visited { color: #a0a; }
-
-table {
-  font-size: inherit;
-  font: 100%;
-}
-
-/*****************************************************************************/
-/*
-/* Home
-/*
-/*****************************************************************************/
-ul.posts {
-  list-style-type: none;
-  margin-bottom: 2em;
-}
-
-ul.posts li {
-  line-height: 1.75em;
-}
-
-ul.posts span {
-  color: #aaa;
-  font-family: Monaco, "Courier New", monospace;
-  font-size: 80%;
-}
-
-/*****************************************************************************/
-/*
-/* Site
-/*
-/*****************************************************************************/
-
-.site {
-  font-size: 115%;
-  text-align: justify;
-  width: 42em;
-  margin: 3em auto 2em;
-  line-height: 1.5em;
-}
-
-.site .header a {
+  margin: 10px 0;
+  font-family: inherit;
   font-weight: bold;
-  text-decoration: none;
+  line-height: 20px;
+  color: inherit;
+  text-rendering: optimizelegibility;
+}
+h1 {
+  font-size: 39px;
+  line-height: 40px;
 }
 
-.site .header h1.title {
-  display: inline-block;
-  margin-bottom: 2em;
+p {
+  margin: 10px 0;
 }
 
-.site .header h1.title a {
-  color: #a00;
+a {
+  color: #c05b4d;
+  text-decoration: none
 }
 
-.site .header h1.title a:hover {
-  color: #000;
+a:hover, a:focus {
+  color: #a5473a;
+  text-decoration: underline
 }
 
-.site .header a.extra {
-  color: #aaa;
-  margin-left: 1em;
+a:focus {
+  outline: thin dotted #333;
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px
 }
 
-.site .header a.extra:hover {
-  color: #000;
+.content {
+  padding-top: 50px;
+}
+.content:before,
+.content:after {
+  content: "";
+  display: block;
+  clear: both;
+}
+.footer {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 36px;
+  margin-bottom: 18px;
 }
 
-.site .meta {
-  color: #aaa;
-}
-
-.site .footer {
-  font-size: 80%;
-  color: #666;
-  border-top: 4px solid #eee;
-  margin-top: 2em;
-  overflow: hidden;
-}
-
-.site .footer .contact {
+.code {
+  width: 600px;
   float: left;
-  margin-right: 3em;
+  padding: 10px;
+  margin-right: 20px;
+  border: 1px solid rgba(16, 16, 16, 0.1);
+  border-radius: 3px;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  background-color: #f8f5ec;
+}
+.code:last-child {
+  margin-right: 0;
 }
 
-.site .footer .contact a {
-  color: #8085C1;
-}
-
-.site .footer .rss {
-  margin-top: 1.1em;
-  margin-right: -.2em;
-  float: right;
-}
-
-.site .footer .rss img {
-  border: 0;
-}
-
-/*****************************************************************************/
-/*
-/* Posts
-/*
-/*****************************************************************************/
-
-/* standard */
-#post pre {
-  border: 1px solid #ddd;
-  background-color: #eef;
-  padding: 0 .4em;
-}
-
-#post ul, #post ol {
-  margin-left: 1.35em;
-}
-
-#post code {
-  border: 1px solid #ddd;
-  background-color: #eef;
-  padding: 0 .2em;
-}
-
-#post pre code {
-  border: none;
-}
-
-/* terminal */
-#post pre.terminal {
-  border: 1px solid #000;
-  background-color: #333;
-  color: #FFF;
-}
-
-#post pre.terminal code {
-  background-color: #333;
+.cm-s-solarized.CodeMirror {
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+  font-family: 'source-code-pro', Menlo, 'Courier New', Consolas, monospace;
+  font-size: 13px;
+  line-height: 20px;
+  height: 328px;
+  background-color: transparent;
+  color: #657b83;
+  text-shadow: #eee8d5 0 1px;
 }

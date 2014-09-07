@@ -7,38 +7,34 @@
   <meta name="viewport" content="width=device-width">
 
   <link rel="shortcut icon" href="favicon.ico">
-  <link rel="stylesheet" href="css/syntax.css">
-  <link rel="stylesheet" href="css/codemirror.css">
-  <link rel="stylesheet" href="css/react.css">
+  <link rel="stylesheet" href="codemirror/codemirror.css">
+  <link rel="stylesheet" href="codemirror/theme/solarized.css">
+  <link rel="stylesheet" href="css/main.css">
 
-  <script src="js/react.js"></script>
   <!-- CodeMirror Files -->
-  <script src="js/codemirror/codemirror.js"></script>
-  <script src="js/codemirror/htmlmixed.js"></script>
-  <script src="js/codemirror/xml.js"></script>
-  <script src="js/codemirror/javascript.js"></script>
-  <script src="js/codemirror/css.js"></script>
-  <script src="js/codemirror/clike.js"></script>
-  <script src="js/codemirror/php.js"></script>
+  <script src="codemirror/codemirror.js"></script>
+  <script src="codemirror/mode/htmlmixed.js"></script>
+  <script src="codemirror/mode/xml.js"></script>
+  <script src="codemirror/mode/javascript.js"></script>
+  <script src="codemirror/mode/css.js"></script>
+  <script src="codemirror/mode/clike.js"></script>
+  <script src="codemirror/mode/php.js"></script>
   <!-- built with browserify -->
   <script src="js/transformer.js"></script>
   <!-- contains our code -->
-  <script src="js/playground.js"></script>
   <script src="js/init.js"></script>
 </head>
 <body>
-<div class="container">
-  <div class="es6Compiler">
-    <h1>JS to PHP</h1>
+  <div class="content">
+    <h1>JavaScript to PHP</h1>
     <p>
-      This tool transforms JS to PHP. Just for fun. Kind of like <a href="http://phpjs.hertzen.com/">php.js</a> but the opposite.
+      This tool transforms JavaScript to PHP. Just for fun. Kind of like <a href="http://phpjs.hertzen.com/">php.js</a> but the opposite.
     </p>
-    <div id="output-pane"></div>
+    <div class="code" id="code-in"></div>
+    <div class="code" id="code-out"></div>
   </div>
-  <footer class="wrap">
-    <div class="left">A Hackathon 44 creation.</div>
-    <div class="right">&copy; 2014 sstur</div>
-  </footer>
-</div>
+  <div class="footer">
+    <p>A Hackathon 44 creation.</p>
+  </div>
 </body>
 </html>

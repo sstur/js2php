@@ -1,8 +1,8 @@
 allow --fragment or --no-runtime to compile without the require
 allow --embed-runtime to produce single file
 
-fix: when removing var, trim space
 operators: negate, unary_plus, bitwise, ...
+unicode: all string functions should use mb_
 
 test:
   function scope stuff including named function expression
@@ -10,10 +10,6 @@ test:
   a[0], a[b], a.b
   js_in
   throw/catch primitive
-
-transform:
-  change clearData/setData/getData -> new Data(); data.set; data.get
-  don't count catch variable in `use`
 
 JSON:
   $thing->callMethod('toJSON')
@@ -43,8 +39,3 @@ Object:
 Date:
   getDate, getDay, getFullYear, getHours, getMilliseconds, getMinutes, getMonth, getSeconds, getTime, getTimezoneOffset, getUTCDate, getUTCDay, getUTCFullYear, getUTCHours, getUTCMilliseconds, getUTCMinutes, getUTCMonth, getUTCSeconds, getYear, setDate, setFullYear, setHours, setMilliseconds, setMinutes, setMonth, setSeconds, setTime, setUTCDate, setUTCFullYear, setUTCHours, setUTCMilliseconds, setUTCMinutes, setUTCMonth, setUTCSeconds, setYear, toDateString, toGMTString, toISOString, toLocaleDateString, toLocaleString, toLocaleTimeString, toTimeString, toUTCString
 
-
-
-use $HTTP_RAW_POST_DATA for multipart/form-data
-use stream php://input for all else
-use fopen, fread
