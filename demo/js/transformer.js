@@ -6304,17 +6304,15 @@ exports.moonwalk = function moonwalk(ast, fn){
       });
       params.unshift('$arguments');
       params.unshift('$this_');
-      var unresolvedVars = node.unresolvedRefs ? Object.keys(node.unresolvedRefs) : [];
-      if (node.id) {
-        var functionName = node.id.name;
-        var functionNameIndex = unresolvedVars.indexOf(functionName);
-        if (functionNameIndex !== -1) {
-          unresolvedVars.splice(functionNameIndex, 1);
-        }
+      var scopeIndex = node.scopeIndex || Object.create(null);
+      var functionName = node.id ? node.id.name : '';
+      if (scopeIndex.unresolved[functionName]) {
+        delete scopeIndex.unresolved[functionName];
       }
-      var useClause = unresolvedVars.length ? 'use (&' + unresolvedVars.map(encodeVarName).join(', &') + ') ' : '';
+      var unresolvedRefs = Object.keys(scopeIndex.unresolved);
+      var useClause = unresolvedRefs.length ? 'use (&' + unresolvedRefs.map(encodeVarName).join(', &') + ') ' : '';
       results.push('function(' + params.join(', ') + ') ' + useClause + '{\n');
-      if (functionName && functionNameIndex !== -1) {
+      if (scopeIndex.referenced[functionName]) {
         results.push(indent(opts.indentLevel + 1) + encodeVarName(functionName) + ' = $arguments->callee;\n');
       }
       results.push(gen.Body(node.body, opts));
@@ -6842,56 +6840,11 @@ exports.moonwalk = function moonwalk(ast, fn){
     this.ast = rocambole.parse(this.source);
   };
 
-  function varByName(scope, name) {
-    var variables = scope.variables;
-    for (var i = 0, len = variables.length; i < len; i++) {
-      var variable = variables[i];
-      if (variable.name === name) {
-        return variable;
-      }
-    }
-    throw new Error('variable definition not found: ' + name);
-  }
-
   Transformer.prototype.mutateThirdPass = function() {
     var ast = this.ast;
     var scopes = escope.analyze(ast).scopes;
-
-    //var getReferences = function(scope) {
-    //  var references = Object.create(null);
-    //  scope.references.forEach(function(ref) {
-    //    var name = ref.identifier.name;
-    //    var fromScope = ref.from;
-    //    if (!references[name] && fromScope !== scope) {
-    //      references[name] = varByName(fromScope, name);
-    //    }
-    //  });
-    //  var childScopes = scopes.childScopes || [];
-    //  childScopes.forEach(function(childScope) {
-    //    var childReferences = getReferences(childScope);
-    //    Object.keys(childReferences).forEach(function(name) {
-    //      var fromScope = childReferences[name].scope;
-    //      if (!references[name] && fromScope !== scope) {
-    //        references[name] = varByName(fromScope, name);
-    //      }
-    //    });
-    //  });
-    //  set(scope.block, 'unresolvedRefs', references);
-    //  return references;
-    //};
-    //getReferences(scopes[0]);
-
-    scopes.forEach(function(scope) {
-      var unresolvedRefs = Object.create(null);
-      scope.references.forEach(function(ref) {
-        if (!ref.resolved || ref.resolved.scope !== scope) {
-          var name = ref.identifier.name;
-          unresolvedRefs[name] = true;
-        }
-      });
-      set(scope.block, 'unresolvedRefs', unresolvedRefs);
-    });
-
+    //this attaches some scope information to certain nodes
+    indexScope(scopes[0]);
     //used to append to variables that need to be renamed unique
     var count = 0;
     scopes.forEach(function(scope) {
@@ -6907,25 +6860,41 @@ exports.moonwalk = function moonwalk(ast, fn){
         });
       }
     });
-//    var scope = scopify(ast);
-//    //fs.writeFileSync('./_scope.txt', util.inspect(scope, {depth: 4}), 'utf8');
-//    function walkChildren(scope) {
-//      scope.children.forEach(function(scope) {
-//        if (scope.type === 'block') {
-//          walkChildren(scope);
-//          return;
-//        }
-//        var undeclared = scope.undeclared.items();
-//        undeclared = undeclared.filter(function(key) {
-//          return (key !== 'arguments');
-//        });
-//        set(scope.node, 'unresolvedRefs', undeclared);
-//        walkChildren(scope);
-//      });
-//    }
-//    walkChildren(scope);
   };
 
+
+
+  function indexScope(scope) {
+    //get variable names defined in this scope
+    var defined = Object.create(null);
+    scope.variables.forEach(function(variable) {
+      defined[variable.name] = true;
+    });
+    //get all variable names referenced and unresolved ones
+    var referenced = Object.create(null);
+    var unresolved = Object.create(null);
+    scope.references.forEach(function(ref) {
+      var name = ref.identifier.name;
+      referenced[name] = true;
+      if (!ref.resolved || ref.resolved.scope !== scope) {
+        unresolved[name] = true;
+      }
+    });
+    //get descendant references not defined locally
+    var childScopes = scope.childScopes || [];
+    childScopes.forEach(function(childScope) {
+      var index = indexScope(childScope);
+      Object.keys(index.unresolved).forEach(function(name) {
+        referenced[name] = true;
+        if (!defined[name]) {
+          unresolved[name] = true;
+        }
+      });
+    });
+    var scopeIndex = {defined: defined, referenced: referenced, unresolved: unresolved};
+    set(scope.block, 'scopeIndex', scopeIndex);
+    return scopeIndex;
+  }
 
 
   function spliceString(splicePoints, source) {
