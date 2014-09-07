@@ -3,6 +3,7 @@ allow --embed-runtime to produce single file
 
 operators: negate, unary_plus, bitwise, ...
 unicode: all string functions should use mb_
+add favicon
 
 test:
   function scope stuff including named function expression

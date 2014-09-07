@@ -8,6 +8,7 @@ window.addEventListener('DOMContentLoaded', function() {
     tabSize: 2,
     indentWithTabs: false,
     theme: 'solarized light',
+    lineNumbers: true,
     readOnly: false
   });
   var outputEditor = CodeMirror(document.querySelector('#code-out'), {
@@ -16,6 +17,7 @@ window.addEventListener('DOMContentLoaded', function() {
     tabSize: 2,
     indentWithTabs: false,
     theme: 'solarized light',
+    lineNumbers: false,
     readOnly: false
   });
   inputEditor.on('change', onChange);

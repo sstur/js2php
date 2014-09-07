@@ -68,13 +68,11 @@ a:focus {
 .code {
   width: 600px;
   float: left;
-  padding: 10px;
   margin-right: 20px;
   border: 1px solid rgba(16, 16, 16, 0.1);
   border-radius: 3px;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-  background-color: #f8f5ec;
 }
 .code:last-child {
   margin-right: 0;
@@ -87,10 +85,22 @@ a:focus {
   font-family: 'source-code-pro', Menlo, 'Courier New', Consolas, monospace;
   font-size: 13px;
   line-height: 20px;
-  height: 328px;
-  background-color: transparent;
+  height: 348px;
+  background-color: #f8f5ec;
   color: #657b83;
   text-shadow: #eee8d5 0 1px;
+}
+
+.CodeMirror-lines {
+  padding: 10px 0;
+}
+
+.CodeMirror pre {
+  padding: 0 10px;
+}
+
+.cm-s-solarized.cm-s-light .CodeMirror-gutters {
+
 }
 
 .cm-s-solarized span.cm-keyword { color: #268bd2 }
