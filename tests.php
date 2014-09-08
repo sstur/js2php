@@ -15,6 +15,7 @@ require_once('php/classes/RegExp.php');
 require_once('php/classes/String.php');
 require_once('php/classes/Number.php');
 require_once('php/classes/Boolean.php');
+require_once('php/classes/Error.php');
 require_once('php/classes/Exception.php');
 
 require_once('php/globals/Object.php');
@@ -24,6 +25,7 @@ require_once('php/globals/RegExp.php');
 require_once('php/globals/String.php');
 require_once('php/globals/Number.php');
 require_once('php/globals/Boolean.php');
+require_once('php/globals/Error.php');
 require_once('php/globals/globals.php');
 require_once('php/globals/Math.php');
 require_once('php/globals/JSON.php');

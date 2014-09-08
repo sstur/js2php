@@ -1,9 +1,7 @@
 function prototype, Function global
 operators: negate, unary_plus, bitwise, ...
 unicode: all string functions should use mb_
-demo: add favicon
-demo: add index.html redirect
-demo: form post
+demo: link to project; add index.html redirect; missing favicon; form post
 bug: starting a function declaration on first line doesn't compile
 
 support --fragment or --no-runtime to compile without the require
