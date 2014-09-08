@@ -2,6 +2,8 @@
 window.addEventListener('DOMContentLoaded', function() {
   var SAMPLE_CONTENT = "var message = 'Hello World';\nconsole.log(message, Math.floor(Math.random() * 100));\nconsole.log(message.charAt(0) + 'ello');\nf();\nfunction f() {\n  console.log('hi from `f`');\n}\nfunction Thing(name) {\n  this.name = name;\n}\nThing.prototype.sayHello = function() {\n  console.log('hi from', this.name);\n};\nvar thing = new Thing('Bob');\nthing.sayHello();";
 
+  var worker, isWorking, enqueueWork;
+
   var inputEditor = CodeMirror(document.querySelector('#code-in'), {
     value: SAMPLE_CONTENT,
     mode: 'javascript',
@@ -11,6 +13,7 @@ window.addEventListener('DOMContentLoaded', function() {
     lineNumbers: true,
     readOnly: false
   });
+
   var outputEditor = CodeMirror(document.querySelector('#code-out'), {
     value: '',
     mode: 'php',
@@ -20,37 +23,45 @@ window.addEventListener('DOMContentLoaded', function() {
     lineNumbers: false,
     readOnly: false
   });
-  inputEditor.on('change', onChange);
-  onChange();
+
+  inputEditor.on('change', processSource);
+  processSource();
 
 
-  function onChange(instance, changeObj) {
-    var source = inputEditor.getValue();
-    var result = tranformCode(source);
-    if (result instanceof Error) {
-      result = '<php\n/* ERROR TRANSFORMING SOURCE:\n' + result.message + ' */';
+  function processSource() {
+    var sourceCode = inputEditor.getValue();
+    if (!sourceCode.trim()) {
+      return outputEditor.setValue('');
     }
-    outputEditor.setValue(result);
+    if (isWorking) {
+      enqueueWork = {sourceCode: sourceCode};
+      return;
+    }
+    if (!worker) {
+      worker = new Worker('js/web-worker.js');
+      worker.addEventListener('message', onWorkerComplete, false);
+    }
+    sendToWorker(sourceCode);
   }
 
-  function tranformCode(sourceCode) {
-    if (!sourceCode.trim()) {
-      return '';
-    }
-    if (window.noCatch) {
-      //allow error to be thrown for debugging
-      var transformedCode = Transformer({source: sourceCode});
+  function sendToWorker(sourceCode) {
+    worker.postMessage({
+      sourceCode: sourceCode,
+      opts: {noCatch: window.noCatch}
+    });
+    //todo: use setTimeout to add loading class to output pane
+    isWorking = true;
+  }
+
+  function onWorkerComplete(e) {
+    var data = e.data || {};
+    outputEditor.setValue(data.result || '');
+    if (enqueueWork) {
+      sendToWorker(enqueueWork.sourceCode);
+      enqueueWork = null;
     } else {
-      try {
-        transformedCode = Transformer({source: sourceCode});
-      } catch (e) {
-        return e;
-      }
+      isWorking = false;
     }
-    //for debugging
-    window.sourceCode = sourceCode;
-    window.outputCode = transformedCode;
-    return transformedCode;
   }
 
 }, false);
