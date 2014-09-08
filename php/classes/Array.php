@@ -58,6 +58,7 @@ class Arr extends Object implements JsonSerializable {
         }
         return join($str, $results);
       },
+      //todo: splice, indexOf, lastIndexOf
       'toString' => function($this_) {
         return $this_->callMethod('join');
       }

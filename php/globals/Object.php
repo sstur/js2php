@@ -6,6 +6,7 @@ $Object = call_user_func(function() {
   $Object->set('prototype', Object::$protoObject);
   //define "static" methods
   $methods = array(
+    //todo: getPrototypeOf, seal, freeze, preventExtensions, isSealed, isFrozen, isExtensible
     'create' => function($this_, $arguments, $proto) {
       $obj = new Object();
       $obj->setProto($proto);

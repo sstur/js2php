@@ -26,6 +26,7 @@ class Str extends Object {
       'valueOf' => function($this_) {
         return $this_->value;
       },
+      //todo: substr, trim
       'toString' => function($this_) {
         return $this_->value;
       }

@@ -7,6 +7,7 @@ add favicon
 add index.html redirect
 submit for eval
 bug: starting a function declaration on first line doesn't compile
+function prototype, function global
 
 test:
   function scope stuff including named function expression

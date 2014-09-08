@@ -73,6 +73,7 @@ class Date extends Object implements JsonSerializable {
       'toUTCString' => function($this_) {
         //todo
       },
+      //todo: toISOString
       'toString' => function($this_) {
         //Sat Aug 09 2014 12:00:00 GMT+0000 (UTC)
         return str_replace('~', 'GMT', $this_->date->format('D M d Y H:i:s ~O (T)'));
