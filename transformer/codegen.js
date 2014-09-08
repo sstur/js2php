@@ -25,7 +25,10 @@
       var results = [];
       opts.indentLevel += 1;
       node.body.forEach(function(node) {
-        results.push(indent(opts.indentLevel) + generate(node, opts));
+        var result = generate(node, opts);
+        if (result) {
+          results.push(indent(opts.indentLevel) + result);
+        }
       });
       if (opts.indentLevel > 0) {
         opts.indentLevel -= 1;
@@ -36,9 +39,11 @@
     'VariableDeclaration': function(node, opts) {
       var results = [];
       node.declarations.forEach(function(node) {
-        results.push(encodeVar(node.id) + ' = null;');
+        if (!node.id.implicitlyDefined) {
+          results.push(encodeVar(node.id) + ' = null;');
+        }
       });
-      return results.join(' ') + '\n';
+      return results.length ? results.join(' ') + '\n' : '';
     },
 
     'IfStatement': function(node, opts) {

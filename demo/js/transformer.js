@@ -6165,7 +6165,10 @@ exports.moonwalk = function moonwalk(ast, fn){
       var results = [];
       opts.indentLevel += 1;
       node.body.forEach(function(node) {
-        results.push(indent(opts.indentLevel) + generate(node, opts));
+        var result = generate(node, opts);
+        if (result) {
+          results.push(indent(opts.indentLevel) + result);
+        }
       });
       if (opts.indentLevel > 0) {
         opts.indentLevel -= 1;
@@ -6176,9 +6179,11 @@ exports.moonwalk = function moonwalk(ast, fn){
     'VariableDeclaration': function(node, opts) {
       var results = [];
       node.declarations.forEach(function(node) {
-        results.push(encodeVar(node.id) + ' = null;');
+        if (!node.id.implicitlyDefined) {
+          results.push(encodeVar(node.id) + ' = null;');
+        }
       });
-      return results.join(' ') + '\n';
+      return results.length ? results.join(' ') + '\n' : '';
     },
 
     'IfStatement': function(node, opts) {
@@ -6787,16 +6792,13 @@ exports.moonwalk = function moonwalk(ast, fn){
 
   Transformer.prototype.mutateSecondPass = function() {
     var ast = this.ast;
-    //first we grab the index of each point where we wish to splice the code
     var splicePoints = [];
     var scopesWithVars = [];
-
     //traverse for var declarations
     rocambole.recursive(ast, function(node) {
       if (node.type !== 'VariableDeclaration') {
         return;
       }
-
       //add each decl to the list of var names of the parent scope
       //there will be only one declaration, unless it's in a `for`
       node.declarations.forEach(function(decl) {
@@ -6826,7 +6828,6 @@ exports.moonwalk = function moonwalk(ast, fn){
         removeCount: 4
       });
     });
-
     //hoist var declarations
     scopesWithVars.forEach(function(scope) {
       var vars = scope.vars || [];
@@ -6835,7 +6836,6 @@ exports.moonwalk = function moonwalk(ast, fn){
         insert: '\nvar ' + vars.join(', ') + ';\n'
       });
     });
-
     this.source = spliceString(splicePoints, this.source);
     this.ast = rocambole.parse(this.source);
   };
@@ -6845,11 +6845,40 @@ exports.moonwalk = function moonwalk(ast, fn){
     var scopes = escope.analyze(ast).scopes;
     //this attaches some scope information to certain nodes
     indexScope(scopes[0]);
+    //traverse for variable declarations that are immediately re-assigned
+    scopes.forEach(function(scope) {
+      if (scope.type !== 'function' && scope.type !== 'global') return;
+      scope.variables.forEach(function(variable) {
+        var id = variable.identifiers[0];
+        if (!id || id.parent.type !== 'VariableDeclarator') return;
+        var name = id.name;
+        var usedLexically = false;
+        var childScopes = scope.childScopes || [];
+        childScopes.forEach(function(childScope) {
+          var childScopeIndex = childScope.block.scopeIndex || {};
+          var unresolved = childScopeIndex.unresolved;
+          if (unresolved && unresolved[name]) {
+            usedLexically = true;
+          }
+        });
+        if (usedLexically) return;
+        var references = scope.references.filter(function(ref) {
+          return (ref.identifier.name === name);
+        });
+        if (!references.length) return;
+        var node = references[0].identifier;
+        if (node.parent.type === 'AssignmentExpression' && node.parent.left === node) {
+          set(id, 'implicitlyDefined', true);
+        }
+      });
+    });
     //used to append to variables that need to be renamed unique
     var count = 0;
+    //traverse for catch clauses and rename param if necessary
     scopes.forEach(function(scope) {
       if (scope.type === 'catch') {
         var param = scope.variables[0];
+        //todo: rename only if parent scope has any references with same name
         var identifiers = [param.identifiers[0]];
         param.references.forEach(function(ref) {
           identifiers.push(ref.identifier);
