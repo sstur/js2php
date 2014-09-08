@@ -6,7 +6,6 @@
   "dependencies": {
     "escope": "^1.0.1",
     "esprima": "^1.2.2",
-    "esrefactor": "^0.1.0",
     "minimist": "^1.1.0",
     "rocambole": "^0.3.6"
   },
