@@ -1,3 +1,4 @@
+/*global process*/
 (function() {
 
   var stack = [];
@@ -13,7 +14,8 @@
       stack.push(name);
       var errorMessage = 'Test Failure: ' + stack.join(': ');
       console.log(errorMessage);
-      throw new Error(errorMessage);
+      //throw new Error(errorMessage);
+      process.exit(1);
     }
   }
 
@@ -26,5 +28,7 @@
     delete o.b;
     assert('should be false when deleted', !('b' in o));
   });
+
+  console.log('Success.');
 
 })();
