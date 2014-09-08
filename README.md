@@ -31,6 +31,8 @@ Feel free to contribute if this interests you.
 ### How to Use
 
     git clone git@github.com:sstur/js2php.git
+    cd js2php
+    npm install
     echo "var a = 1; console.log(a + 1)" > example.js
     node js2php --runtime > runtime.php
     node js2php example.js > example.php
