@@ -109,6 +109,11 @@ Test::suite(
       'for..in helper',
       join(',', keys($o)) === 'a,b'
     );
+    $o = new Object("a", 1.0, "b", 2.0);
+    Test::assert(
+      'for..in helper',
+      join(',', keys($o)) === 'a,b'
+    );
   }
 );
 
@@ -156,6 +161,17 @@ Test::suite(
     Test::assert('explicit element', $arr->get(2) === 3.);
     $arr->set('length', 2);
     Test::assert('implicit element removal', $arr->get(2) === null);
+  }
+);
+
+Test::suite(
+  'Array: sort',
+  function() use ($Array) {
+    $arr = $Array->construct('s', 'i', false, 'm');
+    $arr->callMethod('sort');
+    Test::assert('length', $arr->get('length') === 4.);
+    Test::assert('sorted', $arr->callMethod('join', ',') === 'false,i,m,s');
+    Test::assert('types', $arr->get(0) === false);
   }
 );
 

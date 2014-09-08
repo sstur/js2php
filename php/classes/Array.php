@@ -58,6 +58,24 @@ class Arr extends Object implements JsonSerializable {
         }
         return join($str, $results);
       },
+      'sort' => function($this_, $arguments, $fn = null) {
+        $results = array();
+        $len = $this_->data->length->value;
+        for ($i = 0; $i < $len; $i++) {
+          $results[$i] = to_string($this_->get($i));
+        }
+        asort($results, SORT_STRING);
+        $i = 0;
+        $temp = new StdClass();
+        foreach ($results as $index => $str) {
+          $temp->{$i} = $this_->data->{$index};
+          $i += 1;
+        }
+        foreach ($temp as $i => $prop) {
+          $this_->data->{$i} = $prop;
+        }
+        return $this_;
+      },
       //todo: splice, indexOf, lastIndexOf
       'toString' => function($this_) {
         return $this_->callMethod('join');

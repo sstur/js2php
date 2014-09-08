@@ -38,12 +38,13 @@
     }
     assert('should iterate keys', a.join('') === 'abcde');
     var c = Object.create(b);
+    assert('should inherit', c.c === 0);
     c.f = null;
     a = [];
     for (var key in c) {
       a.push(key);
     }
-    assert('should iterate all keys', a.join('') === 'abcdef');
+    assert('should iterate all keys', a.sort().join('') === 'abcdef');
   });
 
   console.log('Success.');
