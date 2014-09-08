@@ -29,6 +29,23 @@
     assert('should be false when deleted', !('b' in o));
   });
 
+  testSuite('for..in', function() {
+    var nothing;
+    var a = [];
+    var b = {a: null, b: nothing, c: 0, d: false, e: '1'};
+    for (var key in b) {
+      a.push(key);
+    }
+    assert('should iterate keys', a.join('') === 'abcde');
+    var c = Object.create(b);
+    c.f = null;
+    a = [];
+    for (var key in c) {
+      a.push(key);
+    }
+    assert('should iterate all keys', a.join('') === 'abcdef');
+  });
+
   console.log('Success.');
 
 })();
