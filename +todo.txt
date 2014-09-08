@@ -1,13 +1,13 @@
-allow --fragment or --no-runtime to compile without the require
-allow --embed-runtime to produce single file
-
+function prototype, Function global
 operators: negate, unary_plus, bitwise, ...
 unicode: all string functions should use mb_
-add favicon
-add index.html redirect
-submit for eval
+demo: add favicon
+demo: add index.html redirect
+demo: form post
 bug: starting a function declaration on first line doesn't compile
-function prototype, function global
+
+support --fragment or --no-runtime to compile without the require
+support --embed-runtime to produce single file
 
 test:
   function scope stuff including named function expression
@@ -42,5 +42,10 @@ Object:
   "getPrototypeOf", "setPrototypeOf", "preventExtensions", "isExtensible", "seal", "isSealed", "freeze", "isFrozen"
 
 Date:
-  getDate, getDay, getFullYear, getHours, getMilliseconds, getMinutes, getMonth, getSeconds, getTime, getTimezoneOffset, getUTCDate, getUTCDay, getUTCFullYear, getUTCHours, getUTCMilliseconds, getUTCMinutes, getUTCMonth, getUTCSeconds, getYear, setDate, setFullYear, setHours, setMilliseconds, setMinutes, setMonth, setSeconds, setTime, setUTCDate, setUTCFullYear, setUTCHours, setUTCMilliseconds, setUTCMinutes, setUTCMonth, setUTCSeconds, setYear, toDateString, toGMTString, toISOString, toLocaleDateString, toLocaleString, toLocaleTimeString, toTimeString, toUTCString
+  getDate, getDay, getFullYear, getHours, getMilliseconds, getMinutes, getMonth, getSeconds
+  getUTCDate, getUTCDay, getUTCFullYear, getUTCHours, getUTCMilliseconds, getUTCMinutes, getUTCMonth, getUTCSeconds
+  setDate, setFullYear, setHours, setMilliseconds, setMinutes, setMonth, setSeconds
+  setUTCDate, setUTCFullYear, setUTCHours, setUTCMilliseconds, setUTCMinutes, setUTCMonth, setUTCSeconds
+  getTimezoneOffset, getTime, getYear, setTime, setYear
+  toDateString, toGMTString, toISOString, toLocaleDateString, toLocaleString, toLocaleTimeString, toTimeString, toUTCString
 

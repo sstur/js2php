@@ -2,11 +2,10 @@ browserify transformer/transform.js --standalone Transformer -o demo/js/transfor
 rsync -av ../js2php dev:~/
 
 Divergence from JavaScript
-  Cannot Implement:
-    arguments.caller
   Not Implemented:
     "0" -> truthy
     function.length
+    arguments.caller
     Implicitly setting globals
     eval or new Function(string)
 
