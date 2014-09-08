@@ -5,7 +5,7 @@ operators: negate, unary_plus, bitwise, ...
 unicode: all string functions should use mb_
 add favicon
 add index.html redirect
-demo in web worker; submit for eval
+submit for eval
 bug: starting a function declaration on first line doesn't compile
 
 test:
