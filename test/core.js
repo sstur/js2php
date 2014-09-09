@@ -69,6 +69,4 @@
     assert('catch scope doesn\'t bleed', e instanceof Error);
   });
 
-  console.log('Success');
-
 })();

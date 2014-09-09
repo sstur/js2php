@@ -373,4 +373,6 @@ Test::suite(
   }
 );
 
+require_once('test/build/core.php');
+
 $console->callMethod('log', 'Success');
