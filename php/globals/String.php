@@ -17,6 +17,6 @@ $String = call_user_func(function() {
       return chr($code);
     }
   );
-  $String->setMethods($methods);
+  $String->setMethods($methods, true, false, true);
   return $String;
 });

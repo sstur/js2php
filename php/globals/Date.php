@@ -21,6 +21,6 @@ $Date = call_user_func(function() {
       return $date->value;
     }
   );
-  $Date->setMethods($methods);
+  $Date->setMethods($methods, true, false, true);
   return $Date;
 });

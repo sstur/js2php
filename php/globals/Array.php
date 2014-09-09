@@ -17,6 +17,6 @@ $Array = call_user_func(function() {
       return ($arr instanceof Arr);
     }
   );
-  $Array->setMethods($methods);
+  $Array->setMethods($methods, true, false, true);
   return $Array;
 });

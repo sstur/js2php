@@ -32,7 +32,7 @@ class Str extends Object {
       }
     );
     self::$protoObject = new Object();
-    self::$protoObject->setMethods($methods);
+    self::$protoObject->setMethods($methods, true, false, true);
   }
 }
 

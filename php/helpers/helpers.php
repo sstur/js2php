@@ -6,7 +6,7 @@
  * @param array $arr
  * @return array
  */
-function keys($obj, $arr = array()) {
+function keys($obj, &$arr = array()) {
   if (!($obj instanceof Object)) {
     return $arr;
   }

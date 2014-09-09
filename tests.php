@@ -92,12 +92,29 @@ Test::suite(
     );
     Test::assert(
       '__proto__ is null',
-      Object::$protoObject->getProto() === null
+      Object::$protoObject->getProto() === Null::$null
     );
     Test::assert(
       'check toString',
       $Object->get('prototype')->get('toString') === Object::$protoObject->get('toString')
     );
+  }
+);
+
+Test::suite(
+  'keys()',
+  function() use ($Object) {
+    $obj = $Object->construct();
+    $obj->set('a', true);
+    $obj->set('b', false);
+    $keys = keys($obj);
+    sort($keys, SORT_STRING);
+    Test::assert('basic keys', join(',', $keys) === 'a,b');
+    $child = $Object->callMethod('create', $obj);
+    $child->set('c', 'foo');
+    $keys = keys($child);
+    sort($keys, SORT_STRING);
+    Test::assert('inherited keys', join(',', $keys) === 'a,b,c');
   }
 );
 

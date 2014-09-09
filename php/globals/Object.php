@@ -55,6 +55,6 @@ $Object = call_user_func(function() {
       }
     }
   );
-  $Object->setMethods($methods);
+  $Object->setMethods($methods, true, false, true);
   return $Object;
 });

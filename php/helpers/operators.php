@@ -27,7 +27,7 @@ function x_new($fn) {
 function x_instanceof($obj, $fn) {
   $proto = $obj->getProto();
   $prototype = $fn->get('prototype');
-  while ($proto !== null) {
+  while ($proto !== Null::$null) {
     if ($proto === $prototype) {
       return true;
     }
@@ -76,12 +76,12 @@ function x_in($key, $obj) {
   if (!($obj instanceof Object)) {
     throw new Exception("Cannot use 'in' operator to search for '" . $key . "' in " . to_string($obj));
   }
-  while ($obj !== null) {
+  while ($obj !== Null::$null) {
     $data = $obj->data;
     if (property_exists($data, $key)) {
       return true;
     }
-    $obj = $obj->proto;
+    $obj = $obj->getProto();
   }
   return false;
 }

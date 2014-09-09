@@ -29,7 +29,7 @@ class Object implements JsonSerializable {
       return $this->{'get_' . $key}();
     }
     $obj = $this;
-    while ($obj !== null) {
+    while ($obj !== Null::$null) {
       $data = $obj->data;
       if (property_exists($data, $key)) {
         return $data->{$key}->value;
@@ -60,7 +60,7 @@ class Object implements JsonSerializable {
    * @param bool $configurable
    * @return mixed
    */
-  function setProperty($key, $value, $writable, $enumerable, $configurable) {
+  function setProperty($key, $value, $writable = null, $enumerable = null, $configurable = null) {
     $data = $this->data;
     if (property_exists($data, $key)) {
       $prop = $data->{$key};
@@ -101,9 +101,9 @@ class Object implements JsonSerializable {
   /**
    * @param array $methods
    */
-  function setMethods($methods) {
+  function setMethods($methods, $writable = null, $enumerable = null, $configurable = null) {
     foreach ($methods as $key => $fn) {
-      $this->set($key, new Func($fn));
+      $this->setProperty($key, new Func($fn), $writable, $enumerable, $configurable);
     }
   }
 
@@ -132,28 +132,25 @@ class Object implements JsonSerializable {
   }
 
   static function initProtoObject() {
-    $protoProps = array(
-      'hasOwnProperty' => function($this_, $arguments, $key) {
-          return property_exists($this_->data, $key);
-        },
-      'toString' => function($this_) {
-          return $this_->className;
-        },
-      'valueOf' => function($this_) {
-          return $this_;
-        }
-    );
-    self::$protoObject = new Object();
-    self::$protoObject->setProps($protoProps);
+    $proto = new Object();
+    $proto->proto = Null::$null;
+    self::$protoObject = $proto;
   }
 
+  //this method is called *after* Func class is defined
   static function initProtoMethods() {
-    $data = self::$protoObject->data;
-    foreach ($data as $key => $prop) {
-      if ($prop->value instanceof Closure) {
-        $prop->value = new Func($prop->value);
+    $protoMethods = array(
+      'hasOwnProperty' => function($this_, $arguments, $key) {
+        return property_exists($this_->data, $key);
+      },
+      'toString' => function($this_) {
+        return $this_->className;
+      },
+      'valueOf' => function($this_) {
+        return $this_;
       }
-    }
+    );
+    self::$protoObject->setMethods($protoMethods, true, false, true);
   }
 }
 

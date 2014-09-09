@@ -50,7 +50,7 @@ class RegExp extends Object implements JsonSerializable {
       }
     );
     self::$protoObject = new Object();
-    self::$protoObject->setMethods($methods);
+    self::$protoObject->setMethods($methods, true, false, true);
   }
 
   function get_source() {
