@@ -14,8 +14,15 @@
       stack.push(name);
       var errorMessage = 'Test Failure: ' + stack.join(': ');
       console.log(errorMessage);
-      //throw new Error(errorMessage);
       process.exit(1);
+    }
+  }
+
+  function throwCatch(value) {
+    try {
+      throw value;
+    } catch(e) {
+      return e;
     }
   }
 
@@ -45,6 +52,21 @@
       a.push(key);
     }
     assert('should iterate all keys', a.sort().join('') === 'abcdef');
+  });
+
+  testSuite('throw/catch', function() {
+    var nothing;
+    assert('can throw undefined', throwCatch(nothing) === nothing);
+    assert('can throw null', throwCatch(null) === null);
+    assert('can throw number', throwCatch(1) === 1);
+    var e = new Error('err');
+    assert('can throw error', throwCatch(e) === e);
+    try {
+      throw 'foo';
+    } catch(e) {
+      assert('catch creates scope', e === 'foo');
+    }
+    assert('catch scope doesn\'t bleed', e instanceof Error);
   });
 
   console.log('Success');

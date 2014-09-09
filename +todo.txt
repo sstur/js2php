@@ -9,10 +9,7 @@ support --embed-runtime to produce single file
 
 test:
   function scope stuff including named function expression
-  keys() for `for..in`
   a[0], a[b], a.b
-  js_in
-  throw/catch primitive
 
 JSON:
   $thing->callMethod('toJSON')
