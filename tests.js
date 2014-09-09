@@ -47,6 +47,6 @@
     assert('should iterate all keys', a.sort().join('') === 'abcdef');
   });
 
-  console.log('Success.');
+  console.log('Success');
 
 })();

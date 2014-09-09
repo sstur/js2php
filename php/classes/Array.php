@@ -59,6 +59,7 @@ class Arr extends Object implements JsonSerializable {
         return join($str, $results);
       },
       'sort' => function($this_, $arguments, $fn = null) {
+        //todo: $fn
         $results = array();
         $len = $this_->data->length->value;
         for ($i = 0; $i < $len; $i++) {
@@ -76,7 +77,7 @@ class Arr extends Object implements JsonSerializable {
         }
         return $this_;
       },
-      //todo: splice, indexOf, lastIndexOf
+      //todo: concat, splice, indexOf, lastIndexOf
       'toString' => function($this_) {
         return $this_->callMethod('join');
       }
