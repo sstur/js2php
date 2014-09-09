@@ -86,4 +86,3 @@ Obj.prop => Obj::prop
 built-in functions organized into classes like:
 Math.log(num) => Math::log($num)
 String.length(str) => String::length($str) --or-- String(str).length => String::create($str)->length
-
