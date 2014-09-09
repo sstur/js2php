@@ -4,7 +4,7 @@
   var fs = require('fs');
   var path = require('path');
   var argv = require('minimist')(process.argv.slice(2));
-  var transform = require('./transformer/transform.js');
+  var transform = require('./tools/transform.js');
 
   var outfile = argv.o || argv.out;
 
