@@ -6650,7 +6650,6 @@ exports.moonwalk = function moonwalk(ast, fn){
   var rocambole = _dereq_('rocambole');
   var escope = _dereq_('escope');
 
-  //var scopify = require('./scopify');
   var codegen = _dereq_('./codegen');
 
   //these constructs contain variable scope (technically, there's catch scope and ES6 let)
@@ -6670,20 +6669,12 @@ exports.moonwalk = function moonwalk(ast, fn){
 
   Transformer.prototype.process = function(opts) {
     this.opts = opts || (opts = {});
-    this.source = opts.source || fs.readFileSync(opts.infile, 'utf8');
+    this.source = opts.source;
     this.ast = rocambole.parse(this.source);
     this.mutateFirstPass();
     this.mutateSecondPass();
     this.mutateThirdPass();
-    //var escodegen = require('escodegen');
-    //var js = escodegen.generate(this.ast, {format: {indent: {style: '  '}}});
-    //fs.writeFileSync('./_output.js', js, 'utf8');
-    var php = codegen.generate(this.ast);
-    if (opts.outpath && opts.buildRuntime !== false) {
-      var runtime = buildRuntime();
-      fs.writeFileSync(path.join(opts.outpath, 'runtime.php'), runtime, 'utf8');
-    }
-    return '<?php\n' + 'require_once("runtime.php");\n\n' + php;
+    return codegen.generate(this.ast);
   };
 
   Transformer.prototype.mutateFirstPass = function() {
@@ -6990,13 +6981,13 @@ exports.moonwalk = function moonwalk(ast, fn){
     var output = [];
     source.replace(/require_once\('(.+?)'\)/g, function(_, file) {
       var source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
-      source = source.replace('<?php\n', '');
-      output.push.apply(output, source.split('\n'));
+      source = source.replace(/^<\?php/, '');
+      source = source.replace(/^\n+|\n+$/g, '');
+      output.push(source);
     });
     var timezone = new Date().toString().slice(-4, -1);
-    output.unshift('define("LOCAL_TZ", "' + timezone + '");');
-    source = output.join('\n') + '\n';
-    return '<?php\n' + source;
+    output.unshift('define("LOCAL_TZ", "' + timezone + '");\n');
+    return output.join('\n');
   }
 
   function set(object, name, value) {

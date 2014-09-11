@@ -4,10 +4,8 @@ unicode: all string functions should use mb_
 demo: link to project; add index.html redirect; missing favicon; form post
 bug: starting a function declaration on first line doesn't compile
 
-support --fragment or --no-runtime to compile without the require
-support --embed-runtime to produce single file
-
 test:
+  source transformation including variable decl; hoisting; catch
   function scope stuff including named function expression
   a[0], a[b], a.b
 

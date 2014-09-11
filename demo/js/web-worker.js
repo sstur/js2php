@@ -7,12 +7,14 @@ addEventListener('message', function(e) {
   if (opts.noCatch) {
     //allow error to be thrown for debugging
     var result = Transformer({source: data.sourceCode});
+    result = 'require_once("runtime.php");\n\n' + result;
   } else {
     try {
       result = Transformer({source: data.sourceCode});
     } catch (e) {
-      result = '<php\n/* ERROR TRANSFORMING SOURCE:\n' + e.message + ' */';
+      result = '/* ERROR TRANSFORMING SOURCE:\n' + e.message + ' */';
     }
+    result = '<?php\n' + result;
   }
   postMessage({
     result: result

@@ -7,51 +7,74 @@
   var transform = require('./tools/transform.js');
 
   var outfile = argv.o || argv.out;
+  var infiles = argv._;
+
+  // #default is runtime embedded in output file
+  // --runtime runtime.php #runtime exists at path; link to via require()
+  // --runtime-only #output only the runtime
+  // --fragment #no runtime included
 
 
-  if (argv.runtime) {
+  var pathToRuntime = (argv.runtime === true) ? 'runtime.php' : argv.runtime;
+  if (!argv.fragment && !pathToRuntime) {
     var runtime = transform.buildRuntime();
-    //todo: support --varname phpRuntime
-    if (outfile) {
-      if (!outfile.match(/\.php$/)) {
-        outfile = path.join(outfile, 'runtime.php');
-      }
-      fs.writeFileSync(outfile, runtime, 'utf8');
-      console.log('Runtime saved to', outfile);
-    } else {
-      process.stdout.write(runtime);
+    if (argv['runtime-only']) {
+      outputContent(runtime, 'runtime.php');
+      process.exit(0);
     }
-    process.exit(0);
   }
 
-  var infile = argv._[0];
-  if (!infile || !infile.match(/\.js$/)) {
-    console.log('No input file specified.');
+  if (!infiles.length) {
+    log('No input file(s) specified.');
     process.exit(1);
   }
-  try {
-    var source = fs.readFileSync(infile, 'utf8');
-  } catch(e) {
-    if (e.code === 'ENOENT') {
-      console.error('Unable to open file:', infile);
-      process.exit(1);
+
+  var output = infiles.map(function(infile) {
+    try {
+      var source = fs.readFileSync(infile, 'utf8');
+    } catch(e) {
+      if (e.code === 'ENOENT') {
+        log('Unable to open file `' +  infile + '`');
+        process.exit(1);
+      }
+      throw e;
     }
-    throw e;
+    log('Processing file `' +  infile + '` ...');
+    var output = transform({
+      source: source
+    });
+    output.replace(/^\n+|\n+$/g, '');
+    return output;
+  });
+
+  if (runtime) {
+    output.unshift(runtime);
+  } else
+  if (pathToRuntime) {
+    output.unshift('require_once(' + JSON.stringify(pathToRuntime) + ');');
+  }
+  outputContent('<?php\n' + output.join('\n\n') + '\n');
+  log('Success');
+
+
+  function outputContent(content, defaultFileName) {
+    if (!outfile) {
+      process.stdout.write(content);
+      return;
+    }
+    if (defaultFileName && !outfile.match(/\.php$/)) {
+      outfile = path.join(outfile, defaultFileName);
+    }
+    fs.writeFileSync(outfile, content, 'utf8');
+    log('Output saved to', outfile);
   }
 
-  if (outfile) {
-    console.log('Transforming source ...');
-  }
-  var output = transform({
-    source: source,
-    buildRuntime: argv.runtime,
-    outpath: outfile ? path.dirname(outfile) : null
-  });
-  if (outfile) {
-    fs.writeFileSync(outfile, output, 'utf8');
-    console.log('Success');
-  } else {
-    process.stdout.write(output);
+  function log() {
+    if (outfile) {
+      console.log.apply(console, arguments);
+    } else {
+      console.error.apply(console, arguments);
+    }
   }
 
 })();
