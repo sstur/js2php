@@ -1,8 +1,9 @@
 function prototype, Function global
 operators: negate, unary_plus, bitwise, ...
 unicode: all string functions should use mb_
-demo: link to project; add index.html redirect; missing favicon; form post
+demo: form post
 bug: starting a function declaration on first line doesn't compile
+bug: check why toObject didn't hoist in es5
 
 test:
   source transformation including variable decl; hoisting; catch
