@@ -58,6 +58,13 @@ class Arr extends Object implements JsonSerializable {
         }
         return join($str, $results);
       },
+      'indexOf' => function($this_, $arguments, $value) {
+        $len = $this_->data->length->value;
+        for ($i = 0; $i < $len; $i++) {
+          if ($this_->get($i) === $value) return (float)$i;
+        }
+        return -1.0;
+      },
       'sort' => function($this_, $arguments, $fn = null) {
         //todo: $fn
         $results = array();
