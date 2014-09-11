@@ -7,7 +7,7 @@ bug: check why toObject didn't hoist in es5
 refactor js assert out of test folder
 this used in global context should return global
 remove $object->type
-Object.keys/getOwnPropertyNames should use $obj->keys()
+x_negate(numeric_literal)
 
 Error Handling
   throw new Exception("TypeError: %s is not a function")

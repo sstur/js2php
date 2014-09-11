@@ -15,9 +15,15 @@ $Object = call_user_func(function() {
     'keys' => function($this_, $arguments, $obj) {
       //todo: if (!($obj instanceof Object)) throw new Exception();
       $results = new Arr();
-      foreach ($obj->data as $key => $prop) {
-        if ($prop->enumerable) {
+      if (method_exists($obj, 'keys')) {
+        foreach ($obj->keys() as $i => $key) {
           $results->push($key);
+        }
+      } else {
+        foreach ($obj->data as $key => $prop) {
+          if ($prop->enumerable) {
+            $results->push($key);
+          }
         }
       }
       return $results;
@@ -25,8 +31,14 @@ $Object = call_user_func(function() {
     'getOwnPropertyNames' => function($this_, $arguments, $obj) {
       //todo: if (!($obj instanceof Object)) throw new Exception();
       $results = new Arr();
-      foreach ($obj->data as $key => $prop) {
-        $results->push($key);
+      if (method_exists($obj, 'keys')) {
+        foreach ($obj->keys() as $i => $key) {
+          $results->push($key);
+        }
+      } else {
+        foreach ($obj->data as $key => $prop) {
+          $results->push($key);
+        }
       }
       return $results;
     },

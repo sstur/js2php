@@ -65,6 +65,8 @@
     assert('in operator not find natives', !('_SERVER' in global));
     assert('in operator find Math', 'Math' in global);
     assert('in operator walk prototype chain', 'toString' in global);
+    var b = Object.keys(global);
+    assert('Object.keys works', b.join(',') === a.join(','));
   });
 
   testSuite('throw/catch', function() {
