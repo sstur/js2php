@@ -1,4 +1,4 @@
-/*global process*/
+/*global global process*/
 (function() {
 
   var stack = [];
@@ -52,6 +52,19 @@
       a.push(key);
     }
     assert('should iterate all keys', a.sort().join('') === 'abcdef');
+  });
+
+  testSuite('global', function() {
+    var a = [];
+    for (var key in global) {
+      a.push(key);
+    }
+    assert('keys not contain natives', a.indexOf('GLOBALS') === -1);
+    assert('keys contain Object', a.indexOf('Object') !== -1);
+    assert('keys contain self', a.indexOf('global') !== -1);
+    assert('in operator not find natives', !('_SERVER' in global));
+    assert('in operator find Math', 'Math' in global);
+    assert('in operator walk prototype chain', 'toString' in global);
   });
 
   testSuite('throw/catch', function() {

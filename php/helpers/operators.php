@@ -1,6 +1,8 @@
 <?php
 
-function x_void() {}
+function x_void() {
+  return null;
+}
 
 /**
  * @param Func $fn
@@ -45,6 +47,10 @@ function x_plus($a, $b) {
   return $a + $b;
 }
 
+function x_negate($val) {
+  return (float)(0 - $val);
+}
+
 function x_and($a, $b) {
   return $a ? $b : $a;
 }
@@ -77,9 +83,15 @@ function x_in($key, $obj) {
     throw new Exception("Cannot use 'in' operator to search for '" . $key . "' in " . to_string($obj));
   }
   while ($obj !== Null::$null) {
-    $data = $obj->data;
-    if (property_exists($data, $key)) {
-      return true;
+    if (method_exists($obj, 'hasKey')) {
+      if ($obj->hasKey($key)) {
+        return true;
+      }
+    } else {
+      $data = $obj->data;
+      if (property_exists($data, $key)) {
+        return true;
+      }
     }
     $obj = $obj->getProto();
   }

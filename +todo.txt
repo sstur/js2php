@@ -4,11 +4,20 @@ unicode: all string functions should use mb_
 demo: form post
 bug: starting a function declaration on first line doesn't compile
 bug: check why toObject didn't hoist in es5
+refactor js assert out of test folder
+this used in global context should return global
+remove $object->type
+Object.keys/getOwnPropertyNames should use $obj->keys()
+
+Error Handling
+  throw new Exception("TypeError: %s is not a function")
+  Object -> interface; instanceof -> isObject(); $err instanceof Exception
 
 test:
   source transformation including variable decl; hoisting; catch
   function scope stuff including named function expression
   a[0], a[b], a.b
+  for (i in array) {}
 
 JSON:
   $thing->callMethod('toJSON')
