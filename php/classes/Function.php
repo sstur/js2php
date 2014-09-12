@@ -3,16 +3,19 @@ class Func extends Object {
   public $name = "";
   public $type = "function";
   public $className = "[object Function]";
+  public $bound = null;
+
+  static $protoObject = null;
+  static $callStack = array();
 
   function __construct() {
     parent::__construct();
     $args = func_get_args();
-    if (count($args) === 2) {
-      $this->name = $args[0];
-      $this->fn = $args[1];
-    } else {
-      $this->fn = $args[0];
+    if (gettype($args[0]) === 'string') {
+      $this->name = array_shift($args);
     }
+    $this->fn = array_shift($args);
+    $this->meta = (count($args) === 1) ? $args[0] : array();
     $prototype = new Object('constructor', $this);
     $this->set('prototype', $prototype);
   }
@@ -30,19 +33,31 @@ class Func extends Object {
   }
 
   function call($context = null) {
+    if ($this->bound !== null) {
+      $context = $this->bound;
+    } else
     if (func_num_args() === 0) {
       $context = Object::$global;
     }
     $args = array_slice(func_get_args(), 1);
-    array_unshift($args, self::makeArgs($args, $this));
+    $arguments = self::makeArgs($args, $this);
+    array_unshift($args, $arguments);
     array_unshift($args, $context);
-    return call_user_func_array($this->fn, $args);
+    $result = call_user_func_array($this->fn, $args);
+    array_pop(self::$callStack);
+    return $result;
   }
 
   function apply($context, $args) {
-    array_unshift($args, self::makeArgs($args, $this));
+    if ($this->bound !== null) {
+      $context = $this->bound;
+    }
+    $arguments = self::makeArgs($args, $this);
+    array_unshift($args, $arguments);
     array_unshift($args, $context);
-    return call_user_func_array($this->fn, $args);
+    $result = call_user_func_array($this->fn, $args);
+    array_pop(self::$callStack);
+    return $result;
   }
 
   function get_name() {
@@ -53,10 +68,39 @@ class Func extends Object {
     return $value;
   }
 
+  static function initProtoObject() {
+    $methods = array(
+      'bind' => function($this_, $context) {
+        $fn = new Func($this_->name, $this_->fn, $this_->meta);
+        $fn->bound = $context;
+        return $fn;
+      },
+      'call' => function($this_, $arguments) {
+        $args = $arguments->args;
+        $context = array_shift($args);
+        $this_->apply($context, $args);
+      },
+      'apply' => function($this_, $arguments, $context, $args) {
+        $this_->apply($context, $args);
+      },
+      'toString' => function($this_) {
+        if ($GLOBALS['source_'] && $this_->source_id) {
+          $meta = $this_->meta;
+          $source = $GLOBALS['source_'][$meta->id];
+          return substr($source, $meta->start, $meta->end - $meta->start + 1);
+        }
+        return 'function ' . $this_->name . '() { [native code] }';
+      }
+    );
+    self::$protoObject = new Object();
+    self::$protoObject->setMethods($methods, true, false, true);
+  }
+
   static function makeArgs($args, $callee) {
     $obj = new Object();
     $obj->args = $args;
     $obj->callee = $callee;
+    self::$callStack[] = $callee;
     $len = count($args);
     for ($i = 0; $i < $len; $i++) {
       $obj->set($i, $args[$i]);
@@ -68,3 +112,4 @@ class Func extends Object {
 }
 
 Object::initProtoMethods();
+Func::initProtoObject();
