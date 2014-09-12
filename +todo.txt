@@ -3,16 +3,16 @@ operators: negate, unary_plus, bitwise, ...
 unicode: all string functions should use mb_
 demo: form post
 bug: starting a function declaration on first line doesn't compile
-bug: check why toObject didn't hoist in es5
 refactor js assert out of test folder
 this used in global context should return global
 remove $object->type
 x_negate(numeric_literal)
 toPHPString -> utils; should escape "{$a->b}"
+all $this_->data should use get and length should use to_number
+Object should provide unset (overriden for Global)
 
 Error Handling
   throw new Exception("TypeError: %s is not a function")
-  Object -> interface; instanceof -> isObject(); $err instanceof Exception
 
 test:
   source transformation including variable decl; hoisting; catch
