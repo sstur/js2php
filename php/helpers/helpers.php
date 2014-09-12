@@ -1,8 +1,8 @@
 <?php
 
 /**
- * used in for..in
- * @param Object $obj
+ * Used in `for..in` to get keys (including up the proto chain)
+ * @param $obj
  * @param array $arr
  * @return array
  */
@@ -112,7 +112,11 @@ function to_number($value) {
   return NaN::$nan;
 }
 
-//used in to_number to handle objects
+/**
+ * Used in to_number to handle objects
+ * @param Object $obj
+ * @return mixed
+ */
 function to_primitive($obj) {
   $value = $obj->callMethod('valueOf');
   if ($value instanceof Object) {
@@ -121,12 +125,20 @@ function to_primitive($obj) {
   return $value;
 }
 
-//used in math functions to ensure we don't ever get PHP's NAN
+/**
+ * Used in math functions to ensure we don't ever get PHP's NAN
+ * @param int|float $num
+ * @return float|NaN
+ */
 function catch_nan($num) {
   return is_nan($num) ? NaN::$nan : (float)$num;
 }
 
-//used to get/set properties on primitives
+/**
+ * Used to get/set properties on primitives
+ * @param $value
+ * @return Object
+ */
 function objectify($value) {
   $type = gettype($value);
   if ($type === 'string') {
@@ -141,6 +153,14 @@ function objectify($value) {
 
 
 //getters, setters and function callers
+
+/**
+ * get a property from a primitive or Object
+ * @param null|string|float|bool|Object|Null $obj
+ * @param string $name
+ * @return mixed
+ * @throws Exception
+ */
 function get($obj, $name) {
   if ($obj === null || $obj === Null::$null) {
     throw new Exception("TypeError: Cannot read property '" . $name . "' of " . to_string($obj));
@@ -149,6 +169,17 @@ function get($obj, $name) {
   return $obj->get($name);
 }
 
+/**
+ * Set a property on a primitive or Object (setting on a primitive would
+ * normally be useless). The operator specified can be =, +=, *=, etc.
+ * @param null|string|float|bool|Object|Null $obj
+ * @param string $name
+ * @param $value
+ * @param string $op
+ * @param bool $returnOld
+ * @return float|int|null|string
+ * @throws Exception
+ */
 function set($obj, $name, $value, $op = '=', $returnOld = false) {
   if ($obj === null || $obj === Null::$null) {
     throw new Exception("TypeError: Cannot set property '" . $name . "' of " . to_string($obj));
@@ -180,6 +211,12 @@ function set($obj, $name, $value, $op = '=', $returnOld = false) {
   return $returnOld ? $oldValue : $newValue;
 }
 
+/**
+ * Call a function from
+ * @param Func $fn
+ * @return mixed
+ * @throws Exception
+ */
 function call($fn) {
   if (!($fn instanceof Func)) {
     throw new Exception("TypeError: " . x_typeof($fn) . " is not a function");
@@ -188,6 +225,12 @@ function call($fn) {
   return $fn->apply(Object::$global, $args);
 }
 
+/**
+ * @param Object $obj
+ * @param string $name
+ * @return mixed
+ * @throws Exception
+ */
 function call_method($obj, $name) {
   if ($obj === null || $obj === Null::$null) {
     throw new Exception("TypeError: Cannot read property '" . $name . "' of " . to_string($obj));
