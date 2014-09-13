@@ -60,14 +60,22 @@ function x_or($a, $b) {
 }
 
 /**
- * @param Object $obj
- * @param string $key
+ * @param $obj
+ * @param null $key
+ * @return bool
+ * @throws Exception
  */
-function x_delete($obj, $key) {
-  if (func_num_args() !== 2) {
-    throw new Exception("Don't delete things that aren't properties.");
+function x_delete($obj, $key = null) {
+  if (func_num_args() === 1) {
+    $key = func_get_arg(0);
+    Object::$global->remove($key);
+    return true;
   }
-  unset($obj->data->{$key});
+  if ($obj === null || $obj === Null::$null) {
+    throw new Exception("Cannot convert undefined or null to object");
+  }
+  $obj = objectify($obj);
+  $obj->remove($key);
   return true;
 }
 

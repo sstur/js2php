@@ -44,11 +44,25 @@ class Object implements JsonSerializable {
     }
     $data = $this->data;
     if (property_exists($data, $key)) {
-      $data->{$key}->value = $value;
+      $property = $data->{$key};
+      if ($property->writable) {
+        $property->value = $value;
+      }
     } else {
       $data->{$key} = new Property($value);
     }
     return $value;
+  }
+
+  function remove($key) {
+    $data = $this->data;
+    if (property_exists($data, $key)) {
+      if (!$data->{$key}->configurable) {
+        return false;
+      }
+      unset($data->{$key});
+    }
+    return true;
   }
 
   /**

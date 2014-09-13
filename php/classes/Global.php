@@ -15,19 +15,15 @@ class GlobalObject extends Object {
     return $GLOBALS[$key];
   }
 
-  //keys will produce the list of keys that are considered to be enumerable
-  function keys() {
-    $keys = array();
-    foreach ($GLOBALS as $key => $value) {
-      if (!preg_match('/[^_]_$/', $key)) {
-        $key = preg_replace('/__$/', '_', $key);
-        $key = preg_replace_callback('/«([a-z0-9]+)»/', 'self::decodeChar', $key);
-        if (self::isValidType($value)) {
-          $keys[] = $key;
-        }
+  function remove($key) {
+    $key = preg_replace('/_$/', '__', $key);
+    $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
+    if (array_key_exists($key, $GLOBALS)) {
+      if (self::isValidType($GLOBALS[$key])) {
+        unset($GLOBALS[$key]);
       }
     }
-    return $keys;
+    return true;
   }
 
   //determine if a valid value exists at the given key
@@ -40,6 +36,21 @@ class GlobalObject extends Object {
       }
     }
     return false;
+  }
+
+  //produce the list of keys that are considered to be enumerable
+  function keys() {
+    $keys = array();
+    foreach ($GLOBALS as $key => $value) {
+      if (!preg_match('/[^_]_$/', $key)) {
+        $key = preg_replace('/__$/', '_', $key);
+        $key = preg_replace_callback('/«([a-z0-9]+)»/', 'self::decodeChar', $key);
+        if (self::isValidType($value)) {
+          $keys[] = $key;
+        }
+      }
+    }
+    return $keys;
   }
 
   static function isValidType($value) {
