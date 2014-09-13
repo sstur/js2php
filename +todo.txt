@@ -8,7 +8,6 @@ x_negate(numeric_literal)
 toPHPString -> utils; should escape "{$a->b}"
 all $this_->data should use get; length should use to_number
 Object should provide unset (overriden for Global)
-build should not log "Success"
 
 Error Handling
   throw new Exception("TypeError: %s is not a function")

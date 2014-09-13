@@ -54,12 +54,12 @@
     output.unshift('require_once(' + JSON.stringify(pathToRuntime) + ');');
   }
   outputContent('<?php\n' + output.join('\n\n') + '\n');
-  log('Success');
 
 
   function outputContent(content, defaultFileName) {
     if (!outfile) {
       process.stdout.write(content);
+      log('Output saved to STDOUT');
       return;
     }
     if (defaultFileName && !outfile.match(/\.php$/)) {
