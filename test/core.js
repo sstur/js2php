@@ -48,8 +48,8 @@
     assert('should inherit', c.c === 0);
     c.f = null;
     a = [];
-    for (var key in c) {
-      a.push(key);
+    for (var k in c) {
+      a.push(k);
     }
     assert('should iterate all keys', a.sort().join('') === 'abcdef');
   });

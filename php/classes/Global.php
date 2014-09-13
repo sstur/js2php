@@ -68,21 +68,21 @@ class GlobalObject extends Object {
         $key = preg_replace('/__$/', '_', $key);
         $key = preg_replace_callback('/«([a-z0-9]+)»/', 'self::decodeChar', $key);
         if (self::isValidType($value)) {
-          $keys[] = $key;
+          $arr[] = $key;
         }
       }
     }
     return $arr;
   }
 
-  //produce the list of keys that are considered to be enumerable (walk proto)
+  //produce the list of keys (walk proto)
   function keys(&$arr = array()) {
     foreach ($GLOBALS as $key => $value) {
       if (!preg_match('/[^_]_$/', $key)) {
         $key = preg_replace('/__$/', '_', $key);
         $key = preg_replace_callback('/«([a-z0-9]+)»/', 'self::decodeChar', $key);
         if (self::isValidType($value)) {
-          $keys[] = $key;
+          $arr[] = $key;
         }
       }
     }
