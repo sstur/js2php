@@ -76,7 +76,7 @@ class GlobalObject extends Object {
   }
 
   //produce the list of keys (walk proto)
-  function keys(&$arr = array()) {
+  function getKeys(&$arr = array()) {
     foreach ($GLOBALS as $key => $value) {
       if (!preg_match('/[^_]_$/', $key)) {
         $key = preg_replace('/__$/', '_', $key);
@@ -88,7 +88,7 @@ class GlobalObject extends Object {
     }
     $proto = $this->getProto();
     if ($proto instanceof Object) {
-      $proto->keys($arr);
+      $proto->getKeys($arr);
     }
     return $arr;
   }

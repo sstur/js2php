@@ -100,7 +100,7 @@ class Object implements JsonSerializable {
   }
 
   //produce the list of keys that are considered to be enumerable (walk proto)
-  function keys(&$arr = array()) {
+  function getKeys(&$arr = array()) {
     foreach ($this->data as $key => $prop) {
       if ($prop->enumerable) {
         $arr[] = $key;
@@ -108,7 +108,7 @@ class Object implements JsonSerializable {
     }
     $proto = $this->getProto();
     if ($proto instanceof Object) {
-      $proto->keys($arr);
+      $proto->getKeys($arr);
     }
     return $arr;
   }

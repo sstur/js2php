@@ -10,7 +10,7 @@ function keys($obj, &$arr = array()) {
   if (!($obj instanceof Object)) {
     return $arr;
   }
-  return $obj->keys($arr);
+  return $obj->getKeys($arr);
 }
 
 function is_primitive($value) {
