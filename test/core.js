@@ -72,6 +72,7 @@
   testSuite('functions', function() {
     var o = {};
     var fn1 = function() { return this; };
+    assert('instance of Function', fn1 instanceof Function);
     assert('can call null', fn1.call(null) === global);
     assert('can call object', fn1.call(o) === o);
     assert('can apply object', fn1.apply(o, []) === o);
@@ -84,7 +85,7 @@
   });
 
   testSuite('throw/catch', function() {
-    var nothing;
+    var nothing = void 0;
     assert('can throw undefined', throwCatch(nothing) === nothing);
     assert('can throw null', throwCatch(null) === null);
     assert('can throw number', throwCatch(1) === 1);

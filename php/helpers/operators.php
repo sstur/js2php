@@ -28,7 +28,7 @@ function x_new($fn) {
  */
 function x_instanceof($obj, $fn) {
   $proto = $obj->getProto();
-  $prototype = $fn->get('prototype');
+  $prototype = get($fn, 'prototype');
   while ($proto !== Null::$null) {
     if ($proto === $prototype) {
       return true;
