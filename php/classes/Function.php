@@ -1,7 +1,6 @@
 <?php
 class Func extends Object {
   public $name = "";
-  public $type = "function";
   public $className = "[object Function]";
   public $bound = null;
 

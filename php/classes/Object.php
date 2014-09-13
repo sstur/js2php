@@ -2,7 +2,6 @@
 class Object implements JsonSerializable {
   public $data = null;
   public $proto = null;
-  public $type = "object";
   public $className = "[object Object]";
 
   static $protoObject = null;

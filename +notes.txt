@@ -4,12 +4,11 @@ node js2php tests.js>test/tests.php && php -f test/tests.php
 rsync -av ../js2php dev:~/
 
 Divergence from JavaScript
-  Not Implemented:
-    "0" -> truthy
-    function.length
-    arguments.caller
-    Implicitly setting globals
-    eval or new Function(string)
+  function.length
+  "0" -> truthy
+  cannot implicitly set global
+  doesn't throw on use of undeclared var
+  no runtime parsing: eval, new Function()
 
 Compiling:
   keyword literals: null -> Null::$null, undefined -> null

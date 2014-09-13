@@ -116,8 +116,11 @@ function x_typeof($value) {
   if ($type === 'string' || $type === 'boolean') {
     return $type;
   }
+  if ($value instanceof Func) {
+    return 'function';
+  }
   if ($value instanceof Object) {
-    return $value->type;
+    return 'object';
   }
   return 'unknown';
 }
