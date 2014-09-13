@@ -10,6 +10,7 @@ class Func extends Object {
 
   function __construct() {
     parent::__construct();
+    $this->setProto(self::$protoObject);
     $args = func_get_args();
     if (gettype($args[0]) === 'string') {
       $this->name = array_shift($args);
@@ -33,28 +34,25 @@ class Func extends Object {
   }
 
   function call($context = null) {
-    if ($this->bound !== null) {
-      $context = $this->bound;
-    } else
-    if (func_num_args() === 0) {
-      $context = Object::$global;
-    }
     $args = array_slice(func_get_args(), 1);
-    $arguments = self::makeArgs($args, $this);
-    array_unshift($args, $arguments);
-    array_unshift($args, $context);
-    $result = call_user_func_array($this->fn, $args);
-    array_pop(self::$callStack);
-    return $result;
+    return $this->apply($context, $args);
   }
 
   function apply($context, $args) {
     if ($this->bound !== null) {
       $context = $this->bound;
     }
+    if ($context === null || $context === Null::$null) {
+      $context = Object::$global;
+    } else
+    //primitives (boolean, number, string) should be wrapped in object
+    if (!($context instanceof Object)) {
+      $context = objectify($context);
+    }
     $arguments = self::makeArgs($args, $this);
     array_unshift($args, $arguments);
     array_unshift($args, $context);
+    self::$callStack[] = $this;
     $result = call_user_func_array($this->fn, $args);
     array_pop(self::$callStack);
     return $result;
@@ -70,7 +68,7 @@ class Func extends Object {
 
   static function initProtoObject() {
     $methods = array(
-      'bind' => function($this_, $context) {
+      'bind' => function($this_, $arguments, $context) {
         $fn = new Func($this_->name, $this_->fn, $this_->meta);
         $fn->bound = $context;
         return $fn;
@@ -78,10 +76,12 @@ class Func extends Object {
       'call' => function($this_, $arguments) {
         $args = $arguments->args;
         $context = array_shift($args);
-        $this_->apply($context, $args);
+        return $this_->apply($context, $args);
       },
       'apply' => function($this_, $arguments, $context, $args) {
-        $this_->apply($context, $args);
+        //convert Arr object to native array()
+        $args = $args->jsonSerialize();
+        return $this_->apply($context, $args);
       },
       'toString' => function($this_) {
         if ($GLOBALS['source_'] && $this_->source_id) {
@@ -100,7 +100,6 @@ class Func extends Object {
     $obj = new Object();
     $obj->args = $args;
     $obj->callee = $callee;
-    self::$callStack[] = $callee;
     $len = count($args);
     for ($i = 0; $i < $len; $i++) {
       $obj->set($i, $args[$i]);

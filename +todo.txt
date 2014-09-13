@@ -1,4 +1,3 @@
-function prototype, Function global
 operators: negate, unary_plus, bitwise, ...
 unicode: all string functions should use mb_
 demo: form post
@@ -10,6 +9,7 @@ x_negate(numeric_literal)
 toPHPString -> utils; should escape "{$a->b}"
 all $this_->data should use get and length should use to_number
 Object should provide unset (overriden for Global)
+throw on use undeclared var
 
 Error Handling
   throw new Exception("TypeError: %s is not a function")

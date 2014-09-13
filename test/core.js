@@ -1,4 +1,4 @@
-/*global global process*/
+/*global global, process*/
 (function() {
 
   var stack = [];
@@ -67,6 +67,20 @@
     assert('in operator walk prototype chain', 'toString' in global);
     var b = Object.keys(global);
     assert('Object.keys works', b.join(',') === a.join(','));
+  });
+
+  testSuite('functions', function() {
+    var o = {};
+    var fn1 = function() { return this; };
+    assert('can call null', fn1.call(null) === global);
+    assert('can call object', fn1.call(o) === o);
+    assert('can apply object', fn1.apply(o, []) === o);
+    var $fn1 = fn1.bind(o);
+    assert('bind creates new function', $fn1 !== fn1);
+    assert('bind works', $fn1.call(null) === o);
+    var fn2 = function() { return arguments.length; };
+    assert('can call args', fn2.call(null, false, void 0) === 2);
+    assert('can apply args', fn2.apply(o, [0, null, o]) === 3);
   });
 
   testSuite('throw/catch', function() {
