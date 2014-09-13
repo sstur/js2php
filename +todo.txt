@@ -5,6 +5,7 @@ bug: starting a function declaration on first line doesn't compile
 refactor js assert out of test folder
 this used in global context should return global
 all $this_->data should use get; length should use to_number
+Arr: alias jsonSerialize as toArray; Arr::fromArray() instead of using _init()
 
 Error Handling
   throw new Exception("TypeError: %s is not a function")

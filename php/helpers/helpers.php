@@ -10,22 +10,7 @@ function keys($obj, &$arr = array()) {
   if (!($obj instanceof Object)) {
     return $arr;
   }
-  if (method_exists($obj, 'keys')) {
-    foreach ($obj->keys() as $i => $key) {
-      $arr[] = $key;
-    }
-  } else {
-    foreach ($obj->data as $key => $prop) {
-      if ($prop->enumerable) {
-        $arr[] = $key;
-      }
-    }
-  }
-  $proto = $obj->getProto();
-  if ($proto !== Null::$null) {
-    keys($proto, $arr);
-  }
-  return $arr;
+  return $obj->keys($arr);
 }
 
 function is_primitive($value) {

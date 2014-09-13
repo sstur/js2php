@@ -86,24 +86,10 @@ function x_delete($obj, $key = null) {
  * @throws Exception
  */
 function x_in($key, $obj) {
-  $key = to_string($key);
   if (!($obj instanceof Object)) {
     throw new Exception("Cannot use 'in' operator to search for '" . $key . "' in " . to_string($obj));
   }
-  while ($obj !== Null::$null) {
-    if (method_exists($obj, 'hasKey')) {
-      if ($obj->hasKey($key)) {
-        return true;
-      }
-    } else {
-      $data = $obj->data;
-      if (property_exists($data, $key)) {
-        return true;
-      }
-    }
-    $obj = $obj->getProto();
-  }
-  return false;
+  return $obj->hasProperty($key);
 }
 
 function x_typeof($value) {

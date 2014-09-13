@@ -65,6 +65,54 @@ class Object implements JsonSerializable {
     return true;
   }
 
+  //determine if the given property exists (don't walk proto)
+  function hasOwnProperty($key) {
+    $key = to_string($key);
+    return property_exists($this->data, $key);
+  }
+
+  //determine if the given property exists (walk proto)
+  function hasProperty($key) {
+    $key = to_string($key);
+    if (property_exists($this->data, $key)) {
+      return true;
+    }
+    $proto = $this->getProto();
+    if ($proto instanceof Object) {
+      return $proto->hasProperty($key);
+    }
+    return false;
+  }
+
+  //produce the list of keys (optionally get only enumerable keys)
+  function getOwnKeys($onlyEnumerable) {
+    $arr = array();
+    foreach ($this->data as $key => $prop) {
+      if ($onlyEnumerable) {
+        if ($prop->enumerable) {
+          $arr[] = $key;
+        }
+      } else {
+        $arr[] = $key;
+      }
+    }
+    return $arr;
+  }
+
+  //produce the list of keys that are considered to be enumerable (walk proto)
+  function keys(&$arr = array()) {
+    foreach ($this->data as $key => $prop) {
+      if ($prop->enumerable) {
+        $arr[] = $key;
+      }
+    }
+    $proto = $this->getProto();
+    if ($proto instanceof Object) {
+      $proto->keys($arr);
+    }
+    return $arr;
+  }
+
   /**
    * @param string $key
    * @param mixed $value

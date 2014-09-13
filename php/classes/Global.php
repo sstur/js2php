@@ -6,13 +6,19 @@ class GlobalObject extends Object {
   function set($key, $value) {
     $key = preg_replace('/_$/', '__', $key);
     $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
+    if (array_key_exists($key, $GLOBALS)) {
+      if (!self::isValidType($GLOBALS[$key])) {
+        return $value;
+      }
+    }
     return ($GLOBALS[$key] = $value);
   }
 
   function get($key) {
     $key = preg_replace('/_$/', '__', $key);
     $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
-    return $GLOBALS[$key];
+    $value = $GLOBALS[$key];
+    return (self::isValidType($value)) ? $value : null;
   }
 
   function remove($key) {
@@ -26,8 +32,8 @@ class GlobalObject extends Object {
     return true;
   }
 
-  //determine if a valid value exists at the given key
-  function hasKey($key) {
+  //determine if a valid value exists at the given key (don't walk proto)
+  function hasOwnProperty($key) {
     $key = preg_replace('/_$/', '__', $key);
     $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
     if (array_key_exists($key, $GLOBALS)) {
@@ -38,9 +44,25 @@ class GlobalObject extends Object {
     return false;
   }
 
-  //produce the list of keys that are considered to be enumerable
-  function keys() {
-    $keys = array();
+  //determine if a valid value exists at the given key (walk proto)
+  function hasProperty($key) {
+    $key = preg_replace('/_$/', '__', $key);
+    $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
+    if (array_key_exists($key, $GLOBALS)) {
+      if (self::isValidType($GLOBALS[$key])) {
+        return true;
+      }
+    }
+    $proto = $this->getProto();
+    if ($proto instanceof Object) {
+      return $proto->hasProperty($key);
+    }
+    return false;
+  }
+
+  //produce the list of keys (all globals are enumerable)
+  function getOwnKeys($onlyEnumerable) {
+    $arr = array();
     foreach ($GLOBALS as $key => $value) {
       if (!preg_match('/[^_]_$/', $key)) {
         $key = preg_replace('/__$/', '_', $key);
@@ -50,7 +72,25 @@ class GlobalObject extends Object {
         }
       }
     }
-    return $keys;
+    return $arr;
+  }
+
+  //produce the list of keys that are considered to be enumerable (walk proto)
+  function keys(&$arr = array()) {
+    foreach ($GLOBALS as $key => $value) {
+      if (!preg_match('/[^_]_$/', $key)) {
+        $key = preg_replace('/__$/', '_', $key);
+        $key = preg_replace_callback('/«([a-z0-9]+)»/', 'self::decodeChar', $key);
+        if (self::isValidType($value)) {
+          $keys[] = $key;
+        }
+      }
+    }
+    $proto = $this->getProto();
+    if ($proto instanceof Object) {
+      $proto->keys($arr);
+    }
+    return $arr;
   }
 
   static function isValidType($value) {

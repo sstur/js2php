@@ -13,42 +13,33 @@ $Object = call_user_func(function() {
       return $obj;
     },
     'keys' => function($this_, $arguments, $obj) {
-      //todo: if (!($obj instanceof Object)) throw new Exception();
-      $results = new Arr();
-      if (method_exists($obj, 'keys')) {
-        foreach ($obj->keys() as $i => $key) {
-          $results->push($key);
-        }
-      } else {
-        foreach ($obj->data as $key => $prop) {
-          if ($prop->enumerable) {
-            $results->push($key);
-          }
-        }
+      if (!($obj instanceof Object)) {
+        throw new Exception('Object.keys called on non-object');
       }
+      $results = new Arr();
+      $results->_init($obj->getOwnKeys(true));
       return $results;
     },
     'getOwnPropertyNames' => function($this_, $arguments, $obj) {
-      //todo: if (!($obj instanceof Object)) throw new Exception();
-      $results = new Arr();
-      if (method_exists($obj, 'keys')) {
-        foreach ($obj->keys() as $i => $key) {
-          $results->push($key);
-        }
-      } else {
-        foreach ($obj->data as $key => $prop) {
-          $results->push($key);
-        }
+      if (!($obj instanceof Object)) {
+        throw new Exception('Object.getOwnPropertyNames called on non-object');
       }
+      $results = new Arr();
+      $results->_init($obj->getOwnKeys(false));
       return $results;
     },
     'getOwnPropertyDescriptor' => function($this_, $arguments, $obj, $key) {
-      //todo: if (!($obj instanceof Object)) throw new Exception();
+      if (!($obj instanceof Object)) {
+        throw new Exception('Object.getOwnPropertyDescriptor called on non-object');
+      }
       $result = $obj->get($key);
       return ($result) ? $result->getDescriptor() : null;
     },
     'defineProperty' => function($this_, $arguments, $obj, $key, $desc) {
-      //todo: if (!($obj instanceof Object)) throw new Exception();
+      //todo: ensure configurable
+      if (!($obj instanceof Object)) {
+        throw new Exception('Object.defineProperty called on non-object');
+      }
       $value = $desc->get('value');
       $writable = $desc->get('writable');
       if ($writable === null) $writable = true;
@@ -59,7 +50,9 @@ $Object = call_user_func(function() {
       $obj->data->{$key} = new Property($value, $writable, $enumerable, $configurable);
     },
     'defineProperties' => function($this_, $arguments, $obj, $items) use (&$methods) {
-      //todo: if (!($obj instanceof Object)) throw new Exception();
+      if (!($obj instanceof Object)) {
+        throw new Exception('Object.defineProperties called on non-object');
+      }
       foreach ($items->data as $key => $prop) {
         if ($prop->enumerable) {
           $methods['defineProperty'](null, null, $obj, $key, $prop->value);
