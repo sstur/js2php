@@ -1,5 +1,6 @@
 (function() {
   var util = require('util');
+  var utils = require('./utils');
 
   var toString = Object.prototype.toString;
 
@@ -281,6 +282,10 @@
       if (name in OPERATOR_MAP) {
         op = OPERATOR_MAP[name];
       }
+      //special case here because -1 is actually a number literal, not negate(1)
+      if (op === 'negate' && node.argument.type === 'Literal' && typeof node.argument.value === 'number') {
+        return '-' + encodeLiteral(node.argument.value);
+      }
       //special case here because `delete a.b.c` needs to compute a.b and then delete c
       if (op === 'delete' && node.argument.type === 'MemberExpression') {
         return 'x_delete(' + generate(node.argument.object, opts) + ', ' + encodeProp(node.argument) + ')';
@@ -413,8 +418,7 @@
     }
     if (type === 'number') {
       value = value.toString();
-      //todo: 1e2
-      return ~value.indexOf('.') ? value : value + '.0';
+      return (~value.indexOf('.') || ~value.indexOf('e')) ? value : value + '.0';
     }
     if (toString.call(value) === '[object RegExp]') {
       return encodeRegExp(value);
@@ -435,24 +439,7 @@
   }
 
   function encodeString(string) {
-    // table of character substitutions
-    var meta = {
-      '\b': '\\b',
-      '\t': '\\t',
-      '\n': '\\n',
-      '\f': '\\f',
-      '\r': '\\r',
-      '"' : '\\"',
-      '$' : '\\$',
-      '\\': '\\\\'
-    };
-    string = string.replace(/[\\"\$\x00-\x1f\x7f-\xff]/g, function(ch) {
-      return (ch in meta) ? meta[ch] : '\\x' + ('0' + ch.charCodeAt(0).toString(16)).slice(-2);
-    });
-    string = string.replace(/[\u0100-\uffff]/g, function(ch) {
-      return encodeURI(ch).toLowerCase().split('%').join('\\x');
-    });
-    return '"' + string + '"';
+    return utils.toPHPString(string);
   }
 
   function encodeProp(node) {

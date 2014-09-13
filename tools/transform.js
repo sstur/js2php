@@ -99,7 +99,7 @@
         if (scopesWithFunctionDeclarations.indexOf(scope) === -1) {
           scopesWithFunctionDeclarations.push(scope);
         }
-        set(node, 'parentScope', scope);
+        setHidden(node, 'parentScope', scope);
         functionsDeclarations.push(node);
       }
     });
@@ -154,7 +154,7 @@
         if (scopesWithVars.indexOf(scope) === -1) {
           scopesWithVars.push(scope);
         }
-        var varNames = scope.vars || set(scope, 'vars', []);
+        var varNames = scope.vars || setHidden(scope, 'vars', []);
         if (varNames.indexOf(decl.id.name) === -1) {
           varNames.push(decl.id.name);
         }
@@ -216,7 +216,7 @@
         if (!references.length) return;
         var node = references[0].identifier;
         if (node.parent.type === 'AssignmentExpression' && node.parent.left === node) {
-          set(id, 'implicitlyDefined', true);
+          setHidden(id, 'implicitlyDefined', true);
         }
       });
     });
@@ -274,7 +274,7 @@
       });
     });
     var scopeIndex = {defined: defined, referenced: referenced, unresolved: unresolved};
-    set(scope.block, 'scopeIndex', scopeIndex);
+    setHidden(scope.block, 'scopeIndex', scopeIndex);
     return scopeIndex;
   }
 
@@ -347,7 +347,7 @@
     return output.join('\n');
   }
 
-  function set(object, name, value) {
+  function setHidden(object, name, value) {
     Object.defineProperty(object, name, {
       value: value,
       enumerable: false,

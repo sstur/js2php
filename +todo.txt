@@ -4,8 +4,6 @@ demo: form post
 bug: starting a function declaration on first line doesn't compile
 refactor js assert out of test folder
 this used in global context should return global
-x_negate(numeric_literal)
-toPHPString -> utils; should escape "{$a->b}"
 all $this_->data should use get; length should use to_number
 
 Error Handling

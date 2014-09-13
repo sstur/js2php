@@ -6140,6 +6140,7 @@ exports.moonwalk = function moonwalk(ast, fn){
 },{"esprima":3}],5:[function(_dereq_,module,exports){
 (function() {
   var util = _dereq_('util');
+  var utils = _dereq_('./utils');
 
   var toString = Object.prototype.toString;
 
@@ -6421,6 +6422,10 @@ exports.moonwalk = function moonwalk(ast, fn){
       if (name in OPERATOR_MAP) {
         op = OPERATOR_MAP[name];
       }
+      //special case here because -1 is actually a number literal, not negate(1)
+      if (op === 'negate' && node.argument.type === 'Literal' && typeof node.argument.value === 'number') {
+        return '-' + encodeLiteral(node.argument.value);
+      }
       //special case here because `delete a.b.c` needs to compute a.b and then delete c
       if (op === 'delete' && node.argument.type === 'MemberExpression') {
         return 'x_delete(' + generate(node.argument.object, opts) + ', ' + encodeProp(node.argument) + ')';
@@ -6554,7 +6559,7 @@ exports.moonwalk = function moonwalk(ast, fn){
     if (type === 'number') {
       value = value.toString();
       //todo: 1e2
-      return ~value.indexOf('.') ? value : value + '.0';
+      return ~value.indexOf('.') || ~value.indexOf('e') ? value : value + '.0';
     }
     if (toString.call(value) === '[object RegExp]') {
       return encodeRegExp(value);
@@ -6575,24 +6580,7 @@ exports.moonwalk = function moonwalk(ast, fn){
   }
 
   function encodeString(string) {
-    // table of character substitutions
-    var meta = {
-      '\b': '\\b',
-      '\t': '\\t',
-      '\n': '\\n',
-      '\f': '\\f',
-      '\r': '\\r',
-      '"' : '\\"',
-      '$' : '\\$',
-      '\\': '\\\\'
-    };
-    string = string.replace(/[\\"\$\x00-\x1f\x7f-\xff]/g, function(ch) {
-      return (ch in meta) ? meta[ch] : '\\x' + ('0' + ch.charCodeAt(0).toString(16)).slice(-2);
-    });
-    string = string.replace(/[\u0100-\uffff]/g, function(ch) {
-      return encodeURI(ch).toLowerCase().split('%').join('\\x');
-    });
-    return '"' + string + '"';
+    return utils.toPHPString(string);
   }
 
   function encodeProp(node) {
@@ -6639,7 +6627,7 @@ exports.moonwalk = function moonwalk(ast, fn){
 
   exports.generate = generate;
 })();
-},{"util":12}],6:[function(_dereq_,module,exports){
+},{"./utils":7,"util":13}],6:[function(_dereq_,module,exports){
 (function (__dirname){
 /*global module, require, exports*/
 (function() {
@@ -6742,7 +6730,7 @@ exports.moonwalk = function moonwalk(ast, fn){
         if (scopesWithFunctionDeclarations.indexOf(scope) === -1) {
           scopesWithFunctionDeclarations.push(scope);
         }
-        set(node, 'parentScope', scope);
+        setHidden(node, 'parentScope', scope);
         functionsDeclarations.push(node);
       }
     });
@@ -6797,7 +6785,7 @@ exports.moonwalk = function moonwalk(ast, fn){
         if (scopesWithVars.indexOf(scope) === -1) {
           scopesWithVars.push(scope);
         }
-        var varNames = scope.vars || set(scope, 'vars', []);
+        var varNames = scope.vars || setHidden(scope, 'vars', []);
         if (varNames.indexOf(decl.id.name) === -1) {
           varNames.push(decl.id.name);
         }
@@ -6859,7 +6847,7 @@ exports.moonwalk = function moonwalk(ast, fn){
         if (!references.length) return;
         var node = references[0].identifier;
         if (node.parent.type === 'AssignmentExpression' && node.parent.left === node) {
-          set(id, 'implicitlyDefined', true);
+          setHidden(id, 'implicitlyDefined', true);
         }
       });
     });
@@ -6917,7 +6905,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       });
     });
     var scopeIndex = {defined: defined, referenced: referenced, unresolved: unresolved};
-    set(scope.block, 'scopeIndex', scopeIndex);
+    setHidden(scope.block, 'scopeIndex', scopeIndex);
     return scopeIndex;
   }
 
@@ -6990,7 +6978,7 @@ exports.moonwalk = function moonwalk(ast, fn){
     return output.join('\n');
   }
 
-  function set(object, name, value) {
+  function setHidden(object, name, value) {
     Object.defineProperty(object, name, {
       value: value,
       enumerable: false,
@@ -7002,9 +6990,36 @@ exports.moonwalk = function moonwalk(ast, fn){
 
 })();
 }).call(this,"/")
-},{"./codegen":5,"escope":1,"fs":7,"path":9,"rocambole":4,"util":12}],7:[function(_dereq_,module,exports){
+},{"./codegen":5,"escope":1,"fs":8,"path":10,"rocambole":4,"util":13}],7:[function(_dereq_,module,exports){
+/*global module, exports*/
+(function() {
 
+  // table of character substitutions
+  var meta = {
+    '\b': '\\b',
+    '\t': '\\t',
+    '\n': '\\n',
+    '\f': '\\f',
+    '\r': '\\r',
+    '"' : '\\"',
+    '$' : '\\$',
+    '\\': '\\\\'
+  };
+
+  exports.toPHPString = function(string) {
+    string = string.replace(/[\\"\$\x00-\x1f\x7f-\xff]/g, function(ch) {
+      return (ch in meta) ? meta[ch] : '\\x' + ('0' + ch.charCodeAt(0).toString(16)).slice(-2);
+    });
+    string = string.replace(/[\u0100-\uffff]/g, function(ch) {
+      return encodeURI(ch).toLowerCase().split('%').join('\\x');
+    });
+    return '"' + string + '"';
+  };
+
+})();
 },{}],8:[function(_dereq_,module,exports){
+
+},{}],9:[function(_dereq_,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -7029,7 +7044,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],9:[function(_dereq_,module,exports){
+},{}],10:[function(_dereq_,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -7257,7 +7272,7 @@ var substr = 'ab'.substr(-1) === 'b'
 ;
 
 }).call(this,_dereq_("UPikzY"))
-},{"UPikzY":10}],10:[function(_dereq_,module,exports){
+},{"UPikzY":11}],11:[function(_dereq_,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -7322,14 +7337,14 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],11:[function(_dereq_,module,exports){
+},{}],12:[function(_dereq_,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],12:[function(_dereq_,module,exports){
+},{}],13:[function(_dereq_,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -7919,6 +7934,6 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,_dereq_("UPikzY"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":11,"UPikzY":10,"inherits":8}]},{},[6])
+},{"./support/isBuffer":12,"UPikzY":11,"inherits":9}]},{},[6])
 (6)
 });
