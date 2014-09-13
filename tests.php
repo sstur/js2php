@@ -19,6 +19,7 @@ require_once('php/classes/Error.php');
 require_once('php/classes/Exception.php');
 
 require_once('php/globals/Object.php');
+require_once('php/globals/Function.php');
 require_once('php/globals/Array.php');
 require_once('php/globals/Date.php');
 require_once('php/globals/RegExp.php');
