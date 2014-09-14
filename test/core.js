@@ -1,22 +1,5 @@
-/*global global, process*/
+/*global global, testSuite*/
 (function() {
-
-  var stack = [];
-
-  function testSuite(name, fn) {
-    stack.push(name);
-    fn();
-    stack.pop();
-  }
-
-  function assert(name, condition) {
-    if (!condition) {
-      stack.push(name);
-      var errorMessage = 'Test Failure: ' + stack.join(': ');
-      console.log(errorMessage);
-      process.exit(1);
-    }
-  }
 
   function throwCatch(value) {
     try {
@@ -26,7 +9,7 @@
     }
   }
 
-  testSuite('in operator', function() {
+  testSuite('in operator', function(assert) {
     var o = {a: null};
     assert('should be true for null', 'a' in o);
     o.b = void 0;
@@ -36,7 +19,7 @@
     assert('should be false when deleted', !('b' in o));
   });
 
-  testSuite('for..in', function() {
+  testSuite('for..in', function(assert) {
     var nothing;
     var a = [];
     var b = {a: null, b: nothing, c: 0, d: false, e: '1'};
@@ -54,7 +37,7 @@
     assert('should iterate all keys', a.sort().join('') === 'abcdef');
   });
 
-  testSuite('global', function() {
+  testSuite('global', function(assert) {
     var a = [];
     for (var key in global) {
       a.push(key);
@@ -69,7 +52,7 @@
     assert('Object.keys works', b.join(',') === a.join(','));
   });
 
-  testSuite('functions', function() {
+  testSuite('functions', function(assert) {
     var o = {};
     var fn1 = function() { return this; };
     assert('instance of Function', fn1 instanceof Function);
@@ -84,7 +67,7 @@
     assert('can apply args', fn2.apply(o, [0, null, o]) === 3);
   });
 
-  testSuite('throw/catch', function() {
+  testSuite('throw/catch', function(assert) {
     var nothing = void 0;
     assert('can throw undefined', throwCatch(nothing) === nothing);
     assert('can throw null', throwCatch(null) === null);
