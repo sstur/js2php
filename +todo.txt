@@ -6,9 +6,21 @@ refactor js assert out of test folder
 this used in global context should return global
 all $this_->data should use get; length should use to_number
 Arr: alias jsonSerialize as toArray; Arr::fromArray() instead of using _init()
+move global constructor methods to PHP class definition
+throw new Ex($Error->construct('%s is not a function'))
+Any `this` in top scope should use global
+Function arity (f.length) to use reflection
 
-Error Handling
-  throw new Exception("TypeError: %s is not a function")
+build tool:
+  specify --fragment as true/false flag
+  one pass ast (track functions for hoisting)
+  debug mode: Func() gets extra param "meta"
+    array('source' => 3, 'line' => 4, 'start' => 146, 'end' => 283, 'def' => 'a.b')
+    source is an id referencing source file
+      $GLOBALS['files_'] = array('path/file1.js', ...)
+      $GLOBALS['source_'] = array('var a = 1;', ...)
+    line number, source start/end offsets
+    def is a best-guess name: a.b = function() {}
 
 test:
   source transformation including variable decl; hoisting; catch

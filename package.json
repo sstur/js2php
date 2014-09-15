@@ -11,7 +11,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "php -f tests.php"
+    "test": "node js2php --test"
   },
   "repository": {
     "type": "git",

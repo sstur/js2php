@@ -4,7 +4,6 @@ node js2php tests.js>test/tests.php && php -f test/tests.php
 rsync -av ../js2php dev:~/
 
 Divergence from JavaScript
-  function.length
   "0" -> truthy
   cannot implicitly set global
   doesn't throw on use of undeclared var
@@ -22,6 +21,15 @@ Compiling:
 Optimizations:
   functions can be instantiated like $Array->construct()
 
+dynamically bound:
+  arguments.callee (func)
+  arguments.caller
+  func.arguments
+  func.caller (non-standard)
+
+$r = new ReflectionObject($this->fn)
+$m = $r->getMethod('__invoke');
+$m->getNumberOfParameters();
 
 Array -> Arr
 Boolean -> Bln
@@ -67,8 +75,6 @@ $data = stream_get_contents(STDIN);
 while(!feof(STDIN)){
     $line = fgets(STDIN);
 }
---
-STDIN is just short for fopen("php://stdin", "r");
 
 
 ------
@@ -84,4 +90,7 @@ obj[prop] => $obj->{$prop}
 Obj.prop => Obj::prop
 built-in functions organized into classes like:
 Math.log(num) => Math::log($num)
-String.length(str) => String::length($str) --or-- String(str).length => String::create($str)->length
+String.length(str) => String::length($str)
+--or--
+String(str).length => String::create($str)->length
+$(str).length => $_($str)->length
