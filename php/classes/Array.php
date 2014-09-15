@@ -111,7 +111,7 @@ class Arr extends Object implements JsonSerializable {
   function set_length($len) {
     $len = self::checkInt($len);
     if ($len === null) {
-      throw new Exception('RangeError: Invalid array length');
+      throw new Ex(Error::create('RangeError: Invalid array length'));
     }
     $oldLen = $this->data->length->value;
     if ($oldLen > $len) {

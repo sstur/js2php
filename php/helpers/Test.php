@@ -17,7 +17,7 @@ class Test {
     if ($condition !== true) {
       $stack = array_slice(self::$stack, 0);
       array_push($stack, $description);
-      throw new Exception('Test Failure: ' . join(': ', $stack));
+      throw new Ex(Error::create('Test Failure: ' . join(': ', $stack)));
     }
   }
 

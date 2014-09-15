@@ -9,6 +9,7 @@ move global constructor methods to PHP class definition
 throw new Ex($Error->construct('%s is not a function'))
 Any `this` in top scope should use global
 Function arity (f.length) to use reflection
+bind arguments
 
 build tool:
   specify --fragment as true/false flag

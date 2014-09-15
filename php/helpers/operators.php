@@ -72,7 +72,7 @@ function x_delete($obj, $key = null) {
     return true;
   }
   if ($obj === null || $obj === Null::$null) {
-    throw new Exception("Cannot convert undefined or null to object");
+    throw new Ex(Error::create("Cannot convert undefined or null to object"));
   }
   $obj = objectify($obj);
   $obj->remove($key);
@@ -87,7 +87,7 @@ function x_delete($obj, $key = null) {
  */
 function x_in($key, $obj) {
   if (!($obj instanceof Object)) {
-    throw new Exception("Cannot use 'in' operator to search for '" . $key . "' in " . to_string($obj));
+    throw new Ex(Error::create("Cannot use 'in' operator to search for '" . $key . "' in " . to_string($obj)));
   }
   return $obj->hasProperty($key);
 }

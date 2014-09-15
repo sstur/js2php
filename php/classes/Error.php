@@ -12,6 +12,11 @@ class Error extends Object {
     }
   }
 
+  //this is used in class/helper code only
+  static function create($str) {
+    return new Error($str);
+  }
+
   static function initProtoObject() {
     $methods = array(
       'toString' => function($this_) {
