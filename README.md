@@ -1,8 +1,10 @@
 ##JavaScript to PHP
 
-This tool transforms JavaScript to PHP. Just for fun. Kind of like [php.js][1] but the opposite.
+This tool transforms JavaScript to PHP. Just for fun.
 
 [View Online Demo][2]
+
+[![Example Code](/demo/images/example.png?raw=true)][2]
 
 ### Why?
 
@@ -70,7 +72,7 @@ It's not particularly elegant, but it's human-readable and has all the basics we
 There are a few other "compile to PHP" languages out there, but none have the kind of support and tooling of an established language such as JavaScript. [Haxe][11] is probably the most popular, but I also came across [Pharen][13] (a Lisp implementation), [Mammouth][14] (similar to CoffeeScript) and [Pratphall][15] (TypeScript syntax).
 
 ### Tests
-Run `npm test` which is the same as running `node js2php --test`. Requires php 5.3+ or [HHVM][16].
+Run `npm test` which is the same as `node js2php --test`. Requires PHP 5.3+ or [HHVM][16].
 
 ### BSD License
 Copyright (c) 2014, sstur@me.com. All rights reserved.
