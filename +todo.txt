@@ -2,7 +2,6 @@ operators: unary_plus, bitwise, ...
 unicode: all string functions should use mb_
 demo: form post
 bug: starting a function declaration on first line doesn't compile
-refactor js assert out of test folder
 this used in global context should return global
 all $this_->data should use get; length should use to_number
 Arr: alias jsonSerialize as toArray; Arr::fromArray() instead of using _init()

@@ -1,6 +1,4 @@
 browserify tools/transform.js --standalone Transformer -o demo/js/transformer.js
-node js2php --runtime>test/runtime.php
-node js2php tests.js>test/tests.php && php -f test/tests.php
 rsync -av ../js2php dev:~/
 
 Divergence from JavaScript
