@@ -9,13 +9,13 @@ class Arr extends Object implements JsonSerializable {
     $this->setProto(self::$protoObject);
     $args = func_get_args();
     if (count($args) > 0) {
-      $this->_init($args);
+      $this->init($args);
     } else {
       $this->data->length = new Property(0.0, true, false, false);
     }
   }
 
-  function _init($arr) {
+  function init($arr) {
     $len = count($arr);
     for ($i = 0; $i < $len; $i++) {
       $this->data->{$i} = new Property($arr[$i]);

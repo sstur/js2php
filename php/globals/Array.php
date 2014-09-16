@@ -6,7 +6,7 @@ $Array = call_user_func(function() {
     if ($len === 1.0 && is_int_or_float($value)) {
       $arr->set('length', (float)$value);
     } elseif ($len > 1) {
-      $arr->_init($arguments->args);
+      $arr->init($arguments->args);
     }
     return $arr;
   });

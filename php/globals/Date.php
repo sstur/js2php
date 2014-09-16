@@ -2,7 +2,7 @@
 $Date = call_user_func(function() {
   $Date = new Func(function($this_, $arguments) {
     $date = new Date();
-    $date->_init($arguments->args);
+    $date->init($arguments->args);
     return $date;
   });
   $Date->set('prototype', Date::$protoObject);

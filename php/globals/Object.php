@@ -17,7 +17,7 @@ $Object = call_user_func(function() {
         throw new Ex(Error::create('Object.keys called on non-object'));
       }
       $results = new Arr();
-      $results->_init($obj->getOwnKeys(true));
+      $results->init($obj->getOwnKeys(true));
       return $results;
     },
     'getOwnPropertyNames' => function($this_, $arguments, $obj) {
@@ -25,7 +25,7 @@ $Object = call_user_func(function() {
         throw new Ex(Error::create('Object.getOwnPropertyNames called on non-object'));
       }
       $results = new Arr();
-      $results->_init($obj->getOwnKeys(false));
+      $results->init($obj->getOwnKeys(false));
       return $results;
     },
     'getOwnPropertyDescriptor' => function($this_, $arguments, $obj, $key) {

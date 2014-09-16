@@ -9,11 +9,11 @@ class RegExp extends Object implements JsonSerializable {
     $this->setProto(self::$protoObject);
     $args = func_get_args();
     if (count($args) > 0) {
-      $this->_init($args);
+      $this->init($args);
     }
   }
 
-  function _init($args) {
+  function init($args) {
     $this->source = ($args[0] === null) ? '(?:)' : to_string($args[0]);
     $flags = ($args[1] === null) ? '' : to_string($args[1]);
     $this->ignoreCase = (strpos($flags, 'i') !== false);
@@ -31,7 +31,7 @@ class RegExp extends Object implements JsonSerializable {
         }
         $this_->set('lastIndex', (float)($result + strlen($matches[0])));
         $arr = new Arr();
-        $arr->_init($matches);
+        $arr->init($matches);
         $arr->set('index', (float)$result);
         $arr->set('input', $str);
         return $arr;

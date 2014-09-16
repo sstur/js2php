@@ -12,11 +12,11 @@ class Date extends Object implements JsonSerializable {
     $this->setProto(self::$protoObject);
     $args = func_get_args();
     if (count($args) > 0) {
-      $this->_init($args);
+      $this->init($args);
     }
   }
 
-  function _init($arr) {
+  function init($arr) {
     $len = count($arr);
     if ($len === 1) {
       $value = $arr[0];

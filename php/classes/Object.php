@@ -12,11 +12,11 @@ class Object implements JsonSerializable {
     $this->setProto(self::$protoObject);
     $args = func_get_args();
     if (count($args) > 0) {
-      $this->_init($args);
+      $this->init($args);
     }
   }
 
-  function _init($arr) {
+  function init($arr) {
     $len = count($arr);
     for ($i = 0; $i < $len; $i += 2) {
       $this->set($arr[$i], $arr[$i + 1]);
