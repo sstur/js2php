@@ -273,7 +273,12 @@
         }
       });
     });
-    var scopeIndex = {defined: defined, referenced: referenced, unresolved: unresolved};
+    var scopeIndex = {
+      defined: defined,
+      referenced: referenced,
+      unresolved: unresolved,
+      thisFound: scope.thisFound
+    };
     setHidden(scope.block, 'scopeIndex', scopeIndex);
     return scopeIndex;
   }

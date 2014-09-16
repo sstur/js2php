@@ -6163,8 +6163,12 @@ exports.moonwalk = function moonwalk(ast, fn){
 
   var gen = {
     'Body': function(node, opts) {
+      var scopeIndex = node.scopeIndex || Object.create(null);
       var results = [];
       opts.indentLevel += 1;
+      if (node.type === 'Program' && scopeIndex.thisFound) {
+        results.push(indent(opts.indentLevel) + '$this_ = $global;\n');
+      }
       node.body.forEach(function(node) {
         var result = generate(node, opts);
         if (result) {
@@ -6558,8 +6562,7 @@ exports.moonwalk = function moonwalk(ast, fn){
     }
     if (type === 'number') {
       value = value.toString();
-      //todo: 1e2
-      return ~value.indexOf('.') || ~value.indexOf('e') ? value : value + '.0';
+      return (~value.indexOf('.') || ~value.indexOf('e')) ? value : value + '.0';
     }
     if (toString.call(value) === '[object RegExp]') {
       return encodeRegExp(value);
@@ -6904,7 +6907,12 @@ exports.moonwalk = function moonwalk(ast, fn){
         }
       });
     });
-    var scopeIndex = {defined: defined, referenced: referenced, unresolved: unresolved};
+    var scopeIndex = {
+      defined: defined,
+      referenced: referenced,
+      unresolved: unresolved,
+      thisFound: scope.thisFound
+    };
     setHidden(scope.block, 'scopeIndex', scopeIndex);
     return scopeIndex;
   }
@@ -7006,7 +7014,7 @@ exports.moonwalk = function moonwalk(ast, fn){
     '\\': '\\\\'
   };
 
-  exports.toPHPString = function(string) {
+  function toPHPString(string) {
     string = string.replace(/[\\"\$\x00-\x1f\x7f-\xff]/g, function(ch) {
       return (ch in meta) ? meta[ch] : '\\x' + ('0' + ch.charCodeAt(0).toString(16)).slice(-2);
     });
@@ -7014,7 +7022,9 @@ exports.moonwalk = function moonwalk(ast, fn){
       return encodeURI(ch).toLowerCase().split('%').join('\\x');
     });
     return '"' + string + '"';
-  };
+  }
+
+  exports.toPHPString = toPHPString;
 
 })();
 },{}],8:[function(_dereq_,module,exports){

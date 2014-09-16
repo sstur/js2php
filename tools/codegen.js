@@ -23,8 +23,12 @@
 
   var gen = {
     'Body': function(node, opts) {
+      var scopeIndex = node.scopeIndex || Object.create(null);
       var results = [];
       opts.indentLevel += 1;
+      if (node.type === 'Program' && scopeIndex.thisFound) {
+        results.push(indent(opts.indentLevel) + '$this_ = $global;\n');
+      }
       node.body.forEach(function(node) {
         var result = generate(node, opts);
         if (result) {

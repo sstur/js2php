@@ -5,10 +5,6 @@ bug: starting a function declaration on first line doesn't compile
 this used in global context should return global
 all $this_->data should use get; length should use to_number
 move global constructor methods to PHP class definition
-throw new Ex($Error->construct('%s is not a function'))
-Any `this` in top scope should use global
-Function arity (f.length) to use reflection
-bind arguments
 
 build tool:
   specify --fragment as true/false flag
