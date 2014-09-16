@@ -13,6 +13,9 @@
   "scripts": {
     "test": "node js2php --test"
   },
+  "bin": {
+    "js2php": "./js2php.js"
+  },
   "repository": {
     "type": "git",
     "url": "git@github.com:sstur/js2php.git"
