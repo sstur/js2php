@@ -4,7 +4,6 @@ demo: form post
 bug: starting a function declaration on first line doesn't compile
 this used in global context should return global
 all $this_->data should use get; length should use to_number
-Arr: alias jsonSerialize as toArray; Arr::fromArray() instead of using _init()
 move global constructor methods to PHP class definition
 throw new Ex($Error->construct('%s is not a function'))
 Any `this` in top scope should use global

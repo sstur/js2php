@@ -123,13 +123,17 @@ class Arr extends Object implements JsonSerializable {
     return $len;
   }
 
-  function jsonSerialize() {
+  function toArray() {
     $results = array();
     $len = $this->data->length->value;
     for ($i = 0; $i < $len; $i++) {
       $results[] = $this->get($i);
     }
     return $results;
+  }
+
+  function jsonSerialize() {
+    return $this->toArray();
   }
 }
 

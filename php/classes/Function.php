@@ -79,7 +79,7 @@ class Func extends Object {
       },
       'apply' => function($this_, $arguments, $context, $args) {
         //convert Arr object to native array()
-        $args = $args->jsonSerialize();
+        $args = $args->toArray();
         return $this_->apply($context, $args);
       },
       'toString' => function($this_) {
