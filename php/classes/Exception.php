@@ -18,16 +18,11 @@ class Ex extends Exception {
    * @param Exception $ex
    */
   static function handleException($ex) {
-    echo $ex->getFile() . ':' . $ex->getLine() . "\n";
+    echo $ex->getFile() . "(" . $ex->getLine() . "}\n";
     echo $ex->getMessage() . "\n";
     $stack = $ex->getTrace();
     self::renderStack($stack);
     echo "----\n";
-    //the first frame is not on the stack, so add it
-    //array_unshift($stack, array('line' => $ex->getLine(), 'file' => $ex->getFile()));
-    //foreach ($stack as $frame) {
-    //  echo '    at ' . $frame['file'] . ':' . $frame['line'] . "\n";
-    //}
   }
 
   static function renderStack($stack) {
@@ -45,15 +40,15 @@ class Ex extends Exception {
       foreach ($args as $arg) {
         if (is_string($arg)) {
           $list[] = "'" . $arg . "'";
-        } elseif (is_array($arg)) {
+        } else if (is_array($arg)) {
           $list[] = "array()";
-        } elseif (is_null($arg)) {
+        } else if (is_null($arg)) {
           $list[] = 'null';
-        } elseif (is_bool($arg)) {
+        } else if (is_bool($arg)) {
           $list[] = ($arg) ? "true" : "false";
-        } elseif (is_object($arg)) {
+        } else if (is_object($arg)) {
           $list[] = get_class($arg);
-        } elseif (is_resource($arg)) {
+        } else if (is_resource($arg)) {
           $list[] = get_resource_type($arg);
         } else {
           $list[] = $arg;
@@ -75,6 +70,7 @@ class Ex extends Exception {
       array_push($lines, $line);
     }
     echo join("\n", $lines) . "\n";
+    exit(1);
   }
 
 }
