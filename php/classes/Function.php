@@ -3,6 +3,7 @@ class Func extends Object {
   public $name = "";
   public $className = "[object Function]";
   public $bound = null;
+  public $boundArgs = null;
 
   static $protoObject = null;
   static $callStack = array();
@@ -48,6 +49,9 @@ class Func extends Object {
     if (!($context instanceof Object)) {
       $context = objectify($context);
     }
+    if ($this->boundArgs) {
+      $args = array_merge($this->boundArgs, $args);
+    }
     $arguments = self::makeArgs($args, $this);
     array_unshift($args, $arguments);
     array_unshift($args, $context);
@@ -65,11 +69,31 @@ class Func extends Object {
     return $value;
   }
 
+  function get_length() {
+    $r = new ReflectionObject($this->fn);
+    $m = $r->getMethod('__invoke');
+    $arity = $m->getNumberOfParameters();
+    $arity = ($arity <= 2) ? 0 : $arity - 2;
+    if ($this->boundArgs) {
+      $bound = count($this->boundArgs);
+      $arity = ($bound >= $arity) ? 0 : $arity - $bound;
+    }
+    return (float)$arity;
+  }
+
+  function set_length($value) {
+    return $value;
+  }
+
   static function initProtoObject() {
     $methods = array(
       'bind' => function($this_, $arguments, $context) {
         $fn = new Func($this_->name, $this_->fn, $this_->meta);
         $fn->bound = $context;
+        $args = func_get_args();
+        if (count($args) > 3) {
+          $fn->boundArgs = array_slice($args, 3);
+        }
         return $fn;
       },
       'call' => function($this_, $arguments) {

@@ -67,6 +67,15 @@
     assert('can apply args', fn2.apply(o, [0, null, o]) === 3);
   });
 
+  testSuite('more functions', function(assert) {
+    var fn1 = function(a, b, c) { return [a, b, c]; };
+    var fn2 = fn1.bind(null, 1, '2');
+    assert('function arity', fn1.length === 3);
+    assert('bound function arity', fn2.length === 1);
+    var result = fn2('a', 'b', 'c');
+    assert('bound function with args', result.join(';') === '1;2;a');
+  });
+
   testSuite('throw/catch', function(assert) {
     var nothing = void 0;
     assert('can throw undefined', throwCatch(nothing) === nothing);

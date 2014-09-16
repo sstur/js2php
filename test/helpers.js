@@ -13,8 +13,9 @@
     if (!condition) {
       stack.push(name);
       var errorMessage = 'Test Failure: ' + stack.join(': ');
-      console.log(errorMessage);
-      process.exit(1);
+      throw new Error(errorMessage);
+      //console.log(errorMessage);
+      //process.exit(1);
     }
   }
 
