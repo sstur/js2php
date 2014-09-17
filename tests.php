@@ -21,6 +21,7 @@ require_once('php/classes/Exception.php');
 require_once('php/globals/globals.php');
 require_once('php/globals/Math.php');
 require_once('php/globals/JSON.php');
+require_once('php/globals/Buffer.php');
 require_once('php/globals/console.php');
 require_once('php/globals/process.php');
 
@@ -367,5 +368,6 @@ Test::suite(
 
 require_once('test/compiled/helpers.php');
 require_once('test/compiled/core.php');
+require_once('test/compiled/buffer.php');
 
 $console->callMethod('log', 'Success');

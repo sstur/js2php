@@ -17,6 +17,16 @@
     }
   }
 
+  assert.shouldThrow = function(name, fn) {
+    var threw = false;
+    try {
+      fn();
+    } catch(e) {
+      threw = true;
+    }
+    assert(name, threw);
+  };
+
   exports.testSuite = testSuite;
   exports.assert = assert;
 

@@ -2,8 +2,6 @@ operators: unary_plus, bitwise, ...
 unicode: all string functions should use mb_
 demo: form post
 bug: starting a function declaration on first line doesn't compile
-this used in global context should return global
-move global constructor methods to PHP class definition
 
 build tool:
   specify --fragment as true/false flag
@@ -17,6 +15,8 @@ build tool:
     def is a best-guess name: a.b = function() {}
 
 test:
+  prototype.constructor not enumerable
+  function called with fewer args than expected
   source transformation including variable decl; hoisting; catch
   function scope stuff including named function expression
   a[0], a[b], a.b
@@ -45,7 +45,8 @@ Globals:
   "Infinity", "undefined"
 
 Object:
-  "getPrototypeOf", "setPrototypeOf", "preventExtensions", "isExtensible", "seal", "isSealed", "freeze", "isFrozen"
+  "getPrototypeOf", "setPrototypeOf"
+  "preventExtensions", "isExtensible", "seal", "isSealed", "freeze", "isFrozen"
 
 Date:
   getDate, getDay, getFullYear, getHours, getMilliseconds, getMinutes, getMonth, getSeconds
