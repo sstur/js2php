@@ -56,7 +56,7 @@ class GlobalObject extends Object {
         return true;
       }
     }
-    $proto = $this->getProto();
+    $proto = $this->proto;
     if ($proto instanceof Object) {
       return $proto->hasProperty($key);
     }
@@ -89,7 +89,7 @@ class GlobalObject extends Object {
         }
       }
     }
-    $proto = $this->getProto();
+    $proto = $this->proto;
     if ($proto instanceof Object) {
       $proto->getKeys($arr);
     }

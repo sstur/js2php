@@ -4,7 +4,6 @@ demo: form post
 bug: starting a function declaration on first line doesn't compile
 this used in global context should return global
 move global constructor methods to PHP class definition
-replace getProto/setProto() with ->proto
 
 build tool:
   specify --fragment as true/false flag

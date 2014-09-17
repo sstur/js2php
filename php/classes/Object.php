@@ -10,7 +10,7 @@ class Object implements JsonSerializable {
 
   function __construct() {
     $this->data = new StdClass();
-    $this->setProto(self::$protoObject);
+    $this->proto = self::$protoObject;
     $args = func_get_args();
     if (count($args) > 0) {
       $this->init($args);
@@ -83,7 +83,7 @@ class Object implements JsonSerializable {
     if (property_exists($this->data, $key)) {
       return true;
     }
-    $proto = $this->getProto();
+    $proto = $this->proto;
     if ($proto instanceof Object) {
       return $proto->hasProperty($key);
     }
@@ -112,7 +112,7 @@ class Object implements JsonSerializable {
         $arr[] = $key;
       }
     }
-    $proto = $this->getProto();
+    $proto = $this->proto;
     if ($proto instanceof Object) {
       $proto->getKeys($arr);
     }
@@ -139,21 +139,6 @@ class Object implements JsonSerializable {
       $data->{$key} = new Property($value, $writable, $enumerable, $configurable);
     }
     return $value;
-  }
-
-  /**
-   * @return Object
-   */
-  function getProto() {
-    return $this->proto;
-  }
-
-  /**
-   * @param Object $obj
-   * @return Object
-   */
-  function setProto($obj) {
-    return $this->proto = $obj;
   }
 
   /**
@@ -251,7 +236,7 @@ Object::$classMethods = array(
   //todo: getPrototypeOf, seal, freeze, preventExtensions, isSealed, isFrozen, isExtensible
   'create' => function($this_, $arguments, $proto) {
       $obj = new Object();
-      $obj->setProto($proto);
+      $obj->proto = $proto;
       return $obj;
     },
   'keys' => function($this_, $arguments, $obj) {

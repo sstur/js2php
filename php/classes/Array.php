@@ -7,7 +7,7 @@ class Arr extends Object implements JsonSerializable {
 
   function __construct() {
     parent::__construct();
-    $this->setProto(self::$protoObject);
+    $this->proto = self::$protoObject;
     $args = func_get_args();
     if (count($args) > 0) {
       $this->init($args);

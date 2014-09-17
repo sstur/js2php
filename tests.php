@@ -84,7 +84,7 @@ Test::suite(
     );
     Test::assert(
       '__proto__ is null',
-      Object::$protoObject->getProto() === Null::$null
+      Object::$protoObject->proto === Null::$null
     );
     Test::assert(
       'check toString',
@@ -144,9 +144,9 @@ Test::suite(
   'Array: init, push and join',
   function() use ($Array) {
     $arr = $Array->construct(1);
-    Test::assert('proto exists', $arr->getProto() instanceof Object);
-    Test::assert('proto is set correctly', $arr->getProto() === $Array->get('prototype'));
-    Test::assert('proto chain', $arr->getProto()->getProto() === Object::$protoObject);
+    Test::assert('proto exists', $arr->proto instanceof Object);
+    Test::assert('proto is set correctly', $arr->proto === $Array->get('prototype'));
+    Test::assert('proto chain', $arr->proto->proto === Object::$protoObject);
     Test::assert('length', $arr->get('length') === 1.);
     Test::assert('get', $arr->get(0) === null);
     Test::assert('push', call_method($arr, 'push', 9.) === 2.);

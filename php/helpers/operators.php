@@ -23,13 +23,13 @@ function x_new($fn) {
  * @return bool
  */
 function x_instanceof($obj, $fn) {
-  $proto = $obj->getProto();
+  $proto = $obj->proto;
   $prototype = get($fn, 'prototype');
   while ($proto !== Null::$null) {
     if ($proto === $prototype) {
       return true;
     }
-    $proto = $proto->getProto();
+    $proto = $proto->proto;
   }
   return false;
 }

@@ -18,7 +18,7 @@ class Func extends Object {
 
   function __construct() {
     parent::__construct();
-    $this->setProto(self::$protoObject);
+    $this->proto = self::$protoObject;
     $args = func_get_args();
     if (gettype($args[0]) === 'string') {
       $this->name = array_shift($args);
@@ -35,7 +35,7 @@ class Func extends Object {
       $obj = $instantiate();
     } else {
       $obj = new Object();
-      $obj->setProto($this->get('prototype'));
+      $obj->proto = $this->get('prototype');
     }
     $result = $this->apply($obj, func_get_args());
     return is_primitive($result) ? $obj : $result;

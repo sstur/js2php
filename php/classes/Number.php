@@ -8,7 +8,7 @@ class Number extends Object {
 
   function __construct($value = null) {
     parent::__construct();
-    $this->setProto(self::$protoObject);
+    $this->proto = self::$protoObject;
     if (func_num_args() === 1) {
       $this->value = (float)$value;
     }

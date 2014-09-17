@@ -8,7 +8,7 @@ class Str extends Object {
 
   function __construct($str = null) {
     parent::__construct();
-    $this->setProto(self::$protoObject);
+    $this->proto = self::$protoObject;
     if (func_num_args() === 1) {
       $this->value = $str;
     }
