@@ -7,18 +7,14 @@ function x_void() {
 /**
  * @param Func $fn
  * @return Object
+ * @throws Exception
  */
 function x_new($fn) {
-  if (property_exists($fn, 'instantiate')) {
-    $instantiate = $fn->instantiate;
-    $obj = $instantiate();
-  } else {
-    $obj = new Object();
-    $obj->setProto($fn->get('prototype'));
+  if (!($fn instanceof Func)) {
+    throw new Ex(Error::create(x_typeof($fn) . " is not a function"));
   }
   $args = array_slice(func_get_args(), 1);
-  $result = $fn->apply($obj, $args);
-  return is_primitive($result) ? $obj : $result;
+  return call_user_func_array(array($fn, 'construct'), $args);
 }
 
 /**

@@ -49,7 +49,7 @@ function to_string($value) {
     if ($fn instanceof Func) {
       return $fn->call($value);
     } else {
-      throw new Ex(Error::create('TypeError: Cannot convert object to primitive value'));
+      throw new Ex(Error::create('Cannot convert object to primitive value'));
     }
   }
   throw new Ex(Error::create('Cannot cast PHP value to string: ' . _stringify($value)));
@@ -148,7 +148,7 @@ function objectify($value) {
  */
 function get($obj, $name) {
   if ($obj === null || $obj === Null::$null) {
-    throw new Ex(Error::create("TypeError: Cannot read property '" . $name . "' of " . to_string($obj)));
+    throw new Ex(Error::create("Cannot read property '" . $name . "' of " . to_string($obj)));
   }
   $obj = objectify($obj);
   return $obj->get($name);
@@ -167,7 +167,7 @@ function get($obj, $name) {
  */
 function set($obj, $name, $value, $op = '=', $returnOld = false) {
   if ($obj === null || $obj === Null::$null) {
-    throw new Ex(Error::create("TypeError: Cannot set property '" . $name . "' of " . to_string($obj)));
+    throw new Ex(Error::create("Cannot set property '" . $name . "' of " . to_string($obj)));
   }
   $obj = objectify($obj);
   if ($op === '=') {
@@ -204,7 +204,7 @@ function set($obj, $name, $value, $op = '=', $returnOld = false) {
  */
 function call($fn) {
   if (!($fn instanceof Func)) {
-    throw new Ex(Error::create("TypeError: " . x_typeof($fn) . " is not a function"));
+    throw new Ex(Error::create(x_typeof($fn) . " is not a function"));
   }
   $args = array_slice(func_get_args(), 1);
   return $fn->apply(Object::$global, $args);
@@ -218,12 +218,12 @@ function call($fn) {
  */
 function call_method($obj, $name) {
   if ($obj === null || $obj === Null::$null) {
-    throw new Ex(Error::create("TypeError: Cannot read property '" . $name . "' of " . to_string($obj)));
+    throw new Ex(Error::create("Cannot read property '" . $name . "' of " . to_string($obj)));
   }
   $obj = objectify($obj);
   $fn = $obj->get($name);
   if (!($fn instanceof Func)) {
-    throw new Ex(Error::create("TypeError: " . x_typeof($fn) . " is not a function"));
+    throw new Ex(Error::create(x_typeof($fn) . " is not a function"));
   }
   $args = array_slice(func_get_args(), 2);
   return $fn->apply($obj, $args);

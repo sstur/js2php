@@ -2,6 +2,13 @@
 class Func extends Object {
   public $name = "";
   public $className = "[object Function]";
+
+  /**
+   * Instantiate is an optional method that can be specified if calling `new` on
+   * this function should instantiate a different `this` than `new Object()`
+   * @var callable
+   */
+  public $instantiate = null;
   public $bound = null;
   public $boundArgs = null;
 
@@ -23,7 +30,7 @@ class Func extends Object {
   }
 
   function construct() {
-    if (property_exists($this, 'instantiate')) {
+    if ($this->instantiate !== null) {
       $instantiate = $this->instantiate;
       $obj = $instantiate();
     } else {

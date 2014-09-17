@@ -1,6 +1,99 @@
 <?php
 $global = Object::$global = new GlobalObject();
 
+$Object = new Func(function($this_, $arguments, $value = null) {
+  $len = $arguments->get('length');
+  if ($len === 0.0) {
+    return new Object();
+  } else if ($value === null || $value === Null::$null) {
+    return new Object();
+  } else {
+    return objectify($value);
+  }
+});
+$Object->set('prototype', Object::$protoObject);
+$Object->setMethods(Object::$classMethods, true, false, true);
+
+$Function = new Func(function($this_, $arguments, $fn) {
+  throw new Ex(Error::create('Cannot construct function at runtime.'));
+});
+$Function->set('prototype', Func::$protoObject);
+$Function->setMethods(Func::$classMethods, true, false, true);
+
+$Array = new Func(function($this_, $arguments, $value = null) {
+  $arr = new Arr();
+  $len = $arguments->get('length');
+  if ($len === 1.0 && is_int_or_float($value)) {
+    $arr->set('length', (float)$value);
+  } else if ($len > 1) {
+    $arr->init($arguments->args);
+  }
+  return $arr;
+});
+$Array->set('prototype', Arr::$protoObject);
+$Array->setMethods(Arr::$classMethods, true, false, true);
+
+$Boolean = new Func(function($this_, $arguments, $value) {
+  if ($this_ instanceof Bln) {
+    $this_->value = $value ? true : false;
+  } else {
+    return $value ? true : false;
+  }
+});
+$Boolean->instantiate = function() {
+  return new Bln();
+};
+$Boolean->set('prototype', Bln::$protoObject);
+$Boolean->setMethods(Bln::$classMethods, true, false, true);
+
+$Number = new Func(function($this_, $arguments, $value) {
+  if ($this_ instanceof Number) {
+    $this_->value = to_number($value);
+  } else {
+    return to_number($value);
+  }
+});
+$Number->instantiate = function() {
+  return new Number();
+};
+$Number->set('prototype', Number::$protoObject);
+$Number->setMethods(Number::$classMethods, true, false, true);
+
+$String = new Func(function($this_, $arguments, $value) {
+  if ($this_ instanceof Str) {
+    $this_->value = to_string($value);
+  } else {
+    return to_string($value);
+  }
+});
+$String->instantiate = function() {
+  return new Str();
+};
+$String->set('prototype', RegExp::$protoObject);
+$String->setMethods(Str::$classMethods, true, false, true);
+
+$Date = new Func(function($this_, $arguments) {
+  $date = new Date();
+  $date->init($arguments->args);
+  return $date;
+});
+$Date->set('prototype', Date::$protoObject);
+$Date->setMethods(Date::$classMethods, true, false, true);
+
+$Error = new Func(function($this_, $arguments, $str = null) {
+  return new Error($str);
+});
+$Error->set('prototype', Error::$protoObject);
+$Error->setMethods(Error::$classMethods, true, false, true);
+
+$RegExp = new Func(function($this_, $arguments) {
+  $reg = new RegExp();
+  $reg->init($arguments->args);
+  return $reg;
+});
+$RegExp->set('prototype', RegExp::$protoObject);
+$RegExp->setMethods(RegExp::$classMethods, true, false, true);
+
 $escape = call_user_func(function() {
   $list = array('%2A' => '*', '%2B' => '+', '%2F' => '/', '%40' => '@');
   return new Func(function($global, $arguments, $str) use (&$list) {
