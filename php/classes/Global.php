@@ -3,6 +3,9 @@
 class GlobalObject extends Object {
   public $className = "[object global]";
 
+  static $protoObject = null;
+  static $classMethods = null;
+
   function set($key, $value) {
     $key = preg_replace('/_$/', '__', $key);
     $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
