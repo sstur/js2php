@@ -12,22 +12,19 @@ Compiling:
   {a: 1} -> new Object('a', 1)
   [1, 2] -> new Arr(1, 2)
   /abc/i -> new RegExp('abc', 'i')
+  Integer literals to float: 1 -> 1.0
   operators to functions (x_add, x_typeof, x_instanceof, x_or, x_and, x_eq)
   function () {} -> new Func(function() use (...) {})
   compute a function's `use` (lexical references) at compile time
 
-Optimizations:
-  functions can be instantiated like $Array->construct()
+Shorthand:
+  Objects can be instantiated like $Array->construct()
 
 dynamically bound:
   arguments.callee (func)
   arguments.caller
   func.arguments
   func.caller (non-standard)
-
-$r = new ReflectionObject($this->fn)
-$m = $r->getMethod('__invoke');
-$m->getNumberOfParameters();
 
 Array -> Arr
 Boolean -> Bln
@@ -45,12 +42,6 @@ NaN
 Null
 --
 Ex (exception wrapper)
-
-
-class Thing { function __construct() { $args = func_get_args(); echo count($args) . "\n"; } }
-new Thing(1, 2)
-$Thing = new ReflectionClass('Thing');
-$Thing->newInstanceArgs(array('a', 'b', 'c'))
 
 
 <?php
@@ -77,7 +68,7 @@ while(!feof(STDIN)){
 
 ------
 
-PHP Refactor
+Minimal Implementation
 
 all variables and functions => $var
 [] => array() --or-- new ArrayObject(array(), ArrayObject::ARRAY_AS_PROPS)

@@ -1,11 +1,11 @@
 <?php
 class Date extends Object implements JsonSerializable {
   public $className = "[object Date]";
-  public $value = null;
   public $date = null;
 
   static $LOCAL_TZ = null;
   static $protoObject = null;
+  static $classMethods = null;
 
   function __construct() {
     parent::__construct();
@@ -64,20 +64,20 @@ class Date extends Object implements JsonSerializable {
   static function initProtoObject() {
     $methods = array(
       'valueOf' => function($this_) {
-        return $this_->value;
-      },
+          return $this_->value;
+        },
       'toJSON' => function($this_) {
-        //2014-08-09T12:00:00.000Z
-        return $this_->jsonSerialize();
-      },
+          //2014-08-09T12:00:00.000Z
+          return $this_->jsonSerialize();
+        },
       'toUTCString' => function($this_) {
-        //todo
-      },
+          //todo
+        },
       //todo: toISOString
       'toString' => function($this_) {
-        //Sat Aug 09 2014 12:00:00 GMT+0000 (UTC)
-        return str_replace('~', 'GMT', $this_->date->format('D M d Y H:i:s ~O (T)'));
-      }
+          //Sat Aug 09 2014 12:00:00 GMT+0000 (UTC)
+          return str_replace('~', 'GMT', $this_->date->format('D M d Y H:i:s ~O (T)'));
+        }
     );
     self::$protoObject = new Object();
     self::$protoObject->setMethods($methods, true, false, true);
@@ -109,6 +109,21 @@ class Date extends Object implements JsonSerializable {
     return array($d['year'], $d['month'] - 1, $d['day'], $d['hour'], $d['minute'], $d['second'], floor($d['fraction'] * 1000));
   }
 }
+
+Date::$classMethods = array(
+  'now' => function($this_) {
+      return Date::now();
+    },
+  'parse' => function($this_, $arguments, $str) {
+      $date = new Date($str);
+      return $date->value;
+    },
+  'UTC' => function($this_, $arguments) {
+      $date = new Date();
+      $date->_initFromParts($arguments->args, 'UTC');
+      return $date->value;
+    }
+);
 
 Date::initProtoObject();
 

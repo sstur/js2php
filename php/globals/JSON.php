@@ -27,14 +27,17 @@ $JSON = call_user_func(function() {
     return $result;
   };
 
-  $parse = function($this_, $arguments, $string) use(&$decode) {
-    $value = json_decode($string);
-    return $decode($value);
-  };
+  $methods = array(
+    'parse' => function($this_, $arguments, $string) use(&$decode) {
+        $value = json_decode($string);
+        return $decode($value);
+      },
+    'stringify' => function($this_, $arguments, $value) {
+        return json_encode($value);
+      }
+  );
 
-  $stringify = function($this_, $arguments, $value) {
-    return json_encode($value);
-  };
-
-  return new Object('parse', new Func($parse), 'stringify', new Func($stringify));
+  $JSON = new Object();
+  $JSON->setMethods($methods, true, false, true);
+  return $JSON;
 });

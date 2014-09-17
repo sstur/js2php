@@ -3,6 +3,7 @@ class RegExp extends Object implements JsonSerializable {
   public $className = "[object RegExp]";
 
   static $protoObject = null;
+  static $classMethods = null;
 
   function __construct() {
     parent::__construct();
@@ -24,30 +25,30 @@ class RegExp extends Object implements JsonSerializable {
   static function initProtoObject() {
     $methods = array(
       'exec' => function($this_, $arguments, $str) {
-        $str = to_string($str);
-        $result = preg_match($this_->callMethod('toString'), $str, $matches);
-        if ($result === false) {
-          return Null::$null;
-        }
-        $this_->set('lastIndex', (float)($result + strlen($matches[0])));
-        $arr = new Arr();
-        $arr->init($matches);
-        $arr->set('index', (float)$result);
-        $arr->set('input', $str);
-        return $arr;
-      },
+          $str = to_string($str);
+          $result = preg_match($this_->callMethod('toString'), $str, $matches);
+          if ($result === false) {
+            return Null::$null;
+          }
+          $this_->set('lastIndex', (float)($result + strlen($matches[0])));
+          $arr = new Arr();
+          $arr->init($matches);
+          $arr->set('index', (float)$result);
+          $arr->set('input', $str);
+          return $arr;
+        },
       'test' => function($this_, $arguments, $str) {
-        $result = preg_match($this_->callMethod('toString'), to_string($str));
-        return ($result !== false);
-      },
+          $result = preg_match($this_->callMethod('toString'), to_string($str));
+          return ($result !== false);
+        },
       'toString' => function($this_) {
-        $source = $this_->get('source');
-        $flags = '';
-        if ($this_->get('ignoreCase')) $flags .= 'i';
-        if ($this_->get('global')) $flags .= 'g';
-        if ($this_->get('multiline')) $flags .= 'm';
-        return '/' . str_replace('/', '\\/', $source) . '/' . $flags;
-      }
+          $source = $this_->get('source');
+          $flags = '';
+          if ($this_->get('ignoreCase')) $flags .= 'i';
+          if ($this_->get('global')) $flags .= 'g';
+          if ($this_->get('multiline')) $flags .= 'm';
+          return '/' . str_replace('/', '\\/', $source) . '/' . $flags;
+        }
     );
     self::$protoObject = new Object();
     self::$protoObject->setMethods($methods, true, false, true);
@@ -89,5 +90,7 @@ class RegExp extends Object implements JsonSerializable {
     return new StdClass();
   }
 }
+
+RegExp::$classMethods = array();
 
 RegExp::initProtoObject();

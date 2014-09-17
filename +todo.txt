@@ -3,8 +3,10 @@ unicode: all string functions should use mb_
 demo: form post
 bug: starting a function declaration on first line doesn't compile
 this used in global context should return global
-all $this_->data should use get; length should use to_number
 move global constructor methods to PHP class definition
+replace getProto/setProto() with ->proto
+should GlobalObject have $protoObject and $classMethods ?
+Math methods should not be enumerable
 
 build tool:
   specify --fragment as true/false flag
