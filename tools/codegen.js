@@ -170,7 +170,7 @@
         results.push(encodeString(node.id.name) + ', ');
       }
       var params = node.params.map(function(param) {
-        return encodeVar(param);
+        return encodeVar(param) + ' = null';
       });
       params.unshift('$arguments');
       params.unshift('$this_');

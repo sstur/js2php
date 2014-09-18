@@ -59,9 +59,9 @@
 
   testSuite('functions', function(assert) {
     var o = {};
-    var fn1 = function() { return this; };
+    var fn1 = function(a) { return this; };
     assert('instance of Function', fn1 instanceof Function);
-    assert('function has length', fn1.length === 0);
+    assert('function has length', fn1.length === 1);
     assert('function properties not enumerable', Object.keys(fn1).length === 0);
     assert('can call null', fn1.call(null) === global);
     assert('can call object', fn1.call(o) === o);
