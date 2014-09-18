@@ -13,10 +13,7 @@ $Buffer = call_user_func(function() {
       $buffer->raw = str_repeat("\0", (int)$subject);
     } else if ($type === 'string') {
       $encoding = ($encoding === null) ? 'utf8' : to_string($encoding);
-      if ($encoding === 'utf8') {
-        //todo: decode?
-        $buffer->raw = $subject;
-      } else if ($encoding === 'hex') {
+      if ($encoding === 'hex') {
         $buffer->raw = hex2bin($subject);
       } else if ($encoding === 'base64') {
         $buffer->raw = base64_decode($subject);
@@ -56,11 +53,22 @@ $Buffer = call_user_func(function() {
         $this_->raw = substr($old, 0, $i) . chr($byte) . substr($old, $i + 1);
         return $this_->raw;
       },
-    'write' => function($this_, $arguments, $data, $enc, $start, $len) use(&$Buffer) {
-        //todo bounds check
+    //todo bounds check
+    'write' => function($this_, $arguments, $data, $enc = null, $start = null, $len = null) use(&$Buffer) {
+        //allow second argument (enc) to be omitted
+        if ($arguments->length > 1 && !is_string($enc)) {
+          $len = $start;
+          $start = $enc;
+          $enc = null;
+        }
         $data = $Buffer->construct($data, $enc);
         $new = $data->raw;
-        $newLen = $data->length;
+        if ($len !== null) {
+          $newLen = (int)$len;
+          $new = substr($new, 0, $newLen);
+        } else {
+          $newLen = $data->length;
+        }
         $start = (int)$start;
         $old = $this_->raw;
         $oldLen = $this_->length;
@@ -68,7 +76,7 @@ $Buffer = call_user_func(function() {
           $newLen = $oldLen - $start;
         }
         $pre = ($start === 0) ? '' : substr($old, 0, $start);
-        $this_->raw = $pre . $new . substr($old, $start + $newLen + 1);
+        $this_->raw = $pre . $new . substr($old, $start + $newLen);
       },
     'slice' => function($this_, $arguments, $start, $end = null) use(&$Buffer) {
         $len = $this_->length;
@@ -101,10 +109,6 @@ $Buffer = call_user_func(function() {
         if ($arguments->get('length') > 1) {
           $raw = substr($raw, $start, $end - $start + 1);
         }
-        if ($enc === 'utf8') {
-          //todo: decode?
-          return $raw;
-        }
         if ($enc === 'hex') {
           return bin2hex($raw);
         }
@@ -136,8 +140,8 @@ $Buffer = call_user_func(function() {
     'isBuffer' => function($this_, $arguments, $obj) use (&$Buffer) {
         return x_instanceof($obj, $Buffer);
       },
-    'byteLength' => function($this_, $arguments, $string, $encoding) use (&$Buffer) {
-        $b = $Buffer->construct($string, $encoding);
+    'byteLength' => function($this_, $arguments, $string, $enc = null) use (&$Buffer) {
+        $b = $Buffer->construct($string, $enc);
         return $b->length;
       }
   );

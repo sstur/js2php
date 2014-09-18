@@ -43,6 +43,19 @@
     });
 
 
+    testSuite('write', function() {
+      var b = new Buffer('abcdef');
+      b.write('xx', 'ascii', 2);
+      assert('write all', b.toString() === 'abxxef');
+      b.write('yyzz', 'ascii', 2, 2);
+      assert('write some', b.toString() === 'abyyef');
+      b.write('__', 0);
+      assert('write beginning', b.toString() === '__yyef');
+      b.write('---', 4, 2);
+      assert('write end', b.toString() === '__yy--');
+    });
+
+
     testSuite('encode hex', function() {
       var encode = function(str) {
         return new Buffer(str).toString('hex');

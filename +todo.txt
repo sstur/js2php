@@ -1,11 +1,9 @@
 operators: unary_plus, bitwise, ...
 demo: form post
 bug: starting a function declaration on first line doesn't compile
-reserved vars: undefined, Infinity, NaN
+make built-in globals non-assignable (rewrite with trailing _)
 
 build tool:
-  don't allow setting "reserved vars" (rename to $undefined_)
-  other refs to reserved vars (replace with null, Math::Infinity, etc)
   specify --fragment as true/false flag
   one pass ast (track functions for hoisting)
   debug mode: Func() gets extra param "meta"
@@ -22,7 +20,6 @@ test:
   string functions (length, slice, split)
   source transformation including variable decl; hoisting; catch
   function scope stuff including named function expression
-  a[0], a[b], a.b
   for (i in array) {}
 
 JSON:
