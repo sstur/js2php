@@ -1,6 +1,8 @@
 <?php
-$undefined = null;
 $global = Object::$global = new GlobalObject();
+$undefined = null;
+$Infinity = INF;
+$NaN = NaN::$nan;
 
 $Object = new Func(function($this_, $arguments, $value = null) {
   $len = $arguments->get('length');

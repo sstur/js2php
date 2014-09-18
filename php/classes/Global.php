@@ -3,12 +3,17 @@
 class GlobalObject extends Object {
   public $className = "[object global]";
 
+  //pre-defined globals
+  static $globals = array('Array' => 1, 'Boolean' => 1, 'Buffer' => 1, 'Date' => 1, 'Error' => 1, 'Function' => 1, 'Infinity' => 1, 'JSON' => 1, 'Math' => 1, 'NaN' => 1, 'Number' => 1, 'Object' => 1, 'RegExp' => 1, 'String' => 1, 'console' => 1, 'decodeURI' => 1, 'decodeURIComponent' => 1, 'encodeURI' => 1, 'encodeURIComponent' => 1, 'escape' => 1, 'eval' => 1, 'isFinite' => 1, 'isNaN' => 1, 'parseFloat' => 1, 'parseInt' => 1, 'undefined' => 1, 'unescape' => 1);
+
   static $protoObject = null;
   static $classMethods = null;
 
   function set($key, $value) {
-    //disallow setting `undefined`
-    if ($key === 'undefined') return $value;
+    //disallow mutating pre-defined globals
+    if (array_key_exists($key, self::$globals)) {
+      return $value;
+    }
     $key = preg_replace('/_$/', '__', $key);
     $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
     if (array_key_exists($key, $GLOBALS)) {
@@ -27,6 +32,10 @@ class GlobalObject extends Object {
   }
 
   function remove($key) {
+    //disallow mutating pre-defined globals
+    if (array_key_exists($key, self::$globals)) {
+      return false;
+    }
     $key = preg_replace('/_$/', '__', $key);
     $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
     if (array_key_exists($key, $GLOBALS)) {

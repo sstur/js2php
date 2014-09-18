@@ -1,7 +1,6 @@
 operators: unary_plus, bitwise, ...
 demo: form post
 bug: starting a function declaration on first line doesn't compile
-make built-in globals non-assignable (rewrite with trailing _)
 
 build tool:
   specify --fragment as true/false flag
@@ -13,6 +12,8 @@ build tool:
       $GLOBALS['source_'] = array('var a = 1;', ...)
     line number, source start/end offsets
     def is a best-guess name: a.b = function() {}
+  `function a() { return a }` sets $a = null
+  x_delete($undefined), x_delete($global, "undefined");
 
 test:
   encodeURI/decodeURI, escape/unescape

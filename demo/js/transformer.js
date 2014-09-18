@@ -6161,6 +6161,9 @@ exports.moonwalk = function moonwalk(ast, fn){
     'b:>>>': 'bitwise_zfrs' //zero-fill right shift
   };
 
+  //built-in globals (should not be re-assigned)
+  var GLOBALS = {'Array': 1, 'Boolean': 1, 'Buffer': 1, 'Date': 1, 'Error': 1, 'Function': 1, 'Infinity': 1, 'JSON': 1, 'Math': 1, 'NaN': 1, 'Number': 1, 'Object': 1, 'RegExp': 1, 'String': 1, 'console': 1, 'decodeURI': 1, 'decodeURIComponent': 1, 'encodeURI': 1, 'encodeURIComponent': 1, 'escape': 1, 'eval': 1, 'isFinite': 1, 'isNaN': 1, 'parseFloat': 1, 'parseInt': 1, 'undefined': 1, 'unescape': 1};
+
   var gen = {
     'Body': function(node, opts) {
       var scopeIndex = node.scopeIndex || Object.create(null);
@@ -6378,6 +6381,12 @@ exports.moonwalk = function moonwalk(ast, fn){
           return 'set(' + generate(node.left.object, opts) + ', ' + encodeProp(node.left) + ', ' + generate(node.right, opts) + ')';
         } else {
           return 'set(' + generate(node.left.object, opts) + ', ' + encodeProp(node.left) + ', ' + generate(node.right, opts) + ', "' + node.operator + '")';
+        }
+      }
+      if (node.left.name in GLOBALS) {
+        var scope = utils.getParentScope(node);
+        if (scope.type === 'Program') {
+          node.left.appendSuffix = '_';
         }
       }
       return encodeVar(node.left) + ' ' + node.operator + ' ' + generate(node.right, opts);
@@ -6637,14 +6646,12 @@ exports.moonwalk = function moonwalk(ast, fn){
   var fs = _dereq_('fs');
   var path = _dereq_('path');
   var util = _dereq_('util');
+  var utils = _dereq_('./utils');
 
   var rocambole = _dereq_('rocambole');
   var escope = _dereq_('escope');
 
   var codegen = _dereq_('./codegen');
-
-  //these constructs contain variable scope (technically, there's catch scope and ES6 let)
-  var SCOPE_TYPES = {FunctionDeclaration: 1, FunctionExpression: 1, Program: 1};
 
   module.exports = function(opts) {
     var transformer = new Transformer();
@@ -6729,7 +6736,7 @@ exports.moonwalk = function moonwalk(ast, fn){
 
       //function declarations (to be hoisted)
       if (node.type === 'FunctionDeclaration') {
-        var scope = getParentScope(node);
+        var scope = utils.getParentScope(node);
         if (scopesWithFunctionDeclarations.indexOf(scope) === -1) {
           scopesWithFunctionDeclarations.push(scope);
         }
@@ -6784,7 +6791,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       //add each decl to the list of var names of the parent scope
       //there will be only one declaration, unless it's in a `for`
       node.declarations.forEach(function(decl) {
-        var scope = getParentScope(node);
+        var scope = utils.getParentScope(node);
         if (scopesWithVars.indexOf(scope) === -1) {
           scopesWithVars.push(scope);
         }
@@ -6936,15 +6943,6 @@ exports.moonwalk = function moonwalk(ast, fn){
   }
 
 
-  function getParentScope(node) {
-    var parent = node.parent;
-    while (!(parent.type in SCOPE_TYPES)) {
-      parent = parent.parent;
-    }
-    return (parent.type === 'Program') ? parent : parent.body;
-  }
-
-
   //determine if var statement is in code block (not in `for`)
   function isBlockLevelVar(node) {
     return (node.parent.type === 'Program' || node.parent.type === 'BlockStatement');
@@ -6998,9 +6996,12 @@ exports.moonwalk = function moonwalk(ast, fn){
 
 })();
 }).call(this,"/")
-},{"./codegen":5,"escope":1,"fs":8,"path":10,"rocambole":4,"util":13}],7:[function(_dereq_,module,exports){
+},{"./codegen":5,"./utils":7,"escope":1,"fs":8,"path":10,"rocambole":4,"util":13}],7:[function(_dereq_,module,exports){
 /*global module, exports*/
 (function() {
+
+  //these constructs contain variable scope (technically, there's catch scope and ES6 let)
+  var SCOPE_TYPES = {FunctionDeclaration: 1, FunctionExpression: 1, Program: 1};
 
   // table of character substitutions
   var meta = {
@@ -7024,7 +7025,16 @@ exports.moonwalk = function moonwalk(ast, fn){
     return '"' + string + '"';
   }
 
+  function getParentScope(node) {
+    var parent = node.parent;
+    while (!(parent.type in SCOPE_TYPES)) {
+      parent = parent.parent;
+    }
+    return (parent.type === 'Program') ? parent : parent.body;
+  }
+
   exports.toPHPString = toPHPString;
+  exports.getParentScope = getParentScope;
 
 })();
 },{}],8:[function(_dereq_,module,exports){

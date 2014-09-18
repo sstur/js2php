@@ -21,6 +21,9 @@
     'b:>>>': 'bitwise_zfrs' //zero-fill right shift
   };
 
+  //built-in globals (should not be re-assigned)
+  var GLOBALS = {'Array': 1, 'Boolean': 1, 'Buffer': 1, 'Date': 1, 'Error': 1, 'Function': 1, 'Infinity': 1, 'JSON': 1, 'Math': 1, 'NaN': 1, 'Number': 1, 'Object': 1, 'RegExp': 1, 'String': 1, 'console': 1, 'decodeURI': 1, 'decodeURIComponent': 1, 'encodeURI': 1, 'encodeURIComponent': 1, 'escape': 1, 'eval': 1, 'isFinite': 1, 'isNaN': 1, 'parseFloat': 1, 'parseInt': 1, 'undefined': 1, 'unescape': 1};
+
   var gen = {
     'Body': function(node, opts) {
       var scopeIndex = node.scopeIndex || Object.create(null);
@@ -238,6 +241,12 @@
           return 'set(' + generate(node.left.object, opts) + ', ' + encodeProp(node.left) + ', ' + generate(node.right, opts) + ')';
         } else {
           return 'set(' + generate(node.left.object, opts) + ', ' + encodeProp(node.left) + ', ' + generate(node.right, opts) + ', "' + node.operator + '")';
+        }
+      }
+      if (node.left.name in GLOBALS) {
+        var scope = utils.getParentScope(node);
+        if (scope.type === 'Program') {
+          node.left.appendSuffix = '_';
         }
       }
       return encodeVar(node.left) + ' ' + node.operator + ' ' + generate(node.right, opts);

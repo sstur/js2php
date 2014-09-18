@@ -4,7 +4,7 @@ rsync -av ../js2php dev:~/
 Divergence from JavaScript
   "0" -> truthy
   cannot implicitly set global
-  doesn't throw on use of undeclared var
+  doesn't throw on use of undeclared var (ReferenceError: foo is not defined)
   no runtime parsing: eval, new Function()
 
 Compiling:

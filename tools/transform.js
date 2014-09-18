@@ -3,14 +3,12 @@
   var fs = require('fs');
   var path = require('path');
   var util = require('util');
+  var utils = require('./utils');
 
   var rocambole = require('rocambole');
   var escope = require('escope');
 
   var codegen = require('./codegen');
-
-  //these constructs contain variable scope (technically, there's catch scope and ES6 let)
-  var SCOPE_TYPES = {FunctionDeclaration: 1, FunctionExpression: 1, Program: 1};
 
   module.exports = function(opts) {
     var transformer = new Transformer();
@@ -95,7 +93,7 @@
 
       //function declarations (to be hoisted)
       if (node.type === 'FunctionDeclaration') {
-        var scope = getParentScope(node);
+        var scope = utils.getParentScope(node);
         if (scopesWithFunctionDeclarations.indexOf(scope) === -1) {
           scopesWithFunctionDeclarations.push(scope);
         }
@@ -150,7 +148,7 @@
       //add each decl to the list of var names of the parent scope
       //there will be only one declaration, unless it's in a `for`
       node.declarations.forEach(function(decl) {
-        var scope = getParentScope(node);
+        var scope = utils.getParentScope(node);
         if (scopesWithVars.indexOf(scope) === -1) {
           scopesWithVars.push(scope);
         }
@@ -299,15 +297,6 @@
     });
     newSource.push(source.slice(lastIndex));
     return newSource.join('');
-  }
-
-
-  function getParentScope(node) {
-    var parent = node.parent;
-    while (!(parent.type in SCOPE_TYPES)) {
-      parent = parent.parent;
-    }
-    return (parent.type === 'Program') ? parent : parent.body;
   }
 
 

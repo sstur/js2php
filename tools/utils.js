@@ -1,6 +1,9 @@
 /*global module, exports*/
 (function() {
 
+  //these constructs contain variable scope (technically, there's catch scope and ES6 let)
+  var SCOPE_TYPES = {FunctionDeclaration: 1, FunctionExpression: 1, Program: 1};
+
   // table of character substitutions
   var meta = {
     '\b': '\\b',
@@ -23,6 +26,15 @@
     return '"' + string + '"';
   }
 
+  function getParentScope(node) {
+    var parent = node.parent;
+    while (!(parent.type in SCOPE_TYPES)) {
+      parent = parent.parent;
+    }
+    return (parent.type === 'Program') ? parent : parent.body;
+  }
+
   exports.toPHPString = toPHPString;
+  exports.getParentScope = getParentScope;
 
 })();

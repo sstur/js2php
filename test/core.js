@@ -54,7 +54,10 @@
     assert('can access undeclared', global.asdf === nothing);
     assert('contains `undefined`', 'undefined' in global);
     global.undefined = 'foo';
-    assert('setting `undefined` does nothing', global.undefined === nothing);
+    assert('re-assigning built-in global does nothing', global.undefined === nothing);
+    delete global.Infinity;
+    assert('deleting built-in global does nothing', typeof global.Infinity === 'number');
+
   });
 
   testSuite('functions', function(assert) {
