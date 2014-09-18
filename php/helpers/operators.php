@@ -62,10 +62,9 @@ function x_or($a, $b) {
  * @throws Exception
  */
 function x_delete($obj, $key = null) {
+  //don't allow deleting of variables, only properties
   if (func_num_args() === 1) {
-    $key = func_get_arg(0);
-    Object::$global->remove($key);
-    return true;
+    return false;
   }
   if ($obj === null || $obj === Null::$null) {
     throw new Ex(Error::create("Cannot convert undefined or null to object"));
