@@ -17,7 +17,6 @@ build tool:
     def is a best-guess name: a.b = function() {}
 
 test:
-  prototype.constructor not enumerable
   function called with fewer args than expected
   encodeURI/decodeURI, escape/unescape
   // decodeURI('%E2%86%97%D4%B6') === '↗Զ'

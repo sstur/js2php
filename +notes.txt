@@ -8,27 +8,19 @@ Divergence from JavaScript
   no runtime parsing: eval, new Function()
 
 Compiling:
-  keyword literals: null -> Null::$null, undefined -> null
   {a: 1} -> new Object('a', 1)
   [1, 2] -> new Arr(1, 2)
   /abc/i -> new RegExp('abc', 'i')
   Integer literals to float: 1 -> 1.0
   operators to functions (x_add, x_typeof, x_instanceof, x_or, x_and, x_eq)
   function () {} -> new Func(function() use (...) {})
-  compute a function's `use` (lexical references) at compile time
 
 Shorthand:
   Objects can be instantiated like $Array->construct()
 
-dynamically bound:
-  arguments.callee (func)
-  arguments.caller
-  func.arguments
-  func.caller (non-standard)
-
 Array -> Arr
 Boolean -> Bln
-Buffer [todo]
+Buffer
 Date
 Error
 Function -> Func

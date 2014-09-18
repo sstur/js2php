@@ -25,8 +25,11 @@ class Func extends Object {
     }
     $this->fn = array_shift($args);
     $this->meta = (count($args) === 1) ? $args[0] : array();
-    $prototype = new Object('constructor', $this);
-    $this->set('prototype', $prototype);
+    $prototype = new Object();
+    $prototype->setProperty('constructor', $this, true, false, true);
+    $this->setProperty('prototype', $prototype, true, false, true);
+    $this->setProperty('arguments', Null::$null, true, false, true);
+    $this->setProperty('caller', Null::$null, true, false, true);
   }
 
   function construct() {
@@ -60,11 +63,18 @@ class Func extends Object {
     if ($this->boundArgs) {
       $args = array_merge($this->boundArgs, $args);
     }
-    $arguments = self::makeArgs($args, $this);
+    $stackSize = count(self::$callStack);
+    $caller = $stackSize > 0 ? self::$callStack[$stackSize - 1] : null;
+    $arguments = Args::create($args, $this, $caller);
     array_unshift($args, $arguments);
     array_unshift($args, $context);
+    //add ourself to the call stack, attach caller and arguments, execute, then undo it all
     self::$callStack[] = $this;
+    $this->set('caller', $caller);
+    $this->set('arguments', $arguments);
     $result = call_user_func_array($this->fn, $args);
+    $this->set('arguments', Null::$null);
+    $this->set('caller', Null::$null);
     array_pop(self::$callStack);
     return $result;
   }
@@ -126,24 +136,31 @@ class Func extends Object {
     self::$protoObject = new Object();
     self::$protoObject->setMethods($methods, true, false, true);
   }
+}
 
-  static function makeArgs($args, $callee) {
-    $obj = new Object();
-    $obj->args = $args;
-    $obj->callee = $callee;
+class Args extends Object {
+  static $protoObject = null;
+  static $classMethods = null;
+
+  static function create($args, $callee, $caller = null) {
+    $self = new Args();
+    $self->args = $args;
     $len = count($args);
+    $self->length = $len;
+    $self->callee = $callee;
+    $self->caller = $caller;
     for ($i = 0; $i < $len; $i++) {
-      $obj->set($i, $args[$i]);
+      $self->set($i, $args[$i]);
     }
-    $obj->set('length', (float)$len);
-    $obj->data->callee = new Property($callee, true, false, true);
-    return $obj;
+    $self->set('length', (float)$len);
+    $self->setProperty('callee', $callee, true, false, true);
+    $self->setProperty('caller', $caller, true, false, true);
+    return $self;
   }
 }
 
 Object::initProtoMethods();
 
-Func::$classMethods = array(
-);
+Func::$classMethods = array();
 
 Func::initProtoObject();

@@ -61,6 +61,8 @@
     var o = {};
     var fn1 = function() { return this; };
     assert('instance of Function', fn1 instanceof Function);
+    assert('function has length', fn1.length === 0);
+    assert('function properties not enumerable', Object.keys(fn1).length === 0);
     assert('can call null', fn1.call(null) === global);
     assert('can call object', fn1.call(o) === o);
     assert('can apply object', fn1.apply(o, []) === o);
@@ -70,6 +72,12 @@
     var fn2 = function() { return arguments.length; };
     assert('can call args', fn2.call(null, false, void 0) === 2);
     assert('can apply args', fn2.apply(o, [0, null, o]) === 3);
+    (function a() {
+      (function b() {
+        assert('arguments.callee', arguments.callee === b);
+        assert('arguments.caller', arguments.caller === a);
+      })();
+    })();
   });
 
   testSuite('more functions', function(assert) {
