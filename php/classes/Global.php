@@ -7,6 +7,8 @@ class GlobalObject extends Object {
   static $classMethods = null;
 
   function set($key, $value) {
+    //disallow setting `undefined`
+    if ($key === 'undefined') return $value;
     $key = preg_replace('/_$/', '__', $key);
     $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
     if (array_key_exists($key, $GLOBALS)) {

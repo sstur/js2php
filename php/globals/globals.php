@@ -1,4 +1,5 @@
 <?php
+$undefined = null;
 $global = Object::$global = new GlobalObject();
 
 $Object = new Func(function($this_, $arguments, $value = null) {

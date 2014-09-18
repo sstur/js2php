@@ -44,15 +44,6 @@ Null
 Ex (exception wrapper)
 
 
-<?php
-mb_internal_encoding("UTF-8");
-$string = '↗Զ';
-$char = mb_substr($string, 0, 1);
-var_dump(bin2hex($char)); //hex
-var_dump(hexdec(bin2hex($char))); //decimal
-
-
-
 ------
 
 use $HTTP_RAW_POST_DATA for multipart/form-data

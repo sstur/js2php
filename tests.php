@@ -1,5 +1,6 @@
 <?php
 define('LOCAL_TZ', 'PST');
+mb_internal_encoding('UTF-8');
 
 require_once('php/helpers/operators.php');
 require_once('php/helpers/helpers.php');

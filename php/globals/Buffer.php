@@ -30,7 +30,10 @@ $Buffer = call_user_func(function() {
     } else {
       throw new Ex(Error::create('Invalid parameters to construct Buffer'));
     }
-    $buffer->set('length', strlen($buffer->raw));
+    $len = strlen($buffer->raw);
+    //save an integer copy of length for performance
+    $buffer->length = $len;
+    $buffer->set('length', (float)$len);
     return $buffer;
   });
 
@@ -39,29 +42,58 @@ $Buffer = call_user_func(function() {
   $methods = array(
     'get' => function($this_, $arguments, $index) {
         $i = (int)$index;
-        return ord($this_->raw[$i]);
+        if ($i < 0 || $i >= $this_->length) {
+          throw new Ex(Error::create('offset is out of bounds'));
+        }
+        return (float)ord($this_->raw[$i]);
       },
     'set' => function($this_, $arguments, $index, $byte) {
         $i = (int)$index;
+        if ($i < 0 || $i >= $this_->length) {
+          throw new Ex(Error::create('offset is out of bounds'));
+        }
         $old = $this_->raw;
         $this_->raw = substr($old, 0, $i) . chr($byte) . substr($old, $i + 1);
         return $this_->raw;
       },
     'write' => function($this_, $arguments, $data, $enc, $start, $len) use(&$Buffer) {
+        //todo bounds check
         $data = $Buffer->construct($data, $enc);
         $new = $data->raw;
-        $len = strlen($new);
+        $newLen = $data->length;
         $start = (int)$start;
         $old = $this_->raw;
-        $oldLen = strlen($old);
-        if ($start + $len > strlen($old)) {
-          $len = $oldLen - $start;
+        $oldLen = $this_->length;
+        if ($start + $newLen > strlen($old)) {
+          $newLen = $oldLen - $start;
         }
         $pre = ($start === 0) ? '' : substr($old, 0, $start);
-        $this_->raw = $pre . $new . substr($old, $start + $len + 1);
+        $this_->raw = $pre . $new . substr($old, $start + $newLen + 1);
       },
-    'slice' => function($this_, $arguments, $start, $end) use(&$Buffer) {
-        $new = substr($this_->raw, $start, $start + $end + 1);
+    'slice' => function($this_, $arguments, $start, $end = null) use(&$Buffer) {
+        $len = $this_->length;
+        if ($len === 0) {
+          return $Buffer->construct(0);
+        }
+        $start = (int)$start;
+        if ($start < 0) {
+          $start = $len + $start;
+          if ($start < 0) $start = 0;
+        }
+        if ($start >= $len) {
+          return $Buffer->construct(0);
+        }
+        $end = ($end === null) ? $len : (int)$end;
+        if ($end < 0) {
+          $end = $len + $end;
+        }
+        if ($end < $start) {
+          $end = $start;
+        }
+        if ($end > $len) {
+          $end = $len;
+        }
+        $new = substr($this_->raw, $start, $end - $start);
         return $Buffer->construct($new, 'binary');
       },
     'toString' => function($this_, $arguments, $enc = 'utf8', $start = null, $end = null) use(&$Buffer) {
@@ -106,7 +138,7 @@ $Buffer = call_user_func(function() {
       },
     'byteLength' => function($this_, $arguments, $string, $encoding) use (&$Buffer) {
         $b = $Buffer->construct($string, $encoding);
-        return $b->get('length');
+        return $b->length;
       }
   );
 

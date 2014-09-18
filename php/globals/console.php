@@ -5,7 +5,20 @@ $console = call_user_func(function() {
     $len = count($args);
     $output = array();
     for ($i = 0; $i < $len; $i++) {
-      $output[] = to_string($args[$i]);
+      $value = $args[$i];
+      if ($value instanceof Object) {
+        $toString = $value->get('inspect');
+        if (!($toString instanceof Func)) {
+          $toString = $value->get('toString');
+        }
+        if (!($toString instanceof Func)) {
+          $toString = Object::$protoObject->get('toString');
+        }
+        $value = $toString->call($value);
+      } else {
+        $value = to_string($value);
+      }
+      $output[] = $value;
     }
     return join(' ', $output) . "\n";
   };

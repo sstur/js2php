@@ -1,9 +1,11 @@
 operators: unary_plus, bitwise, ...
-unicode: all string functions should use mb_
 demo: form post
 bug: starting a function declaration on first line doesn't compile
+reserved vars: undefined, Infinity, NaN
 
 build tool:
+  don't allow setting "reserved vars" (rename to $undefined_)
+  other refs to reserved vars (replace with null, Math::Infinity, etc)
   specify --fragment as true/false flag
   one pass ast (track functions for hoisting)
   debug mode: Func() gets extra param "meta"
@@ -17,6 +19,9 @@ build tool:
 test:
   prototype.constructor not enumerable
   function called with fewer args than expected
+  encodeURI/decodeURI, escape/unescape
+  // decodeURI('%E2%86%97%D4%B6') === '↗Զ'
+  string functions (length, slice, split)
   source transformation including variable decl; hoisting; catch
   function scope stuff including named function expression
   a[0], a[b], a.b
@@ -28,10 +33,15 @@ JSON:
 
 `to_number('x') + 1` should be NaN
 
-$Number
-  "NaN", "MAX_VALUE", "MIN_VALUE", "NEGATIVE_INFINITY", "POSITIVE_INFINITY"
-  "MAX_SAFE_INTEGER", "MIN_SAFE_INTEGER", "EPSILON"
-  "isFinite", "isNaN", "isInteger", "isSafeInteger"
+String.prototype
+  concat, indexOf, lastIndexOf, localeCompare, match, replace, search, split, substr, substring
+  toLowerCase, toUpperCase, toLocaleLowerCase, toLocaleUpperCase
+  trim, trimLeft, trimRight
+
+Number
+  NaN, MAX_VALUE, MIN_VALUE, NEGATIVE_INFINITY, POSITIVE_INFINITY
+  MAX_SAFE_INTEGER, MIN_SAFE_INTEGER, EPSILON
+  isFinite, isNaN, isInteger, isSafeInteger
 
 
 preg_replace($pattern, $replacement, $subject, $limit)
@@ -40,13 +50,12 @@ preg_replace($pattern, $replacement, $subject, $limit)
   \ -> \\
 
 Globals:
-  "isFinite"
-  "Buffer", "Number", "Boolean", "Error" [, "RangeError", "ReferenceError", "SyntaxError", "TypeError"]
-  "Infinity", "undefined"
+  Infinity, isFinite
+  RangeError, ReferenceError, SyntaxError, TypeError
 
 Object:
-  "getPrototypeOf", "setPrototypeOf"
-  "preventExtensions", "isExtensible", "seal", "isSealed", "freeze", "isFrozen"
+  getPrototypeOf, setPrototypeOf
+  preventExtensions, isExtensible, seal, isSealed, freeze, isFrozen
 
 Date:
   getDate, getDay, getFullYear, getHours, getMilliseconds, getMinutes, getMonth, getSeconds
