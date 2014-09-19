@@ -118,3 +118,33 @@ r.match(s);
 ====
 $r = new RegExp("ab/(c|d)\$", "gi");
 call_method($r, "match", $s);
+
+----
+(function() {
+  var request = new PHP.Request();
+  var response = new PHP.Response();
+  var resHeaders = {
+    'Content-Type': 'text/plain'
+  };
+  response.writeHead(200, 'OK', resHeaders);
+  response.write(request.getMethod() + ' ' + request.getURL() + '\n');
+  var reqHeaders = request.getHeaders();
+  Object.keys(reqHeaders).forEach(function(key) {
+    response.write(key + ': ' + reqHeaders[key] + '\n');
+  });
+  response.end();
+})();
+====
+call(new Func(function($this_, $arguments) use (&$PHP, &$Object) {
+  $response = null; $reqHeaders = null;
+  $request = x_new(get($PHP, "Request"));
+  $response = x_new(get($PHP, "Response"));
+  $resHeaders = new Object("Content-Type", "text/plain");
+  call_method($response, "writeHead", 200.0, "OK", $resHeaders);
+  call_method($response, "write", x_plus(x_plus(x_plus(call_method($request, "getMethod"), " "), call_method($request, "getURL")), "\n"));
+  $reqHeaders = call_method($request, "getHeaders");
+  call_method(call_method($Object, "keys", $reqHeaders), "forEach", new Func(function($this_, $arguments, $key = null) use (&$response, &$reqHeaders) {
+    call_method($response, "write", x_plus(x_plus(x_plus($key, ": "), get($reqHeaders, $key)), "\n"));
+  }));
+  call_method($response, "end");
+}));
