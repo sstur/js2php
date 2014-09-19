@@ -1,8 +1,8 @@
 operators: unary_plus, bitwise, ...
 demo: form post
-bug: starting a function declaration on first line doesn't compile
 
 build tool:
+  don't wrap if/else/for/while in block (handle in codegen)
   specify --fragment as true/false flag
   one pass ast (track functions for hoisting)
   debug mode: Func() gets extra param "meta"
@@ -13,7 +13,6 @@ build tool:
     line number, source start/end offsets
     def is a best-guess name: a.b = function() {}
   `function a() { return a }` sets $a = null
-  x_delete($undefined), x_delete($global, "undefined");
 
 test:
   encodeURI/decodeURI, escape/unescape
@@ -46,7 +45,7 @@ preg_replace($pattern, $replacement, $subject, $limit)
   \ -> \\
 
 Globals:
-  Infinity, isFinite
+  isFinite
   RangeError, ReferenceError, SyntaxError, TypeError
 
 Object:

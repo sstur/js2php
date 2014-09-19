@@ -24,15 +24,20 @@
 
   Transformer.prototype.process = function(opts) {
     this.opts = opts || (opts = {});
-    this.source = opts.source;
-    this.ast = rocambole.parse(this.source);
-    this.mutateFirstPass();
-    this.mutateSecondPass();
-    this.mutateThirdPass();
+    this.parse(opts.source);
+    this.hoistFunctionDeclarations();
+    this.hoistVariableDeclarations();
+    this.indexScopes();
     return codegen.generate(this.ast);
   };
 
-  Transformer.prototype.mutateFirstPass = function() {
+  Transformer.prototype.parse = function(source) {
+    //fixes a weird bug when source begins with var or function declaration
+    this.source = '\n' + source.trim();
+    this.ast = rocambole.parse(this.source);
+  };
+
+  Transformer.prototype.hoistFunctionDeclarations = function() {
     var ast = this.ast;
     //first we grab the index of each point where we wish to splice the code
     var splicePoints = [];
@@ -58,7 +63,6 @@
         return;
       }
 
-      //wrap statement in block
       var wrapStmtInBlock = function(node) {
         splicePoints.push({
           index: node.startToken.range[0],
@@ -130,13 +134,10 @@
     var source = this.source;
     source = spliceString(splicePoints, source);
     source = hoistFromMarkers(source);
-    //todo: fix a weird bug when the first character starts a var declaration
-    source = '\n' + source;
-    this.source = source;
-    this.ast = rocambole.parse(source);
+    this.parse(source);
   };
 
-  Transformer.prototype.mutateSecondPass = function() {
+  Transformer.prototype.hoistVariableDeclarations = function() {
     var ast = this.ast;
     var splicePoints = [];
     var scopesWithVars = [];
@@ -174,7 +175,6 @@
         removeCount: 4
       });
     });
-    //hoist var declarations
     scopesWithVars.forEach(function(scope) {
       var vars = scope.vars || [];
       splicePoints.push({
@@ -182,11 +182,10 @@
         insert: '\nvar ' + vars.join(', ') + ';\n'
       });
     });
-    this.source = spliceString(splicePoints, this.source);
-    this.ast = rocambole.parse(this.source);
+    this.parse(spliceString(splicePoints, this.source));
   };
 
-  Transformer.prototype.mutateThirdPass = function() {
+  Transformer.prototype.indexScopes = function() {
     var ast = this.ast;
     var scopes = escope.analyze(ast).scopes;
     //this attaches some scope information to certain nodes
