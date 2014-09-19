@@ -5,6 +5,7 @@
   // --runtime runtime.php #runtime exists at path; link to via require()
   // --runtime-only #output only the runtime
   // --fragment #no runtime included
+  // --test #run tests only
 
   var fs = require('fs');
   var path = require('path');
@@ -15,6 +16,7 @@
   var logToStdOut = true;
 
   if (argv.test) {
+    require('./test/transforms').run();
     compileTests();
     runTests();
   } else {

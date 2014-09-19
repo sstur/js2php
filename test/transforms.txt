@@ -1,0 +1,28 @@
+var a = true;
+====
+$a = true;
+
+----
+var $ = 1;
+====
+$«24» = 1.0;
+
+----
+var a = function a() {
+  return this;
+};
+====
+$a = new Func("a", function($this_, $arguments) {
+  return $this_;
+});
+
+----
+var result = a('foo');
+function a(x, y) {
+  return x + y;
+}
+====
+$a = new Func("a", function($this_, $arguments, $x = null, $y = null) {
+  return x_plus($x, $y);
+});
+$result = call($a, "foo");
