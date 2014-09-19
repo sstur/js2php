@@ -8,7 +8,7 @@ This tool transforms JavaScript to PHP. Just for fun.
 
 ### Why?
 
-This is a proof-of-concept started at a hackathon recently and as far as I can tell, hasn't been done before. So why not? There's some interesting aspects of the two languages that make this a really interesting challenge: lexical scope, prototypal inheritance, duality of `+` operator in JS, PHP's implicit variable declaration, etc. A lot of this had to be implemented in runtime helpers with type checking, but it turns out it's totally doable.
+This is a proof-of-concept started at a hackathon recently to see if it could be done. There's some interesting aspects of the two languages that make this a really interesting challenge: lexical scope, prototypal inheritance, duality of `+` operator in JS, PHP's implicit variable declaration, etc. A lot of this had to be implemented in runtime helpers with type checking, but it turns out it's totally doable.
 
 ### What could this possibly be used for?
 
@@ -69,7 +69,7 @@ call_method(x_new($HelloWorld, "Hi"), "go", "world");
 It's not particularly elegant, but it's human-readable and has all the basics we need to implement standards-compliant JS in PHP.
 
 ### Alternatives
-There are a few other "compile to PHP" languages out there, but none have the kind of support and tooling of an established language such as JavaScript. [Haxe][11] is probably the most popular, but I also came across [Pharen][13] (a Lisp implementation), [Mammouth][14] (similar to CoffeeScript) and [Pratphall][15] (TypeScript syntax).
+There are a few other "compile to PHP" languages out there, but none have the kind of support and tooling of an established language like JavaScript. [Haxe][11] is probably the most popular and is a solid statically-typed language. I also came across [Pharen][13] (a Lisp implementation), [Mammouth][14] (similar to CoffeeScript) and [Pratphall][15] (TypeScript syntax). There's also another [JS to PHP project][17] which takes a different approach (it's written in PHP and produces unreadable, hard-to-debug PHP) but is also interesting.
 
 ### Tests
 Run `npm test` which is the same as `node js2php --test`. Requires PHP 5.3+ or [HHVM][16].
@@ -103,7 +103,6 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-[1]: http://phpjs.hertzen.com/
 [2]: http://sstur.github.io/js2php/demo/
 [3]: https://github.com/jashkenas/coffeescript/wiki/List-of-languages-that-compile-to-JS
 [4]: http://nodejs.org/
@@ -118,3 +117,4 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 [14]: http://mammouth.wamalaka.com/
 [15]: http://cretz.github.io/pratphall/
 [16]: http://hhvm.com/
+[17]: https://github.com/jakubkulhan/js2php
