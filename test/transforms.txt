@@ -26,3 +26,95 @@ $a = new Func("a", function($this_, $arguments, $x = null, $y = null) {
   return x_plus($x, $y);
 });
 $result = call($a, "foo");
+
+----
+var e = true;
+try {
+  throw new Error('foo');
+} catch(e) {
+  assert(e instanceof Error);
+}
+assert(e === true);
+====
+$e = true;
+try {
+  throw new Ex(x_new($Error, "foo"));
+} catch(Exception $e_1_) {
+  if ($e_1_ instanceof Ex) $e_1_ = $e_1_->value;
+  call($assert, x_instanceof($e_1_, $Error));
+}
+call($assert, $e === true);
+
+----
+function f() {
+  return f;
+}
+====
+$f = null;
+$f = new Func("f", function($this_, $arguments) {
+  $f = $arguments->callee;
+  return $f;
+});
+
+----
+a = {a: 1, undefined: undefined, null: null};
+====
+$a = new Object("a", 1.0, "undefined", $undefined, "null", Null::$null);
+
+----
+undefined = 1;
+var f = function(undefined) {
+  return undefined++;
+}
+====
+$undefined_ = 1.0;
+$f = new Func(function($this_, $arguments, $undefined = null) {
+  return $undefined++;
+});
+
+----
+function $() {
+  this.foo += 1;
+  return $;
+}
+====
+$«24» = null;
+$«24» = new Func("\$", function($this_, $arguments) {
+  $«24» = $arguments->callee;
+  set($this_, "foo", 1.0, "+=");
+  return $«24»;
+});
+
+----
+var a = [1, false, null, undefined, new Date(), a];
+====
+$a = new Arr(1.0, false, Null::$null, $undefined, x_new($Date), $a);
+
+----
+var a = function a() {
+  console.log('foo');
+  var x = 5;
+  function b(y) {
+    console.log(x - y);
+    return a;
+  }
+}
+====
+$a = null;
+$a = new Func("a", function($this_, $arguments) use (&$console) {
+  $a = $arguments->callee;
+  $x = null;
+  $b = new Func("b", function($this_, $arguments, $y = null) use (&$console, &$x, &$a) {
+    call_method($console, "log", $x - $y);
+    return $a;
+  });
+  call_method($console, "log", "foo");
+  $x = 5.0;
+});
+
+----
+var r = /ab\/(c|d)$/ig;
+r.match(s);
+====
+$r = new RegExp("ab/(c|d)\$", "gi");
+call_method($r, "match", $s);
