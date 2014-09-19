@@ -1,4 +1,6 @@
 browserify tools/transform.js --standalone Transformer -o demo/js/transformer.js
+js2php _http.js > build/http.php
+php -S localhost:8000 build/http.php
 rsync -av ../js2php dev:~/
 
 Divergence from JavaScript
