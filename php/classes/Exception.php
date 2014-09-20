@@ -18,7 +18,7 @@ class Ex extends Exception {
    * @param Exception $ex
    */
   static function handleException($ex) {
-    echo $ex->getFile() . "(" . $ex->getLine() . "}\n";
+    echo $ex->getFile() . "(" . $ex->getLine() . ")\n";
     echo $ex->getMessage() . "\n";
     $stack = $ex->getTrace();
     self::renderStack($stack);
