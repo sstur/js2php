@@ -121,8 +121,8 @@ call_method($r, "match", $s);
 
 ----
 (function() {
-  var request = new PHP.Request();
-  var response = new PHP.Response();
+  var request = process.request;
+  var response = process.response;
   var resHeaders = {
     'Content-Type': 'text/plain'
   };
@@ -135,10 +135,10 @@ call_method($r, "match", $s);
   response.end();
 })();
 ====
-call(new Func(function($this_, $arguments) use (&$PHP, &$Object) {
+call(new Func(function($this_, $arguments) use (&$process, &$Object) {
   $response = null; $reqHeaders = null;
-  $request = x_new(get($PHP, "Request"));
-  $response = x_new(get($PHP, "Response"));
+  $request = get($process, "request");
+  $response = get($process, "response");
   $resHeaders = new Object("Content-Type", "text/plain");
   call_method($response, "writeHead", 200.0, "OK", $resHeaders);
   call_method($response, "write", x_plus(x_plus(x_plus(call_method($request, "getMethod"), " "), call_method($request, "getURL")), "\n"));

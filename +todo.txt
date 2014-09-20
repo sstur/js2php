@@ -60,3 +60,5 @@ Date:
   getTimezoneOffset, getTime, getYear, setTime, setYear
   toDateString, toGMTString, toISOString, toLocaleDateString, toLocaleString, toLocaleTimeString, toTimeString, toUTCString
 
+Devserver:
+  use process.cwd() as root
