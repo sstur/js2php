@@ -62,11 +62,6 @@ class Date extends Object implements JsonSerializable {
     return $str . '.' . $ms . 'Z';
   }
 
-  static function initProtoObject() {
-    self::$protoObject = new Object();
-    self::$protoObject->setMethods(Date::$protoMethods, true, false, true);
-  }
-
   static function create($tz = null) {
     if ($tz === null) {
       return new DateTime('now', new DateTimeZone(self::$LOCAL_TZ));
@@ -127,7 +122,8 @@ Date::$protoMethods = array(
     }
 );
 
-Date::initProtoObject();
+Date::$protoObject = new Object();
+Date::$protoObject->setMethods(Date::$protoMethods, true, false, true);
 
 //get the local timezone by looking for constant or environment variable; default to UTC
 Date::$LOCAL_TZ = defined('LOCAL_TZ') ? constant('LOCAL_TZ') : getenv('LOCAL_TZ');

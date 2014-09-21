@@ -103,11 +103,6 @@ class Func extends Object {
   function set_length($value) {
     return $value;
   }
-
-  static function initProtoObject() {
-    self::$protoObject = new Object();
-    self::$protoObject->setMethods(Func::$protoMethods, true, false, true);
-  }
 }
 
 class Args extends Object {
@@ -131,7 +126,8 @@ class Args extends Object {
   }
 }
 
-Object::initProtoMethods();
+//set the methods on Object.prototype before we proceed
+Object::$protoObject->setMethods(Object::$protoMethods, true, false, true);
 
 Func::$classMethods = array();
 
@@ -165,4 +161,5 @@ Func::$protoMethods = array(
     }
 );
 
-Func::initProtoObject();
+Func::$protoObject = new Object();
+Func::$protoObject->setMethods(Func::$protoMethods, true, false, true);

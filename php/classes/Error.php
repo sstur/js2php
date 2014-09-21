@@ -18,11 +18,6 @@ class Error extends Object {
   static function create($str) {
     return new Error($str);
   }
-
-  static function initProtoObject() {
-    self::$protoObject = new Object();
-    self::$protoObject->setMethods(Error::$protoMethods, true, false, true);
-  }
 }
 
 Error::$classMethods = array();
@@ -33,4 +28,5 @@ Error::$protoMethods = array(
     }
 );
 
-Error::initProtoObject();
+Error::$protoObject = new Object();
+Error::$protoObject->setMethods(Error::$protoMethods, true, false, true);

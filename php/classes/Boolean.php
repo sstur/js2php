@@ -14,11 +14,6 @@ class Bln extends Object {
       $this->value = $value;
     }
   }
-
-  static function initProtoObject() {
-    self::$protoObject = new Object();
-    self::$protoObject->setMethods(Bln::$protoMethods, true, false, true);
-  }
 }
 
 Bln::$classMethods = array();
@@ -32,4 +27,5 @@ Bln::$protoMethods = array(
     }
 );
 
-Bln::initProtoObject();
+Bln::$protoObject = new Object();
+Bln::$protoObject->setMethods(Bln::$protoMethods, true, false, true);

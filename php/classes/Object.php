@@ -183,16 +183,6 @@ class Object implements JsonSerializable {
     }
     return $results;
   }
-
-  static function initProtoObject() {
-    self::$protoObject = new Object();
-    self::$protoObject->proto = Null::$null;
-  }
-
-  //this method is called *after* Func class is defined
-  static function initProtoMethods() {
-    self::$protoObject->setMethods(Object::$protoMethods, true, false, true);
-  }
 }
 
 class Property {
@@ -290,4 +280,6 @@ Object::$protoMethods = array(
     }
 );
 
-Object::initProtoObject();
+//the methods are not set on Object.prototype until *after* Func class is defined
+Object::$protoObject = new Object();
+Object::$protoObject->proto = Null::$null;

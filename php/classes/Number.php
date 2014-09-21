@@ -14,11 +14,6 @@ class Number extends Object {
       $this->value = (float)$value;
     }
   }
-
-  static function initProtoObject() {
-    self::$protoObject = new Object();
-    self::$protoObject->setMethods(Number::$protoMethods, true, false, true);
-  }
 }
 
 Number::$classMethods = array(
@@ -95,4 +90,5 @@ Number::$protoMethods = array(
     }
 );
 
-Number::initProtoObject();
+Number::$protoObject = new Object();
+Number::$protoObject->setMethods(Number::$protoMethods, true, false, true);

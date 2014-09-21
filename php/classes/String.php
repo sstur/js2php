@@ -23,11 +23,6 @@ class Str extends Object {
   function set_length($len) {
     return $len;
   }
-
-  static function initProtoObject() {
-    self::$protoObject = new Object();
-    self::$protoObject->setMethods(Str::$protoMethods, true, false, true);
-  }
 }
 
 Str::$classMethods = array(
@@ -86,4 +81,5 @@ Str::$protoMethods = array(
     }
 );
 
-Str::initProtoObject();
+Str::$protoObject = new Object();
+Str::$protoObject->setMethods(Str::$protoMethods, true, false, true);

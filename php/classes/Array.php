@@ -38,11 +38,6 @@ class Arr extends Object implements JsonSerializable {
     return ($match !== false) ? (float)$s : null;
   }
 
-  static function initProtoObject() {
-    self::$protoObject = new Object();
-    self::$protoObject->setMethods(Arr::$protoMethods, true, false, true);
-  }
-
   function set($key, $value) {
     $i = self::checkInt($key);
     if ($i !== null && $i >= $this->data->length->value) {
@@ -146,4 +141,5 @@ Arr::$protoMethods = array(
     }
 );
 
-Arr::initProtoObject();
+Arr::$protoObject = new Object();
+Arr::$protoObject->setMethods(Arr::$protoMethods, true, false, true);

@@ -23,11 +23,6 @@ class RegExp extends Object implements JsonSerializable {
     $this->multiline = (strpos($flags, 'm') !== false);
   }
 
-  static function initProtoObject() {
-    self::$protoObject = new Object();
-    self::$protoObject->setMethods(RegExp::$protoMethods, true, false, true);
-  }
-
   function get_source() {
     return $this->source;
   }
@@ -95,4 +90,5 @@ RegExp::$protoMethods = array(
     }
 );
 
-RegExp::initProtoObject();
+RegExp::$protoObject = new Object();
+RegExp::$protoObject->setMethods(RegExp::$protoMethods, true, false, true);
