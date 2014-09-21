@@ -135,7 +135,7 @@ Buffer::$protoMethods = array(
     },
   'toString' => function($this_, $arguments, $enc = 'utf8', $start = null, $end = null) {
       $raw = $this_->raw;
-      if ($arguments->get('length') > 1) {
+      if ($arguments->length > 1) {
         $raw = substr($raw, $start, $end - $start + 1);
       }
       if ($enc === 'hex') {

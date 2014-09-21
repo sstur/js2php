@@ -5,8 +5,7 @@ $Infinity = INF;
 $NaN = NaN::$nan;
 
 $Object = new Func(function($this_, $arguments, $value = null) {
-  $len = $arguments->get('length');
-  if ($len === 0.0) {
+  if ($arguments->length === 0) {
     return new Object();
   } else if ($value === null || $value === Null::$null) {
     return new Object();
@@ -25,8 +24,8 @@ $Function->setMethods(Func::$classMethods, true, false, true);
 
 $Array = new Func(function($this_, $arguments, $value = null) {
   $arr = new Arr();
-  $len = $arguments->get('length');
-  if ($len === 1.0 && is_int_or_float($value)) {
+  $len = $arguments->length;
+  if ($len === 1 && is_int_or_float($value)) {
     $arr->set('length', (float)$value);
   } else if ($len > 1) {
     $arr->init($arguments->args);

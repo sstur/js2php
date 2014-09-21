@@ -106,8 +106,14 @@ class Func extends Object {
 }
 
 class Args extends Object {
+  public $args = null;
+  public $length = null;
+  public $callee = null;
+  public $caller = null;
+
   static $protoObject = null;
   static $classMethods = null;
+  static $protoMethods = null;
 
   static function create($args, $callee, $caller = null) {
     $self = new Args();
