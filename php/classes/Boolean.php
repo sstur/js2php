@@ -5,6 +5,7 @@ class Bln extends Object {
 
   static $protoObject = null;
   static $classMethods = null;
+  static $protoMethods = null;
 
   function __construct($value = null) {
     parent::__construct();
@@ -15,19 +16,20 @@ class Bln extends Object {
   }
 
   static function initProtoObject() {
-    $methods = array(
-      'valueOf' => function($this_) {
-          return $this_->value;
-        },
-      'toString' => function($this_) {
-          return to_string($this_->value);
-        }
-    );
     self::$protoObject = new Object();
-    self::$protoObject->setMethods($methods, true, false, true);
+    self::$protoObject->setMethods(Bln::$protoMethods, true, false, true);
   }
 }
 
 Bln::$classMethods = array();
+
+Bln::$protoMethods = array(
+  'valueOf' => function($this_) {
+      return $this_->value;
+    },
+  'toString' => function($this_) {
+      return to_string($this_->value);
+    }
+);
 
 Bln::initProtoObject();

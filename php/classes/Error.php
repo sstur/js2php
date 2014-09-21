@@ -4,6 +4,7 @@ class Error extends Object {
 
   static $protoObject = null;
   static $classMethods = null;
+  static $protoMethods = null;
 
   function __construct($str = null) {
     parent::__construct();
@@ -19,16 +20,17 @@ class Error extends Object {
   }
 
   static function initProtoObject() {
-    $methods = array(
-      'toString' => function($this_) {
-          return $this_->get('message');
-        }
-    );
     self::$protoObject = new Object();
-    self::$protoObject->setMethods($methods, true, false, true);
+    self::$protoObject->setMethods(Error::$protoMethods, true, false, true);
   }
 }
 
 Error::$classMethods = array();
+
+Error::$protoMethods = array(
+  'toString' => function($this_) {
+      return $this_->get('message');
+    }
+);
 
 Error::initProtoObject();

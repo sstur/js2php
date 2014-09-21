@@ -6,6 +6,7 @@ class Object implements JsonSerializable {
 
   static $protoObject = null;
   static $classMethods = null;
+  static $protoMethods = null;
   static $global = null;
 
   function __construct() {
@@ -184,25 +185,13 @@ class Object implements JsonSerializable {
   }
 
   static function initProtoObject() {
-    $proto = new Object();
-    $proto->proto = Null::$null;
-    self::$protoObject = $proto;
+    self::$protoObject = new Object();
+    self::$protoObject->proto = Null::$null;
   }
 
   //this method is called *after* Func class is defined
   static function initProtoMethods() {
-    $protoMethods = array(
-      'hasOwnProperty' => function($this_, $arguments, $key) {
-          return property_exists($this_->data, $key);
-        },
-      'toString' => function($this_) {
-          return $this_->className;
-        },
-      'valueOf' => function($this_) {
-          return $this_;
-        }
-    );
-    self::$protoObject->setMethods($protoMethods, true, false, true);
+    self::$protoObject->setMethods(Object::$protoMethods, true, false, true);
   }
 }
 
@@ -286,6 +275,18 @@ Object::$classMethods = array(
           $methods['defineProperty'](null, null, $obj, $key, $prop->value);
         }
       }
+    }
+);
+
+Object::$protoMethods = array(
+  'hasOwnProperty' => function($this_, $arguments, $key) {
+      return property_exists($this_->data, $key);
+    },
+  'toString' => function($this_) {
+      return $this_->className;
+    },
+  'valueOf' => function($this_) {
+      return $this_;
     }
 );
 

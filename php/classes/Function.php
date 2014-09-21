@@ -14,6 +14,7 @@ class Func extends Object {
 
   static $protoObject = null;
   static $classMethods = null;
+  static $protoMethods = null;
   static $callStack = array();
 
   function __construct() {
@@ -104,37 +105,8 @@ class Func extends Object {
   }
 
   static function initProtoObject() {
-    $methods = array(
-      'bind' => function($this_, $arguments, $context) {
-          $fn = new Func($this_->name, $this_->fn, $this_->meta);
-          $fn->bound = $context;
-          $args = func_get_args();
-          if (count($args) > 3) {
-            $fn->boundArgs = array_slice($args, 3);
-          }
-          return $fn;
-        },
-      'call' => function($this_, $arguments) {
-          $args = $arguments->args;
-          $context = array_shift($args);
-          return $this_->apply($context, $args);
-        },
-      'apply' => function($this_, $arguments, $context, $args) {
-          //convert Arr object to native array()
-          $args = $args->toArray();
-          return $this_->apply($context, $args);
-        },
-      'toString' => function($this_) {
-          if ($GLOBALS['source_'] && $this_->source_id) {
-            $meta = $this_->meta;
-            $source = $GLOBALS['source_'][$meta->id];
-            return substr($source, $meta->start, $meta->end - $meta->start + 1);
-          }
-          return 'function ' . $this_->name . '() { [native code] }';
-        }
-    );
     self::$protoObject = new Object();
-    self::$protoObject->setMethods($methods, true, false, true);
+    self::$protoObject->setMethods(Func::$protoMethods, true, false, true);
   }
 }
 
@@ -162,5 +134,35 @@ class Args extends Object {
 Object::initProtoMethods();
 
 Func::$classMethods = array();
+
+Func::$protoMethods = array(
+  'bind' => function($this_, $arguments, $context) {
+      $fn = new Func($this_->name, $this_->fn, $this_->meta);
+      $fn->bound = $context;
+      $args = func_get_args();
+      if (count($args) > 3) {
+        $fn->boundArgs = array_slice($args, 3);
+      }
+      return $fn;
+    },
+  'call' => function($this_, $arguments) {
+      $args = $arguments->args;
+      $context = array_shift($args);
+      return $this_->apply($context, $args);
+    },
+  'apply' => function($this_, $arguments, $context, $args) {
+      //convert Arr object to native array()
+      $args = $args->toArray();
+      return $this_->apply($context, $args);
+    },
+  'toString' => function($this_) {
+      if ($GLOBALS['source_'] && $this_->source_id) {
+        $meta = $this_->meta;
+        $source = $GLOBALS['source_'][$meta->id];
+        return substr($source, $meta->start, $meta->end - $meta->start + 1);
+      }
+      return 'function ' . $this_->name . '() { [native code] }';
+    }
+);
 
 Func::initProtoObject();
