@@ -38,6 +38,7 @@ $Array->setMethods(Arr::$classMethods, true, false, true);
 $Boolean = new Func(function($this_, $arguments, $value) {
   if ($this_ instanceof Bln) {
     $this_->value = $value ? true : false;
+    return $this_;
   } else {
     return $value ? true : false;
   }
@@ -51,6 +52,7 @@ $Boolean->setMethods(Bln::$classMethods, true, false, true);
 $Number = new Func(function($this_, $arguments, $value) {
   if ($this_ instanceof Number) {
     $this_->value = to_number($value);
+    return $this_;
   } else {
     return to_number($value);
   }
@@ -64,6 +66,7 @@ $Number->setMethods(Number::$classMethods, true, false, true);
 $String = new Func(function($this_, $arguments, $value) {
   if ($this_ instanceof Str) {
     $this_->value = to_string($value);
+    return $this_;
   } else {
     return to_string($value);
   }
