@@ -26,13 +26,67 @@ $JSON = call_user_func(function() {
     return $result;
   };
 
+  $escape = function($str) {
+    return str_replace("\\/", "/", json_encode($str));
+  };
+
+  $encode = function($value, $inArray = false) use (&$escape, &$encode) {
+    if ($value === null) {
+      return $inArray ? 'null' : $value;
+    }
+    if ($value === Null::$null) {
+      return 'null';
+    }
+    if ($value === NaN::$nan || $value === INF || $value === -INF) {
+      return 'null';
+    }
+    $type = gettype($value);
+    if ($type === 'boolean') {
+      return $value ? 'true' : 'false';
+    }
+    if ($type === 'integer' || $type === 'double') {
+      return $value . '';
+    }
+    if ($type === 'string') {
+      return $escape($value);
+    }
+    if ($value instanceof Arr) {
+      $result = array();
+      $len = $value->length;
+      for ($i = 0; $i < $len; $i++) {
+        $result[] = $encode($value->get($i), true);
+      }
+      return '[' . join(',', $result) . ']';
+    }
+    //date class specifies its own toJSON
+    if (method_exists($value, 'toJSON')) {
+      return $encode($value->toJSON());
+    }
+    $toJSON = $value->get('toJSON');
+    if ($toJSON instanceof Func) {
+      return $encode($toJSON->call($value));
+    }
+    $valueOf = $value->get('valueOf');
+    if ($valueOf instanceof Func) {
+      $primitiveValue = $valueOf->call($value);
+      if ($primitiveValue !== $value) {
+        return $encode($primitiveValue);
+      }
+    }
+    $result = array();
+    foreach ($value->getOwnKeys(true) as $key) {
+      $result[] = $escape($key) . ':' . $encode($value->get($key));
+    }
+    return '{' . join(',', $result) . '}';
+  };
+
   $methods = array(
     'parse' => function($this_, $arguments, $string) use(&$decode) {
         $value = json_decode($string);
         return $decode($value);
       },
-    'stringify' => function($this_, $arguments, $value) {
-        return json_encode($value);
+    'stringify' => function($this_, $arguments, $value) use (&$encode) {
+        return $encode($value);
       }
   );
 

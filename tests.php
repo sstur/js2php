@@ -374,5 +374,6 @@ require_once('test/compiled/helpers.php');
 require_once('test/compiled/core.php');
 require_once('test/compiled/array.php');
 require_once('test/compiled/buffer.php');
+require_once('test/compiled/json.php');
 
 $console->callMethod('log', 'Success');

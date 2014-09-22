@@ -1,5 +1,5 @@
 <?php
-class RegExp extends Object implements JsonSerializable {
+class RegExp extends Object {
   public $className = "[object RegExp]";
 
   public $source = '';
@@ -67,10 +67,6 @@ class RegExp extends Object implements JsonSerializable {
     if ($this->globalFlag) $flags .= 'g';
     if ($this->multilineFlag) $flags .= 'm';
     return '/' . str_replace('/', '\\/', $source) . '/' . $flags;
-  }
-
-  function jsonSerialize() {
-    return new StdClass();
   }
 
   /**

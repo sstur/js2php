@@ -1,5 +1,5 @@
 <?php
-class Object implements JsonSerializable {
+class Object {
   public $data = null;
   public $proto = null;
   public $className = "[object Object]";
@@ -174,19 +174,6 @@ class Object implements JsonSerializable {
     $fn = $this->get($name);
     $args = array_slice(func_get_args(), 1);
     return $fn->apply($this, $args);
-  }
-
-  /**
-   * @return StdClass
-   */
-  function jsonSerialize() {
-    $results = new StdClass();
-    foreach ($this->data as $key => $prop) {
-      if ($prop->enumerable) {
-        $results->{$key} = $prop->value;
-      }
-    }
-    return $results;
   }
 
   /**

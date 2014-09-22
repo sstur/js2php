@@ -69,7 +69,7 @@ call_method(x_new($HelloWorld, "Hi"), "go", "world");
 It's not particularly elegant, but it's human-readable and has all the basics we need to implement standards-compliant JS in PHP.
 
 ### Alternatives
-There are a few other "compile to PHP" languages out there, but none have the kind of support and tooling of an established language like JavaScript. [Haxe][11] is probably the most popular and is a solid statically-typed language. I also came across [Pharen][13] (a Lisp implementation), [Mammouth][14] (similar to CoffeeScript) and [Pratphall][15] (TypeScript syntax). There's also another [JS to PHP project][17] which takes a different approach (it's written in PHP and produces unreadable, hard-to-debug PHP) but is also interesting.
+There are a few other "compile to PHP" languages out there, but none have the kind of support and tooling of an established language like JavaScript. [Haxe][11] is probably the most popular and is a solid statically-typed language. I also came across [Pharen][13] (a Lisp implementation), [Mammouth][14] (similar to CoffeeScript) and [Pratphall][15] (TypeScript syntax). There's also another [JS to PHP project][17] which takes a different approach (it's written in PHP and doesn't really produce readable PHP) but is also interesting.
 
 ### Tests
 Run `npm test` which is the same as `node js2php --test`. Requires PHP 5.3+ or [HHVM][16].

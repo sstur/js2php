@@ -1,5 +1,5 @@
 <?php
-class Arr extends Object implements JsonSerializable {
+class Arr extends Object {
   public $className = "[object Array]";
   public $length = 0;
 
@@ -74,10 +74,6 @@ class Arr extends Object implements JsonSerializable {
       $results[] = $this->get($i);
     }
     return $results;
-  }
-
-  function jsonSerialize() {
-    return $this->toArray();
   }
 
   /**

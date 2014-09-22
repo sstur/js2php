@@ -1,5 +1,5 @@
 <?php
-class Date extends Object implements JsonSerializable {
+class Date extends Object {
   public $className = "[object Date]";
   public $date = null;
 
@@ -54,7 +54,7 @@ class Date extends Object implements JsonSerializable {
     $this->value = (float)($date->getTimestamp() * 1000 + $arr[6]);
   }
 
-  function jsonSerialize() {
+  function toJSON() {
     $date = self::fromValue($this->value, 'UTC');
     $str = $date->format('Y-m-d\TH:i:s');
     $ms = '00' . ($this->value % 1000);
@@ -125,7 +125,7 @@ Date::$protoMethods = array(
     },
   'toJSON' => function($this_) {
       //2014-08-09T12:00:00.000Z
-      return $this_->jsonSerialize();
+      return $this_->toJSON();
     },
   'toUTCString' => function($this_) {
       //todo
