@@ -69,6 +69,26 @@ Str::$protoMethods = array(
       }
       return (float)$code;
     },
+  'split' => function($this_, $arguments, $delim) {
+      $str = $this_->value;
+      if ($delim instanceof RegExp) {
+        $arr = mb_split($delim->toString(), $str);
+      } else {
+        $delim = to_string($delim);
+        if ($delim === '') {
+          $len = mb_strlen($str);
+          $arr = array();
+          for ($i = 0; $i < $len; $i++) {
+            $arr[] = mb_substr($str, $i, 1);
+          }
+        } else {
+          $arr = explode($delim, $str);
+        }
+      }
+      $result = new Arr();
+      $result->init($arr);
+      return $result;
+    },
   'slice' => function($this_, $arguments, $start, $end = null) {
       $len = $this_->length;
       if ($len === 0) {
@@ -93,6 +113,9 @@ Str::$protoMethods = array(
         $end = $len;
       }
       return mb_substr($this_->value, $start, $end - $start);
+    },
+  'localeCompare' => function($this_, $arguments, $compareTo) {
+      return (float)strcmp($this_->value, to_string($compareTo));
     },
   'valueOf' => function($this_) {
       return $this_->value;

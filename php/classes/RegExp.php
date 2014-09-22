@@ -2,6 +2,11 @@
 class RegExp extends Object implements JsonSerializable {
   public $className = "[object RegExp]";
 
+  public $source = '';
+  public $ignoreCaseFlag = false;
+  public $globalFlag = false;
+  public $multilineFlag = false;
+
   static $protoObject = null;
   static $classMethods = null;
   static $protoMethods = null;
@@ -18,9 +23,9 @@ class RegExp extends Object implements JsonSerializable {
   function init($args) {
     $this->source = ($args[0] === null) ? '(?:)' : to_string($args[0]);
     $flags = ($args[1] === null) ? '' : to_string($args[1]);
-    $this->ignoreCase = (strpos($flags, 'i') !== false);
-    $this->global = (strpos($flags, 'g') !== false);
-    $this->multiline = (strpos($flags, 'm') !== false);
+    $this->ignoreCaseFlag = (strpos($flags, 'i') !== false);
+    $this->globalFlag = (strpos($flags, 'g') !== false);
+    $this->multilineFlag = (strpos($flags, 'm') !== false);
   }
 
   function get_source() {
@@ -32,7 +37,7 @@ class RegExp extends Object implements JsonSerializable {
   }
 
   function get_ignoreCase() {
-    return $this->ignoreCase;
+    return $this->ignoreCaseFlag;
   }
 
   function set_ignoreCase($value) {
@@ -40,7 +45,7 @@ class RegExp extends Object implements JsonSerializable {
   }
 
   function get_global() {
-    return $this->global;
+    return $this->globalFlag;
   }
 
   function set_global($value) {
@@ -48,11 +53,20 @@ class RegExp extends Object implements JsonSerializable {
   }
 
   function get_multiline() {
-    return $this->multiline;
+    return $this->multilineFlag;
   }
 
   function set_multiline($value) {
     return $value;
+  }
+
+  function toString() {
+    $source = $this->source;
+    $flags = '';
+    if ($this->ignoreCaseFlag) $flags .= 'i';
+    if ($this->globalFlag) $flags .= 'g';
+    if ($this->multilineFlag) $flags .= 'm';
+    return '/' . str_replace('/', '\\/', $source) . '/' . $flags;
   }
 
   function jsonSerialize() {
@@ -96,12 +110,7 @@ RegExp::$protoMethods = array(
       return ($result !== false);
     },
   'toString' => function($this_) {
-      $source = $this_->get('source');
-      $flags = '';
-      if ($this_->get('ignoreCase')) $flags .= 'i';
-      if ($this_->get('global')) $flags .= 'g';
-      if ($this_->get('multiline')) $flags .= 'm';
-      return '/' . str_replace('/', '\\/', $source) . '/' . $flags;
+      return $this_->toString();
     }
 );
 

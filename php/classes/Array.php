@@ -90,7 +90,7 @@ class Arr extends Object implements JsonSerializable {
       $len = $arguments->length;
       if ($len === 1 && is_int_or_float($value)) {
         $arr->length = (int)$value;
-      } else if ($len > 1) {
+      } else if ($len > 0) {
         $arr->init($arguments->args);
       }
       return $arr;
@@ -136,6 +136,36 @@ Arr::$protoMethods = array(
       }
       return -1.0;
     },
+  'slice' => function($this_, $arguments, $start, $end = null) {
+      $len = $this_->length;
+      if ($len === 0) {
+        return new Arr();
+      }
+      $start = (int)$start;
+      if ($start < 0) {
+        $start = $len + $start;
+        if ($start < 0) $start = 0;
+      }
+      if ($start >= $len) {
+        return new Arr();
+      }
+      $end = ($end === null) ? $len : (int)$end;
+      if ($end < 0) {
+        $end = $len + $end;
+      }
+      if ($end < $start) {
+        $end = $start;
+      }
+      if ($end > $len) {
+        $end = $len;
+      }
+      $result = new Arr();
+      for ($i = $start; $i < $end; $i++) {
+        $value = $this_->get($i);
+        $result->set($i, $value);
+      }
+      return $result;
+    },
   'forEach' => function($this_, $arguments, $fn, $context = null) {
       $len = $this_->length;
       for ($i = 0; $i < $len; $i++) {
@@ -145,13 +175,20 @@ Arr::$protoMethods = array(
       }
     },
   'sort' => function($this_, $arguments, $fn = null) {
-      //todo: $fn
-      $results = array();
-      $len = $this_->length;
-      for ($i = 0; $i < $len; $i++) {
-        $results[$i] = to_string($this_->get($i));
+      if ($fn instanceof Func) {
+        $results = $this_->toArray();
+        $comparator = function($a, $b) use (&$fn) {
+          return $fn->call(null, $a, $b);
+        };
+        uasort($results, $comparator);
+      } else {
+        $results = array();
+        $len = $this_->length;
+        for ($i = 0; $i < $len; $i++) {
+          $results[$i] = to_string($this_->get($i));
+        }
+        asort($results, SORT_STRING);
       }
-      asort($results, SORT_STRING);
       $i = 0;
       $temp = new StdClass();
       foreach ($results as $index => $str) {

@@ -25,7 +25,6 @@ test:
   function scope stuff including named function expression
   for (i in array) {}
   array set returns value
-  array join (null, undefined => '')
 
 JSON:
   $thing->callMethod('toJSON')
@@ -52,6 +51,12 @@ preg_replace($pattern, $replacement, $subject, $limit)
 Globals:
   isFinite
   RangeError, ReferenceError, SyntaxError, TypeError
+
+String:
+  indexOf, lastIndexOf
+
+Array:
+  concat, splice, lastIndexOf
 
 Object:
   getPrototypeOf, setPrototypeOf
