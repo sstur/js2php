@@ -8,6 +8,8 @@ Divergence from JavaScript
   cannot implicitly set global
   doesn't throw on use of undeclared var (ReferenceError: foo is not defined)
   no runtime parsing: eval, new Function()
+  no holes in arrays, unless new Array(5)
+  get/setters don't have property descriptors
 
 Compiling:
   {a: 1} -> new Object('a', 1)

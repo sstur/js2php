@@ -32,11 +32,9 @@ $Math = call_user_func(function() {
       },
 
     'max' => function($this_, $arguments) {
-        $args = $arguments->args;
-        $len = count($args);
         $max = -INF;
-        for ($i = 0; $i < $len; $i++) {
-          $num = to_number($args[$i]);
+        foreach ($arguments->args as $num) {
+          $num = to_number($num);
           if ($num === NaN::$nan) return NaN::$nan;
           if ($num > $max) $max = $num;
         }
@@ -44,11 +42,9 @@ $Math = call_user_func(function() {
       },
 
     'min' => function($this_, $arguments) {
-        $args = $arguments->args;
-        $len = count($args);
         $min = INF;
-        for ($i = 0; $i < $len; $i++) {
-          $num = to_number($args[$i]);
+        foreach ($arguments->args as $num) {
+          $num = to_number($num);
           if ($num === NaN::$nan) return NaN::$nan;
           if ($num < $min) $min = $num;
         }

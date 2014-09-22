@@ -1,6 +1,7 @@
 <?php
 class Arr extends Object implements JsonSerializable {
   public $className = "[object Array]";
+  public $length = 0;
 
   static $protoObject = null;
   static $classMethods = null;
@@ -13,22 +14,22 @@ class Arr extends Object implements JsonSerializable {
     if (count($args) > 0) {
       $this->init($args);
     } else {
-      $this->data->length = new Property(0.0, true, false, false);
+      $this->length = 0;
     }
   }
 
   function init($arr) {
-    $len = count($arr);
-    for ($i = 0; $i < $len; $i++) {
-      $this->data->{$i} = new Property($arr[$i]);
+    foreach ($arr as $i => $item) {
+      $this->set($i, $item);
     }
-    $this->data->length = new Property((float)$len, true, false, false);
+    $this->length = count($arr);
   }
 
   function push($value) {
-    $i = $this->data->length->value;
-    $this->data->{$i} = new Property($value);
-    return ($this->data->length->value = $i + 1);
+    $i = $this->length;
+    $this->set($i, $value);
+    //we don't need to return a float here because this is an internal method
+    return ($this->length = $i + 1);
   }
 
   static function checkInt($s) {
@@ -40,30 +41,35 @@ class Arr extends Object implements JsonSerializable {
 
   function set($key, $value) {
     $i = self::checkInt($key);
-    if ($i !== null && $i >= $this->data->length->value) {
-      $this->data->length->value = $i + 1;
+    if ($i !== null && $i >= $this->length) {
+      $this->length = $i + 1;
     }
-    parent::set($key, $value);
+    return parent::set($key, $value);
+  }
+
+  function get_length() {
+    return (float)$this->length;
   }
 
   function set_length($len) {
     $len = self::checkInt($len);
     if ($len === null) {
-      throw new Ex(Error::create('RangeError: Invalid array length'));
+      throw new Ex(Error::create('Invalid array length'));
     }
-    $oldLen = $this->data->length->value;
+    //when setting the length smaller than before, we need to delete elements
+    $oldLen = $this->length;
     if ($oldLen > $len) {
       for ($i = $len; $i < $oldLen; $i++) {
-        unset($this->data->{$i});
+        $this->remove($i);
       }
     }
-    $this->data->length->value = $len;
-    return $len;
+    $this->length = $len;
+    return (float)$len;
   }
 
   function toArray() {
     $results = array();
-    $len = $this->data->length->value;
+    $len = $this->length;
     for ($i = 0; $i < $len; $i++) {
       $results[] = $this->get($i);
     }
@@ -83,7 +89,7 @@ class Arr extends Object implements JsonSerializable {
       $arr = new Arr();
       $len = $arguments->length;
       if ($len === 1 && is_int_or_float($value)) {
-        $arr->set('length', (float)$value);
+        $arr->length = (int)$value;
       } else if ($len > 1) {
         $arr->init($arguments->args);
       }
@@ -105,42 +111,43 @@ Arr::$protoMethods = array(
   //todo: concat, splice, lastIndexOf
   'push' => function($this_, $arguments, $value) {
       //this is a special case, we have a low-level method
-      $this_->push($value);
-      return $this_->get('length');
+      return (float)$this_->push($value);
     },
   'pop' => function($this_) {
-      $i = $this_->get('length') - 1;
+      $i = $this_->length - 1;
       $result = $this_->get($i);
-      unset($this_->data->{$i});
-      $this_->set('length', $i);
+      $this_->remove($i);
+      $this_->length = $i;
       return $result;
     },
   'join' => function($this_, $arguments, $str = ',') {
       $results = array();
-      $len = $this_->get('length');
+      $len = $this_->length;
       for ($i = 0; $i < $len; $i++) {
-        $results[] = to_string($this_->get($i));
+        $value = $this_->get($i);
+        $results[] = ($value === null || $value === Null::$null) ? '' : to_string($value);
       }
-      return join($str, $results);
+      return join(to_string($str), $results);
     },
   'indexOf' => function($this_, $arguments, $value) {
-      $len = $this_->get('length');
+      $len = $this_->length;
       for ($i = 0; $i < $len; $i++) {
         if ($this_->get($i) === $value) return (float)$i;
       }
       return -1.0;
     },
-  //note: we should technically skip holes; we gloss over that edge case here
   'forEach' => function($this_, $arguments, $fn, $context = null) {
-      $len = $this_->get('length');
+      $len = $this_->length;
       for ($i = 0; $i < $len; $i++) {
-        $fn->call($context, $this_->get($i), (float)$i, $this_);
+        if ($this_->hasOwnProperty($i)) {
+          $fn->call($context, $this_->get($i), (float)$i, $this_);
+        }
       }
     },
   'sort' => function($this_, $arguments, $fn = null) {
       //todo: $fn
       $results = array();
-      $len = $this_->get('length');
+      $len = $this_->length;
       for ($i = 0; $i < $len; $i++) {
         $results[$i] = to_string($this_->get($i));
       }

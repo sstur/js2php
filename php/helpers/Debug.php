@@ -1,12 +1,11 @@
 <?php
 class Debug {
+  static $MAX_DEPTH = 3;
 
   static function log() {
-    $args = func_get_args();
-    $len = count($args);
     $output = array();
-    for ($i = 0; $i < $len; $i++) {
-      $output[] = self::stringify($args[$i]);
+    foreach (func_get_args() as $arg) {
+      $output[] = self::stringify($arg);
     }
     echo join(' ', $output) . "\n";
   }
@@ -28,7 +27,7 @@ class Debug {
     return join(", ", $keys);
   }
 
-  static function stringify($value) {
+  static function stringify($value, $depth = 0) {
     if ($value === null) {
       return 'null';
     }
@@ -40,13 +39,14 @@ class Debug {
       return $value . '';
     }
     if ($type === 'array') {
-      //return '[object Array](' . count($value) . ')';
-      $len = count($value);
-      $output = array();
-      for ($i = 0; $i < $len; $i++) {
-        $output[] = self::stringify($value[$i]);
+      if ($depth >= self::$MAX_DEPTH) {
+        return '[object Array](' . count($value) . ')[...]';
       }
-      return '[object Array](' . $len . ')[' . join(', ', $output) . ']';
+      $output = array();
+      foreach ($value as $item) {
+        $output[] = self::stringify($item, $depth + 1);
+      }
+      return '[object Array](' . count($value) . ')[' . join(', ', $output) . ']';
     }
     return '[object ' . get_class($value) . ']';
   }

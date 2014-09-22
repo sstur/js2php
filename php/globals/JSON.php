@@ -14,9 +14,8 @@ $JSON = call_user_func(function() {
     }
     if ($type === 'array') {
       $result = new Arr();
-      $len = count($value);
-      for ($i = 0; $i < $len; $i++) {
-        $result->push($decode($value[$i]));
+      foreach ($value as $item) {
+        $result->push($decode($item));
       }
     } else {
       $result = new Object();

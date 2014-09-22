@@ -135,8 +135,8 @@ class Args extends Object {
     $self->length = $len;
     $self->callee = $callee;
     $self->caller = $caller;
-    for ($i = 0; $i < $len; $i++) {
-      $self->set($i, $args[$i]);
+    foreach ($args as $i => $arg) {
+      $self->set($i, $arg);
     }
     $self->set('length', (float)$len);
     $self->setProperty('callee', $callee, true, false, true);

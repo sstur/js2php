@@ -2,10 +2,8 @@
 $console = call_user_func(function() {
 
   $toString = function($args) {
-    $len = count($args);
     $output = array();
-    for ($i = 0; $i < $len; $i++) {
-      $value = $args[$i];
+    foreach ($args as $value) {
       if ($value instanceof Object) {
         $toString = $value->get('inspect');
         if (!($toString instanceof Func)) {

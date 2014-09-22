@@ -1,5 +1,8 @@
 operators: unary_plus, bitwise, ...
 demo: form post
+remove RangeError:
+get/setters should have "property descriptors"
+  Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}
 
 build tool:
   don't wrap if/else/for/while in block (handle in codegen)
@@ -21,6 +24,8 @@ test:
   source transformation including variable decl; hoisting; catch
   function scope stuff including named function expression
   for (i in array) {}
+  array set returns value
+  array join (null, undefined => '')
 
 JSON:
   $thing->callMethod('toJSON')

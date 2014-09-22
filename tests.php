@@ -156,11 +156,11 @@ Test::suite(
     Test::assert('get', $arr->get(0) === null);
     Test::assert('push', call_method($arr, 'push', 9.) === 2.);
     Test::assert('length 2', $arr->get('length') === 2.);
-    Test::assert('join', call_method($arr, 'join', ' ') === 'undefined 9');
+    Test::assert('join', call_method($arr, 'join', ';') === ';9');
     //implicit push
     $arr->set(2, 'x');
     Test::assert('length 3', $arr->get('length') === 3.);
-    Test::assert('join default', call_method($arr, 'join') === 'undefined,9,x');
+    Test::assert('join default', call_method($arr, 'join') === ',9,x');
   }
 );
 
