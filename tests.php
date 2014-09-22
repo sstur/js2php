@@ -18,11 +18,11 @@ require_once('php/classes/Number.php');
 require_once('php/classes/Boolean.php');
 require_once('php/classes/Error.php');
 require_once('php/classes/Exception.php');
+require_once('php/classes/Buffer.php');
 
 require_once('php/globals/globals.php');
 require_once('php/globals/Math.php');
 require_once('php/globals/JSON.php');
-require_once('php/globals/Buffer.php');
 require_once('php/globals/console.php');
 require_once('php/globals/process.php');
 
