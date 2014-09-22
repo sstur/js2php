@@ -11,10 +11,10 @@
       assert('empty array', JSON.stringify(a) === '[null,null,null]');
       a = [new String('s'), new Boolean(false), new Number(3)];
       assert('boxed primitives', JSON.stringify(a) === '["s",false,3]');
-      var s = '\\"How\tdaft\njumping\fzebras\rvex"';
+      var s = '\\"How\bquickly\tdaft\njumping\fzebras\rvex"';
       assert(
         'control characters',
-        JSON.stringify(s) === '"\\\\\\"How\\tdaft\\njumping\\fzebras\\rvex\\""'
+        JSON.stringify(s) === '"\\\\\\"How\\bquickly\\tdaft\\njumping\\fzebras\\rvex\\""'
       );
     });
 

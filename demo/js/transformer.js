@@ -7004,7 +7004,7 @@ exports.moonwalk = function moonwalk(ast, fn){
 
   // table of character substitutions
   var meta = {
-    '\b': '\\b',
+    '\b': '\\x08',
     '\t': '\\t',
     '\n': '\\n',
     '\f': '\\f',
