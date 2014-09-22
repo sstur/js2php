@@ -52,6 +52,15 @@ class Buffer extends Object {
     Buffer::$protoObject = $protoObject;
   }
 
+  function toJSON($max = null) {
+    $raw = $this->raw;
+    if ($max !== null && $max < strlen($raw)) {
+      return '<Buffer ' . bin2hex(substr($raw, 0, $max)) . '...>';
+    } else {
+      return '<Buffer ' . bin2hex($raw) . '>';
+    }
+  }
+
   /**
    * Creates the global constructor used in user-land
    * @return Func
@@ -160,16 +169,10 @@ Buffer::$protoMethods = array(
       return $raw;
     },
   'toJSON' => function($this_, $arguments) {
-      $raw = $this_->raw;
-      return '<Buffer ' . bin2hex($raw) . '>';
+      return $this_->toJSON();
     },
   'inspect' => function($this_, $arguments) {
-      $raw = $this_->raw;
-      if (strlen($raw) > Buffer::$SHOW_MAX) {
-        return '<Buffer ' . bin2hex(substr($raw, 0, Buffer::$SHOW_MAX)) . '...>';
-      } else {
-        return '<Buffer ' . bin2hex($raw) . '>';
-      }
+      return $this_->toJSON(Buffer::$SHOW_MAX);
     },
   'clone' => function($this_, $arguments) {
       return new Buffer($this_->raw, 'binary');

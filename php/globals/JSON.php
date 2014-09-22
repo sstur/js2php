@@ -58,7 +58,7 @@ $JSON = call_user_func(function() {
       }
       return '[' . join(',', $result) . ']';
     }
-    //date class specifies its own toJSON
+    //class may specify its own toJSON (date/buffer)
     if (method_exists($value, 'toJSON')) {
       return $encode($value->toJSON());
     }
@@ -75,7 +75,10 @@ $JSON = call_user_func(function() {
     }
     $result = array();
     foreach ($value->getOwnKeys(true) as $key) {
-      $result[] = $escape($key) . ':' . $encode($value->get($key));
+      $val = $value->get($key);
+      if ($val !== null) {
+        $result[] = $escape($key) . ':' . $encode($val);
+      }
     }
     return '{' . join(',', $result) . '}';
   };

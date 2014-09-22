@@ -16,6 +16,27 @@
         'control characters',
         JSON.stringify(s) === '"\\\\\\"How\\bquickly\\tdaft\\njumping\\fzebras\\rvex\\""'
       );
+      var o = {"foo":{"b":{"foo":{"c":{"foo":null}}}}};
+      assert(
+        'nested objects containing identically-named properties should serialize correctly',
+        JSON.stringify(o) === '{"foo":{"b":{"foo":{"c":{"foo":null}}}}}'
+      );
+      o = {};
+      a = [o, o];
+      assert(
+        'objects containing duplicate references should not throw',
+        JSON.stringify(a) === '[{},{}]'
+      );
+      o = {a: undefined, b: 1};
+      assert(
+        'object properties with value undefined are skipped',
+        JSON.stringify(o) === '{"b":1}'
+      );
+      o = {b: new Buffer('abc')};
+      assert(
+        'should serialize buffer to string',
+        JSON.stringify(o) === '{"b":"<Buffer 616263>"}'
+      );
     });
 
   });
