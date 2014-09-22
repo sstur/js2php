@@ -58,6 +58,21 @@ class RegExp extends Object implements JsonSerializable {
   function jsonSerialize() {
     return new StdClass();
   }
+
+  /**
+   * Creates the global constructor used in user-land
+   * @return Func
+   */
+  static function getGlobalConstructor() {
+    $RegExp = new Func(function($this_, $arguments) {
+      $reg = new RegExp();
+      $reg->init($arguments->args);
+      return $reg;
+    });
+    $RegExp->set('prototype', RegExp::$protoObject);
+    $RegExp->setMethods(RegExp::$classMethods, true, false, true);
+    return $RegExp;
+  }
 }
 
 RegExp::$classMethods = array();

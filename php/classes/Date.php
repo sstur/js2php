@@ -87,6 +87,21 @@ class Date extends Object implements JsonSerializable {
     //todo: validate $d for errors array and false values
     return array($d['year'], $d['month'] - 1, $d['day'], $d['hour'], $d['minute'], $d['second'], floor($d['fraction'] * 1000));
   }
+
+  /**
+   * Creates the global constructor used in user-land
+   * @return Func
+   */
+  static function getGlobalConstructor() {
+    $Date = new Func(function($this_, $arguments) {
+      $date = new Date();
+      $date->init($arguments->args);
+      return $date;
+    });
+    $Date->set('prototype', Date::$protoObject);
+    $Date->setMethods(Date::$classMethods, true, false, true);
+    return $Date;
+  }
 }
 
 Date::$classMethods = array(

@@ -130,3 +130,5 @@ class GlobalObject extends Object {
   }
 
 }
+
+Object::$global = new GlobalObject();

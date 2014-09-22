@@ -52,6 +52,19 @@ class Buffer extends Object {
     Buffer::$protoObject = $protoObject;
   }
 
+  /**
+   * Creates the global constructor used in user-land
+   * @return Func
+   */
+  static function getGlobalConstructor() {
+    $Buffer = new Func('Buffer', function($this_, $arguments) {
+      $self = new Buffer();
+      $self->init($arguments->args);
+      return $self;
+    });
+    $Buffer->setMethods(Buffer::$classMethods, true, false, true);
+    return $Buffer;
+  }
 }
 
 Buffer::$classMethods = array(
@@ -164,11 +177,3 @@ Buffer::$protoMethods = array(
 );
 
 Buffer::initProtoMethods();
-
-$Buffer = new Func('Buffer', function($this_, $arguments) {
-  $self = new Buffer();
-  $self->init($arguments->args);
-  return $self;
-});
-
-$Buffer->setMethods(Buffer::$classMethods, true, false, true);

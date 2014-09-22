@@ -23,6 +23,27 @@ class Str extends Object {
   function set_length($len) {
     return $len;
   }
+
+  /**
+   * Creates the global constructor used in user-land
+   * @return Func
+   */
+  static function getGlobalConstructor() {
+    $String = new Func(function($this_, $arguments, $value) {
+      if ($this_ instanceof Str) {
+        $this_->value = to_string($value);
+        return $this_;
+      } else {
+        return to_string($value);
+      }
+    });
+    $String->instantiate = function() {
+      return new Str();
+    };
+    $String->set('prototype', RegExp::$protoObject);
+    $String->setMethods(Str::$classMethods, true, false, true);
+    return $String;
+  }
 }
 
 Str::$classMethods = array(

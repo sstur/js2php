@@ -73,6 +73,26 @@ class Arr extends Object implements JsonSerializable {
   function jsonSerialize() {
     return $this->toArray();
   }
+
+  /**
+   * Creates the global constructor used in user-land
+   * @return Func
+   */
+  static function getGlobalConstructor() {
+    $Array = new Func(function($this_, $arguments, $value = null) {
+      $arr = new Arr();
+      $len = $arguments->length;
+      if ($len === 1 && is_int_or_float($value)) {
+        $arr->set('length', (float)$value);
+      } else if ($len > 1) {
+        $arr->init($arguments->args);
+      }
+      return $arr;
+    });
+    $Array->set('prototype', Arr::$protoObject);
+    $Array->setMethods(Arr::$classMethods, true, false, true);
+    return $Array;
+  }
 }
 
 Arr::$classMethods = array(

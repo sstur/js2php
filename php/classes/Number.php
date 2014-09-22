@@ -14,6 +14,27 @@ class Number extends Object {
       $this->value = (float)$value;
     }
   }
+
+  /**
+   * Creates the global constructor used in user-land
+   * @return Func
+   */
+  static function getGlobalConstructor() {
+    $Number = new Func(function($this_, $arguments, $value) {
+      if ($this_ instanceof Number) {
+        $this_->value = to_number($value);
+        return $this_;
+      } else {
+        return to_number($value);
+      }
+    });
+    $Number->instantiate = function() {
+      return new Number();
+    };
+    $Number->set('prototype', Number::$protoObject);
+    $Number->setMethods(Number::$classMethods, true, false, true);
+    return $Number;
+  }
 }
 
 Number::$classMethods = array(

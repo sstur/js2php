@@ -103,6 +103,19 @@ class Func extends Object {
   function set_length($value) {
     return $value;
   }
+
+  /**
+   * Creates the global constructor used in user-land
+   * @return Func
+   */
+  static function getGlobalConstructor() {
+    $Function = new Func(function($this_, $arguments, $fn) {
+      throw new Ex(Error::create('Cannot construct function at runtime.'));
+    });
+    $Function->set('prototype', Func::$protoObject);
+    $Function->setMethods(Func::$classMethods, true, false, true);
+    return $Function;
+  }
 }
 
 class Args extends Object {

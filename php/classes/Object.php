@@ -7,6 +7,11 @@ class Object implements JsonSerializable {
   static $protoObject = null;
   static $classMethods = null;
   static $protoMethods = null;
+
+  /**
+   * holds the "global" object (on which all global variables exist as properties)
+   * @var GlobalObject
+   */
   static $global = null;
 
   function __construct() {
@@ -182,6 +187,25 @@ class Object implements JsonSerializable {
       }
     }
     return $results;
+  }
+
+  /**
+   * Creates the global constructor used in user-land
+   * @return Func
+   */
+  static function getGlobalConstructor() {
+    $Object = new Func(function($this_, $arguments, $value = null) {
+      if ($arguments->length === 0) {
+        return new Object();
+      } else if ($value === null || $value === Null::$null) {
+        return new Object();
+      } else {
+        return objectify($value);
+      }
+    });
+    $Object->set('prototype', Object::$protoObject);
+    $Object->setMethods(Object::$classMethods, true, false, true);
+    return $Object;
   }
 }
 

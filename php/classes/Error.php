@@ -18,6 +18,19 @@ class Error extends Object {
   static function create($str) {
     return new Error($str);
   }
+
+  /**
+   * Creates the global constructor used in user-land
+   * @return Func
+   */
+  static function getGlobalConstructor() {
+    $Error = new Func(function($this_, $arguments, $str = null) {
+      return new Error($str);
+    });
+    $Error->set('prototype', Error::$protoObject);
+    $Error->setMethods(Error::$classMethods, true, false, true);
+    return $Error;
+  }
 }
 
 Error::$classMethods = array();
