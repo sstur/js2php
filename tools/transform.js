@@ -26,7 +26,6 @@
     this.opts = opts || (opts = {});
     this.parse(opts.source);
     this.hoistFunctionDeclarations();
-    this.hoistVariableDeclarations();
     this.indexScopes();
     return codegen.generate(this.ast);
   };
@@ -46,55 +45,6 @@
     var functionsDeclarations = [];
 
     rocambole.recursive(ast, function(node) {
-      //split comma-separated var statements
-      if (node.type === 'VariableDeclaration') {
-        //don't split vars in `for`
-        if (!isBlockLevelVar(node)) return;
-        node.declarations.forEach(function(decl) {
-          var sep = decl.endToken && decl.endToken.next;
-          if (sep && sep.type === 'Punctuator' && sep.value === ',') {
-            splicePoints.push({
-              index: sep.range[0],
-              removeCount: 1,
-              insert: '; var' + (sep.next.type === 'WhiteSpace' ? '' : ' ')
-            });
-          }
-        });
-        return;
-      }
-
-      var wrapStmtInBlock = function(node) {
-        splicePoints.push({
-          index: node.startToken.range[0],
-          insert: '{'
-        });
-        splicePoints.push({
-          index: node.endToken.range[1],
-          insert: '}'
-        });
-      };
-
-      //enforce all if/else to use blocks
-      if (node.type === 'IfStatement') {
-        if (node.consequent.type !== 'BlockStatement') {
-          wrapStmtInBlock(node.consequent);
-        }
-        if (node.alternate) {
-          //wrap else part if it's not a block or another if statement
-          if (node.alternate.type !== 'BlockStatement' && node.alternate.type !== 'IfStatement') {
-            wrapStmtInBlock(node.alternate);
-          }
-        }
-        return;
-      }
-
-      //force all while, for, for..in to use blocks
-      if (node.type === 'WhileStatement' || node.type === 'ForStatement' || node.type === 'ForInStatement') {
-        if (node.body.type !== 'BlockStatement') {
-          wrapStmtInBlock(node.body);
-        }
-      }
-
       //function declarations (to be hoisted)
       if (node.type === 'FunctionDeclaration') {
         var scope = utils.getParentScope(node);
@@ -137,83 +87,59 @@
     this.parse(source);
   };
 
-  Transformer.prototype.hoistVariableDeclarations = function() {
-    var ast = this.ast;
-    var splicePoints = [];
-    var scopesWithVars = [];
-    //traverse for var declarations
-    rocambole.recursive(ast, function(node) {
-      if (node.type !== 'VariableDeclaration') {
-        return;
-      }
-      //add each decl to the list of var names of the parent scope
-      //there will be only one declaration, unless it's in a `for`
-      node.declarations.forEach(function(decl) {
-        var scope = utils.getParentScope(node);
-        if (scopesWithVars.indexOf(scope) === -1) {
-          scopesWithVars.push(scope);
-        }
-        var varNames = scope.vars || setHidden(scope, 'vars', []);
-        if (varNames.indexOf(decl.id.name) === -1) {
-          varNames.push(decl.id.name);
-        }
-      });
-      //if it's a `var` without an `=`, remove it completely (unless we're in a `for`)
-      if (node.declarations.length === 1 && node.declarations[0].init === null && isBlockLevelVar(node)) {
-        var endIndex = node.range[1];
-        if (node.endToken.next && node.endToken.next.type === 'Punctuator') {
-          endIndex = node.endToken.next.range[0];
-        }
-        splicePoints.push({
-          index: node.range[0],
-          removeCount: endIndex - node.range[0]
-        });
-        return;
-      }
-      splicePoints.push({
-        index: node.range[0],
-        removeCount: 4
-      });
-    });
-    scopesWithVars.forEach(function(scope) {
-      var vars = scope.vars || [];
-      splicePoints.push({
-        index: scope.type === 'Program' ? scope.startToken.range[0] : scope.startToken.range[1],
-        insert: '\nvar ' + vars.join(', ') + ';\n'
-      });
-    });
-    this.parse(spliceString(splicePoints, this.source));
-  };
-
   Transformer.prototype.indexScopes = function() {
     var ast = this.ast;
+    //index var declarations
+    rocambole.recursive(ast, function(node) {
+      //todo: include function declarations
+      if (node.type === 'VariableDeclaration') {
+        var scope = utils.getParentScope(node);
+        var varNames = scope.vars || setHidden(scope, 'vars', {});
+        node.declarations.forEach(function(decl) {
+          varNames[decl.id.name] = true;
+        });
+      }
+    });
+
     var scopes = escope.analyze(ast).scopes;
     //this attaches some scope information to certain nodes
     indexScope(scopes[0]);
     //traverse for variable declarations that are immediately re-assigned
     scopes.forEach(function(scope) {
       if (scope.type !== 'function' && scope.type !== 'global') return;
+      var block = scope.block;
       scope.variables.forEach(function(variable) {
         var id = variable.identifiers[0];
-        if (!id || id.parent.type !== 'VariableDeclarator') return;
+        if (!id) return;
         var name = id.name;
-        var usedLexically = false;
-        var childScopes = scope.childScopes || [];
-        childScopes.forEach(function(childScope) {
-          var childScopeIndex = childScope.block.scopeIndex || {};
-          var unresolved = childScopeIndex.unresolved;
-          if (unresolved && unresolved[name]) {
-            usedLexically = true;
+        if (id.parent.type === 'VariableDeclarator') {
+          var usedLexically = false;
+          var childScopes = scope.childScopes || [];
+          childScopes.forEach(function(childScope) {
+            var childScopeIndex = childScope.block.scopeIndex || {};
+            var unresolved = childScopeIndex.unresolved;
+            if (unresolved && unresolved[name]) {
+              usedLexically = true;
+            }
+          });
+          if (!usedLexically) {
+            var references = scope.references.filter(function(ref) {
+              return (ref.identifier.name === name);
+            });
+            if (references.length) {
+              var node = references[0].identifier;
+              var isVarInit = (node.parent.type === 'VariableDeclarator' && node.parent.init);
+              var isAssignment = (node.parent.type === 'AssignmentExpression' && node.parent.left === node);
+              if (isVarInit || isAssignment) {
+                var implicitlyDefined = block.implicitVars || setHidden(block, 'implicitVars', {});
+                implicitlyDefined[name] = true;
+              }
+            }
           }
-        });
-        if (usedLexically) return;
-        var references = scope.references.filter(function(ref) {
-          return (ref.identifier.name === name);
-        });
-        if (!references.length) return;
-        var node = references[0].identifier;
-        if (node.parent.type === 'AssignmentExpression' && node.parent.left === node) {
-          setHidden(id, 'implicitlyDefined', true);
+        } else
+        if (id.parent.type === 'FunctionDeclaration') {
+          var funcDeclarations = block.funcs || setHidden(block, 'funcs', {});
+          funcDeclarations[name] = block;
         }
       });
     });
@@ -298,11 +224,6 @@
     return newSource.join('');
   }
 
-
-  //determine if var statement is in code block (not in `for`)
-  function isBlockLevelVar(node) {
-    return (node.parent.type === 'Program' || node.parent.type === 'BlockStatement');
-  }
 
   function hoistFromMarkers(source) {
     var match;

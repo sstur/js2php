@@ -16,6 +16,9 @@ build tool:
     line number, source start/end offsets
     def is a best-guess name: a.b = function() {}
   `function a() { return a }` sets $a = null
+  function f() {
+    return 1, 2;
+  }
 
 test:
   encodeURI/decodeURI, escape/unescape

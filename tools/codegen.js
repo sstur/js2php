@@ -25,12 +25,41 @@
   var GLOBALS = {'Array': 1, 'Boolean': 1, 'Buffer': 1, 'Date': 1, 'Error': 1, 'Function': 1, 'Infinity': 1, 'JSON': 1, 'Math': 1, 'NaN': 1, 'Number': 1, 'Object': 1, 'RegExp': 1, 'String': 1, 'console': 1, 'decodeURI': 1, 'decodeURIComponent': 1, 'encodeURI': 1, 'encodeURIComponent': 1, 'escape': 1, 'eval': 1, 'isFinite': 1, 'isNaN': 1, 'parseFloat': 1, 'parseInt': 1, 'undefined': 1, 'unescape': 1};
 
   var gen = {
+    //accepts a BlockStatement or an ExpressionStatement (turns to block)
+    // assumes the `{}` have already been generated
+    toBlock: function(node, opts) {
+      if (node.type === 'BlockStatement') {
+        return gen.Body(node, opts);
+      }
+      opts.indentLevel += 1;
+      var result = generate(node, opts);
+      if (result) {
+        result = indent(opts.indentLevel) + result;
+      }
+      opts.indentLevel -= 1;
+      return result;
+    },
+
+    //generate function or program body
+    // assumes the `{}` have already been written
     'Body': function(node, opts) {
       var scopeIndex = node.scopeIndex || Object.create(null);
       var results = [];
       opts.indentLevel += 1;
       if (node.type === 'Program' && scopeIndex.thisFound) {
         results.push(indent(opts.indentLevel) + '$this_ = $global;\n');
+      }
+      if (node.vars) {
+        var implicitlyDefined = node.implicitVars || {};
+        var declarations = [];
+        Object.keys(node.vars).forEach(function(name) {
+          if (!implicitlyDefined[name]) {
+            declarations.push(encodeVarName(name) + ' = null;');
+          }
+        });
+        if (declarations.length) {
+          results.push(indent(opts.indentLevel) + declarations.join(' ') + '\n');
+        }
       }
       node.body.forEach(function(node) {
         var result = generate(node, opts);
@@ -44,30 +73,43 @@
       return results.join('');
     },
 
+    'BlockStatement': function(node, opts) {
+      var results = ['{\n'];
+      results.push(gen.Body(node, opts));
+      results.push(indent(opts.indentLevel) + '}');
+      return results.join('') + '\n';
+    },
+
     'VariableDeclaration': function(node, opts) {
       var results = [];
       node.declarations.forEach(function(node) {
-        if (!node.id.implicitlyDefined) {
-          results.push(encodeVar(node.id) + ' = null;');
+        if (node.init) {
+          results.push(encodeVar(node.id) + ' = ' + generate(node.init, opts));
         }
       });
-      return results.length ? results.join(' ') + '\n' : '';
+      if (!results.length) {
+        return '';
+      }
+      if (node.parent.type === 'ForStatement') {
+        return results.join(', ');
+      }
+      return results.join('; ') + ';\n';
     },
 
     'IfStatement': function(node, opts) {
       var results = ['if ('];
       results.push(generate(node.test, opts));
       results.push(') {\n');
-      results.push(gen.Body(node.consequent, opts));
+      results.push(gen.toBlock(node.consequent, opts));
       results.push(indent(opts.indentLevel) + '}');
       if (node.alternate) {
         results.push(' else ');
-        if (node.alternate.type === 'BlockStatement') {
-          results.push('{\n');
-          results.push(gen.Body(node.alternate, opts));
-          results.push(indent(opts.indentLevel) + '}\n');
-        } else {
+        if (node.alternate.type === 'IfStatement') {
           results.push(generate(node.alternate, opts));
+        } else {
+          results.push('{\n');
+          results.push(gen.toBlock(node.alternate, opts));
+          results.push(indent(opts.indentLevel) + '}\n');
         }
       }
       return results.join('') + '\n';
@@ -106,7 +148,7 @@
       results.push(generate(node.test, opts) + '; ');
       results.push(generate(node.update, opts));
       results.push(') {\n');
-      results.push(gen.Body(node.body, opts));
+      results.push(gen.toBlock(node.body, opts));
       results.push(indent(opts.indentLevel) + '}');
       return results.join('') + '\n';
     },
@@ -123,7 +165,7 @@
       }
       results.push('foreach (keys(');
       results.push(generate(node.right, opts) + ') as $i_ => ' + encodeVar(identifier) + ') {\n');
-      results.push(gen.Body(node.body, opts));
+      results.push(gen.toBlock(node.body, opts));
       results.push(indent(opts.indentLevel) + '}');
       return results.join('') + '\n';
     },
@@ -132,22 +174,15 @@
       var results = ['while ('];
       results.push(generate(node.test, opts));
       results.push(') {\n');
-      results.push(gen.Body(node.body, opts));
+      results.push(gen.toBlock(node.body, opts));
       results.push(indent(opts.indentLevel) + '}');
       return results.join('') + '\n';
     },
 
     'DoWhileStatement': function(node, opts) {
       var results = ['do {\n'];
-      results.push(gen.Body(node.body, opts));
+      results.push(gen.toBlock(node.body, opts));
       results.push(indent(opts.indentLevel) + '} while (' + generate(node.test, opts) + ');');
-      return results.join('') + '\n';
-    },
-
-    'BlockStatement': function(node, opts) {
-      var results = ['{\n'];
-      results.push(gen.Body(node, opts));
-      results.push(indent(opts.indentLevel) + '}');
       return results.join('') + '\n';
     },
 
@@ -313,7 +348,12 @@
       var expressions = node.expressions.map(function(node) {
         return generate(node, opts);
       });
-      return expressions.join(', ');
+      //allow sequence expression only in the init of a for loop
+      if (node.parent.type === 'ForStatement' && node.parent.init === node) {
+        return expressions.join(', ');
+      } else {
+        return 'x_seq(' + expressions.join(', ') + ')';
+      }
     }
   };
 

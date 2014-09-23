@@ -113,3 +113,8 @@ function x_typeof($value) {
   }
   return 'unknown';
 }
+
+function x_seq() {
+  $args = func_get_args();
+  return array_pop($args);
+}
