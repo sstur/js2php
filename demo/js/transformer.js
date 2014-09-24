@@ -6147,17 +6147,18 @@ exports.moonwalk = function moonwalk(ast, fn){
   var OPERATOR_MAP = {
     //unary operators
     'u:-': 'negate',
-    'u:+': 'unary_plus',
-    'u:~': 'bitwise_not',
+    //'u:+': 'unary_plus',
+    //'u:~': 'bitwise_not',
+
     //binary operators
     'b:+': 'plus',
     'b:&&': 'and',
     'b:||': 'or',
-    'b:&': 'bitwise_and',
-    'b:|': 'bitwise_or',
-    'b:^': 'bitwise_xor',
-    'b:<<': 'bitwise_ls', //left shift
-    'b:>>': 'bitwise_sprs', //sign-propagating right shift
+    //'b:&': 'bitwise_and',
+    //'b:|': 'bitwise_or',
+    //'b:^': 'bitwise_xor',
+    //'b:<<': 'bitwise_ls', //left shift
+    //'b:>>': 'bitwise_sprs', //sign-propagating right shift
     'b:>>>': 'bitwise_zfrs' //zero-fill right shift
   };
 
@@ -6397,14 +6398,14 @@ exports.moonwalk = function moonwalk(ast, fn){
         return generate(arg, opts);
       });
       if (node.callee.type === 'MemberExpression') {
-        return 'call_method(' + generate(node.callee.object, opts) + ', ' + encodeProp(node.callee) + (args.length ? ', ' + args.join(', ') : '') + ')';
+        return 'call_method(' + generate(node.callee.object, opts) + ', ' + encodeProp(node.callee, opts) + (args.length ? ', ' + args.join(', ') : '') + ')';
       } else {
         return 'call(' + generate(node.callee, opts) + (args.length ? ', ' + args.join(', ') : '') + ')';
       }
     },
 
     'MemberExpression': function(node, opts) {
-      return 'get(' + generate(node.object, opts) + ', ' + encodeProp(node) + ')';
+      return 'get(' + generate(node.object, opts) + ', ' + encodeProp(node, opts) + ')';
     },
 
     'NewExpression': function(node, opts) {
@@ -6418,9 +6419,9 @@ exports.moonwalk = function moonwalk(ast, fn){
       if (node.left.type === 'MemberExpression') {
         //`a.b = 1` -> `set(a, "b", 1)` but `a.b += 1` -> `set(a, "b", 1, "+=")`
         if (node.operator === '=') {
-          return 'set(' + generate(node.left.object, opts) + ', ' + encodeProp(node.left) + ', ' + generate(node.right, opts) + ')';
+          return 'set(' + generate(node.left.object, opts) + ', ' + encodeProp(node.left, opts) + ', ' + generate(node.right, opts) + ')';
         } else {
-          return 'set(' + generate(node.left.object, opts) + ', ' + encodeProp(node.left) + ', ' + generate(node.right, opts) + ', "' + node.operator + '")';
+          return 'set(' + generate(node.left.object, opts) + ', ' + encodeProp(node.left, opts) + ', ' + generate(node.right, opts) + ', "' + node.operator + '")';
         }
       }
       if (node.left.name in GLOBALS) {
@@ -6438,7 +6439,7 @@ exports.moonwalk = function moonwalk(ast, fn){
         var operator = (node.operator === '++') ? '+=' : '-=';
         // ++i returns the new (updated) value; i++ returns the old value
         var returnOld = node.prefix ? false : true;
-        return 'set(' + generate(node.argument.object, opts) + ', ' + encodeProp(node.argument) + ', 1, "' + operator + '", ' + returnOld + ')';
+        return 'set(' + generate(node.argument.object, opts) + ', ' + encodeProp(node.argument, opts) + ', 1, "' + operator + '", ' + returnOld + ')';
       }
       //todo: [hacky] this works only work on numbers
       if (node.prefix) {
@@ -6481,7 +6482,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       }
       //special case here because `delete a.b.c` needs to compute a.b and then delete c
       if (op === 'delete' && node.argument.type === 'MemberExpression') {
-        return 'x_delete(' + generate(node.argument.object, opts) + ', ' + encodeProp(node.argument) + ')';
+        return 'x_delete(' + generate(node.argument.object, opts) + ', ' + encodeProp(node.argument, opts) + ')';
       }
       if (op.match(/^[a-z_]+$/)) {
         return 'x_' + op + '(' + generate(node.argument, opts) + ')';
@@ -6521,7 +6522,7 @@ exports.moonwalk = function moonwalk(ast, fn){
         result = generate(node.expression, opts) + ';\n';
         break;
       case 'ReturnStatement':
-        result = 'return ' + generate(node.argument) + ';\n';
+        result = 'return ' + generate(node.argument, opts) + ';\n';
         break;
       case 'ContinueStatement':
         result = 'continue;\n';
@@ -6640,10 +6641,10 @@ exports.moonwalk = function moonwalk(ast, fn){
     return utils.toPHPString(string);
   }
 
-  function encodeProp(node) {
+  function encodeProp(node, opts) {
     if (node.computed) {
       //a[0] or a[b] or a[b + 1]
-      return generate(node.property);
+      return generate(node.property, opts);
     } else {
       //a.b
       return encodeLiteral(node.property.name);

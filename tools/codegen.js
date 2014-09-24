@@ -7,17 +7,18 @@
   var OPERATOR_MAP = {
     //unary operators
     'u:-': 'negate',
-    'u:+': 'unary_plus',
-    'u:~': 'bitwise_not',
+    //'u:+': 'unary_plus',
+    //'u:~': 'bitwise_not',
+
     //binary operators
     'b:+': 'plus',
     'b:&&': 'and',
     'b:||': 'or',
-    'b:&': 'bitwise_and',
-    'b:|': 'bitwise_or',
-    'b:^': 'bitwise_xor',
-    'b:<<': 'bitwise_ls', //left shift
-    'b:>>': 'bitwise_sprs', //sign-propagating right shift
+    //'b:&': 'bitwise_and',
+    //'b:|': 'bitwise_or',
+    //'b:^': 'bitwise_xor',
+    //'b:<<': 'bitwise_ls', //left shift
+    //'b:>>': 'bitwise_sprs', //sign-propagating right shift
     'b:>>>': 'bitwise_zfrs' //zero-fill right shift
   };
 
