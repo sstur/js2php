@@ -61,6 +61,14 @@
           results.push(indent(opts.indentLevel) + declarations.join(' ') + '\n');
         }
       }
+      var funcDeclarations = node.funcs;
+      if (funcDeclarations) {
+        Object.keys(funcDeclarations).forEach(function(name) {
+          var func = gen.FunctionExpression(funcDeclarations[name], opts);
+          results.push(indent(opts.indentLevel) + encodeVarName(name) + ' = ' + func + ';\n');
+        });
+      }
+
       node.body.forEach(function(node) {
         var result = generate(node, opts);
         if (result) {
@@ -237,12 +245,12 @@
 
     'ObjectExpression': function(node, opts) {
       var items = [];
-      node.properties.forEach(function(nod) {
-        var key = nod.key;
+      node.properties.forEach(function(node) {
+        var key = node.key;
         //key can be a literal or an identifier (quoted or not)
-        var keyName = (key.type === 'Identifier') ? key.name : key.value;
+        var keyName = (key.type === 'Identifier') ? key.name : String(key.value);
         items.push(encodeString(keyName));
-        items.push(generate(nod.value, opts));
+        items.push(generate(node.value, opts));
       });
       return 'new Object(' + items.join(', ') + ')';
     },
@@ -387,6 +395,8 @@
         break;
       case 'EmptyStatement':
       case 'DebuggerStatement':
+      //this is handled at beginning of parent scope
+      case 'FunctionDeclaration':
         result = '';
         break;
       case 'VariableDeclaration':
@@ -404,7 +414,6 @@
       //these should never be encountered here because they are handled elsewhere
       case 'SwitchCase':
       case 'CatchClause':
-      case 'FunctionDeclaration':
         throw new Error('should never encounter: "' + type + '"');
         break;
       //these are not implemented (some are es6, some are irrelevant)

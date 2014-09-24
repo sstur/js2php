@@ -6201,6 +6201,14 @@ exports.moonwalk = function moonwalk(ast, fn){
           results.push(indent(opts.indentLevel) + declarations.join(' ') + '\n');
         }
       }
+      var funcDeclarations = node.funcs;
+      if (funcDeclarations) {
+        Object.keys(funcDeclarations).forEach(function(name) {
+          var func = gen.FunctionExpression(funcDeclarations[name], opts);
+          results.push(indent(opts.indentLevel) + encodeVarName(name) + ' = ' + func + ';\n');
+        });
+      }
+
       node.body.forEach(function(node) {
         var result = generate(node, opts);
         if (result) {
@@ -6377,12 +6385,12 @@ exports.moonwalk = function moonwalk(ast, fn){
 
     'ObjectExpression': function(node, opts) {
       var items = [];
-      node.properties.forEach(function(nod) {
-        var key = nod.key;
+      node.properties.forEach(function(node) {
+        var key = node.key;
         //key can be a literal or an identifier (quoted or not)
-        var keyName = (key.type === 'Identifier') ? key.name : key.value;
+        var keyName = (key.type === 'Identifier') ? key.name : String(key.value);
         items.push(encodeString(keyName));
-        items.push(generate(nod.value, opts));
+        items.push(generate(node.value, opts));
       });
       return 'new Object(' + items.join(', ') + ')';
     },
@@ -6527,6 +6535,8 @@ exports.moonwalk = function moonwalk(ast, fn){
         break;
       case 'EmptyStatement':
       case 'DebuggerStatement':
+      //this is handled at beginning of parent scope
+      case 'FunctionDeclaration':
         result = '';
         break;
       case 'VariableDeclaration':
@@ -6544,7 +6554,6 @@ exports.moonwalk = function moonwalk(ast, fn){
       //these should never be encountered here because they are handled elsewhere
       case 'SwitchCase':
       case 'CatchClause':
-      case 'FunctionDeclaration':
         throw new Error('should never encounter: "' + type + '"');
         break;
       //these are not implemented (some are es6, some are irrelevant)
@@ -6708,7 +6717,6 @@ exports.moonwalk = function moonwalk(ast, fn){
   Transformer.prototype.process = function(opts) {
     this.opts = opts || (opts = {});
     this.parse(opts.source);
-    this.hoistFunctionDeclarations();
     this.indexScopes();
     return codegen.generate(this.ast);
   };
@@ -6719,74 +6727,30 @@ exports.moonwalk = function moonwalk(ast, fn){
     this.ast = rocambole.parse(this.source);
   };
 
-  Transformer.prototype.hoistFunctionDeclarations = function() {
-    var ast = this.ast;
-    //first we grab the index of each point where we wish to splice the code
-    var splicePoints = [];
-
-    var scopesWithFunctionDeclarations = [];
-    var functionsDeclarations = [];
-
-    rocambole.recursive(ast, function(node) {
-      //function declarations (to be hoisted)
-      if (node.type === 'FunctionDeclaration') {
-        var scope = utils.getParentScope(node);
-        if (scopesWithFunctionDeclarations.indexOf(scope) === -1) {
-          scopesWithFunctionDeclarations.push(scope);
-        }
-        setHidden(node, 'parentScope', scope);
-        functionsDeclarations.push(node);
-      }
-    });
-
-    //mark functions for hoisting [hacky]
-    var count = 0;
-    scopesWithFunctionDeclarations.forEach(function(scope) {
-      var toHoist = [];
-      functionsDeclarations.forEach(function(func) {
-        if (func.parentScope !== scope) return;
-        //drop in comment placeholders for later hoisting
-        var index = ++count;
-        toHoist.push('/*!' + index + ':' + func.id.name + '!*/');
-        splicePoints.push({
-          index: func.startToken.range[0],
-          insert: '/*[' + index + '~*/'
-        });
-        splicePoints.push({
-          index: func.endToken.range[1],
-          insert: '/*~' + index + ']*/'
-        });
-      });
-      splicePoints.push({
-        index: scope.type === 'Program' ? scope.startToken.range[0] : scope.startToken.range[1],
-        insert: '\n' + toHoist.join('\n') + '\n'
-      });
-
-    });
-
-    var source = this.source;
-    source = spliceString(splicePoints, source);
-    source = hoistFromMarkers(source);
-    this.parse(source);
-  };
-
   Transformer.prototype.indexScopes = function() {
     var ast = this.ast;
-    //index var declarations
+
+    //index var declarations and function declarations
     rocambole.recursive(ast, function(node) {
-      //todo: include function declarations
       if (node.type === 'VariableDeclaration') {
         var scope = utils.getParentScope(node);
         var varNames = scope.vars || setHidden(scope, 'vars', {});
         node.declarations.forEach(function(decl) {
           varNames[decl.id.name] = true;
         });
+      } else
+      if (node.type === 'FunctionDeclaration') {
+        var name = node.id.name;
+        scope = utils.getParentScope(node);
+        var funcDeclarations = scope.funcs || setHidden(scope, 'funcs', {});
+        funcDeclarations[name] = node;
       }
     });
 
+    //analyze and walk scope, attaching some information to certain nodes
     var scopes = escope.analyze(ast).scopes;
-    //this attaches some scope information to certain nodes
     indexScope(scopes[0]);
+
     //traverse for variable declarations that are immediately re-assigned
     scopes.forEach(function(scope) {
       if (scope.type !== 'function' && scope.type !== 'global') return;
@@ -6819,14 +6783,11 @@ exports.moonwalk = function moonwalk(ast, fn){
               }
             }
           }
-        } else
-        if (id.parent.type === 'FunctionDeclaration') {
-          var funcDeclarations = block.funcs || setHidden(block, 'funcs', {});
-          funcDeclarations[name] = block;
         }
       });
     });
-    //used to append to variables that need to be renamed unique
+
+    //count is for creating unique variable names
     var count = 0;
     //traverse for catch clauses and rename param if necessary
     scopes.forEach(function(scope) {
@@ -6890,41 +6851,6 @@ exports.moonwalk = function moonwalk(ast, fn){
   }
 
 
-  function spliceString(splicePoints, source) {
-    //then sort by index
-    splicePoints.sort(function(a, b) {
-      return a.index - b.index;
-    });
-    //and finally go through and perform the splice actions
-    var newSource = [];
-    var lastIndex = 0;
-    splicePoints.forEach(function(splice) {
-      var before = source.slice(lastIndex, splice.index);
-      newSource.push(before, splice.insert);
-      lastIndex = splice.index + (splice.removeCount || 0);
-    });
-    newSource.push(source.slice(lastIndex));
-    return newSource.join('');
-  }
-
-
-  function hoistFromMarkers(source) {
-    var match;
-    while ((match = source.match(/\/\*\[(\d+)~\*\/([\s\S]+?)\/\*~\1\]\*\//))) {
-      var i = match[1];
-      var src = match[2];
-      source = source.slice(0, match.index) + source.slice(match.index + match[0].length);
-      var startToken = '/*!' + i + ':';
-      var endToken = '!*/';
-      var index = source.indexOf(startToken);
-      var index2 = source.indexOf(endToken, index);
-      var name = source.slice(index + startToken.length, index2);
-      source = source.replace(startToken + name + endToken, 'var ' + name + ' = ' + src + ';');
-    }
-    return source;
-  }
-
-
   function buildRuntime() {
     var source = fs.readFileSync(path.join(__dirname, '../tests.php'), 'utf8');
     var index = source.indexOf('//</BOILERPLATE>');
@@ -6939,6 +6865,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       source = source.replace(/^\n+|\n+$/g, '');
       output.push(source);
     });
+    output.unshift('mb_internal_encoding("UTF-8");\n');
     var timezone = new Date().toString().slice(-4, -1);
     output.unshift('define("LOCAL_TZ", "' + timezone + '");\n');
     return output.join('\n');

@@ -161,7 +161,6 @@ var a = function a() {
   }
 }
 ====
-$a = null;
 $a = new Func("a", function($this_, $arguments) use (&$console) {
   $a = $arguments->callee;
   $x = null;

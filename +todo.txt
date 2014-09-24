@@ -1,13 +1,14 @@
 operators: unary_plus, bitwise, ...
 demo: form post
-remove RangeError:
 get/setters should have "property descriptors"
   Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}
 
+bug:
+  "implicitly declared vars" not traversing child scopes properly:
+    var a = function a(n) { return a(n - 1) }
+
 build tool:
-  don't wrap if/else/for/while in block (handle in codegen)
   specify --fragment as true/false flag
-  one pass ast (track functions for hoisting)
   debug mode: Func() gets extra param "meta"
     array('source' => 3, 'line' => 4, 'start' => 146, 'end' => 283, 'def' => 'a.b')
     source is an id referencing source file
@@ -15,10 +16,6 @@ build tool:
       $GLOBALS['source_'] = array('var a = 1;', ...)
     line number, source start/end offsets
     def is a best-guess name: a.b = function() {}
-  `function a() { return a }` sets $a = null
-  function f() {
-    return 1, 2;
-  }
 
 test:
   encodeURI/decodeURI, escape/unescape
