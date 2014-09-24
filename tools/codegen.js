@@ -49,13 +49,10 @@
       if (node.type === 'Program' && scopeIndex.thisFound) {
         results.push(indent(opts.indentLevel) + '$this_ = $global;\n');
       }
-      if (node.vars) {
-        var implicitlyDefined = node.implicitVars || {};
+      if (node.vars && opts.initVars) {
         var declarations = [];
         Object.keys(node.vars).forEach(function(name) {
-          if (!implicitlyDefined[name]) {
-            declarations.push(encodeVarName(name) + ' = null;');
-          }
+          declarations.push(encodeVarName(name) + ' = null;');
         });
         if (declarations.length) {
           results.push(indent(opts.indentLevel) + declarations.join(' ') + '\n');
@@ -366,7 +363,6 @@
   };
 
   function generate(node, opts) {
-    opts = opts || {};
     if (opts.indentLevel == null) {
       opts.indentLevel = -1;
     }
@@ -546,5 +542,8 @@
     return new Array(count + 1).join(str);
   }
 
-  exports.generate = generate;
+  exports.generate = function(ast, opts) {
+    opts = Object.create(opts || {});
+    return generate(ast, opts);
+  };
 })();

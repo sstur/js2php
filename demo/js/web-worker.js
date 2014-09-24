@@ -16,14 +16,12 @@ if (isWebWorker) {
       return;
     }
     setTimeout(function() {
-      var opts = data.opts || {};
-      if (opts.noCatch) {
+      if (data.noCatch) {
         //allow error to be thrown for debugging
-        var result = Transformer({source: data.sourceCode});
-        result = 'require_once("runtime.php");\n\n' + result;
+        var result = Transformer(data.params);
       } else {
         try {
-          result = Transformer({source: data.sourceCode});
+          result = Transformer(data.params);
         } catch (e) {
           result = '/* ERROR TRANSFORMING SOURCE:\n' + e.message + ' */';
         }

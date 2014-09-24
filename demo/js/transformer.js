@@ -6189,13 +6189,10 @@ exports.moonwalk = function moonwalk(ast, fn){
       if (node.type === 'Program' && scopeIndex.thisFound) {
         results.push(indent(opts.indentLevel) + '$this_ = $global;\n');
       }
-      if (node.vars) {
-        var implicitlyDefined = node.implicitVars || {};
+      if (node.vars && opts.initVars) {
         var declarations = [];
         Object.keys(node.vars).forEach(function(name) {
-          if (!implicitlyDefined[name]) {
-            declarations.push(encodeVarName(name) + ' = null;');
-          }
+          declarations.push(encodeVarName(name) + ' = null;');
         });
         if (declarations.length) {
           results.push(indent(opts.indentLevel) + declarations.join(' ') + '\n');
@@ -6506,7 +6503,6 @@ exports.moonwalk = function moonwalk(ast, fn){
   };
 
   function generate(node, opts) {
-    opts = opts || {};
     if (opts.indentLevel == null) {
       opts.indentLevel = -1;
     }
@@ -6686,7 +6682,10 @@ exports.moonwalk = function moonwalk(ast, fn){
     return new Array(count + 1).join(str);
   }
 
-  exports.generate = generate;
+  exports.generate = function(ast, opts) {
+    opts = Object.create(opts || {});
+    return generate(ast, opts);
+  };
 })();
 },{"./utils":7,"util":13}],6:[function(_dereq_,module,exports){
 (function (__dirname){
@@ -6702,6 +6701,10 @@ exports.moonwalk = function moonwalk(ast, fn){
 
   var codegen = _dereq_('./codegen');
 
+  /**
+   * opts.source - JS source code to transform
+   * opts.initVars - initialize all variables in PHP (default: true)
+   */
   module.exports = function(opts) {
     var transformer = new Transformer();
     return transformer.process(opts);
@@ -6715,22 +6718,22 @@ exports.moonwalk = function moonwalk(ast, fn){
   }
 
   Transformer.prototype.process = function(opts) {
-    this.opts = opts || (opts = {});
+    opts = Object.create(opts || {});
+    opts.initVars = (opts.initVars !== false);
     this.parse(opts.source);
     this.indexScopes();
-    return codegen.generate(this.ast);
+    return codegen.generate(this.ast, opts);
   };
 
   Transformer.prototype.parse = function(source) {
-    //fixes a weird bug when source begins with var or function declaration
-    this.source = '\n' + source.trim();
+    this.source = source.trim();
     this.ast = rocambole.parse(this.source);
   };
 
   Transformer.prototype.indexScopes = function() {
     var ast = this.ast;
 
-    //index var declarations and function declarations
+    //index var and function declarations
     rocambole.recursive(ast, function(node) {
       if (node.type === 'VariableDeclaration') {
         var scope = utils.getParentScope(node);
@@ -6750,42 +6753,6 @@ exports.moonwalk = function moonwalk(ast, fn){
     //analyze and walk scope, attaching some information to certain nodes
     var scopes = escope.analyze(ast).scopes;
     indexScope(scopes[0]);
-
-    //traverse for variable declarations that are immediately re-assigned
-    scopes.forEach(function(scope) {
-      if (scope.type !== 'function' && scope.type !== 'global') return;
-      var block = scope.block;
-      scope.variables.forEach(function(variable) {
-        var id = variable.identifiers[0];
-        if (!id) return;
-        var name = id.name;
-        if (id.parent.type === 'VariableDeclarator') {
-          var usedLexically = false;
-          var childScopes = scope.childScopes || [];
-          childScopes.forEach(function(childScope) {
-            var childScopeIndex = childScope.block.scopeIndex || {};
-            var unresolved = childScopeIndex.unresolved;
-            if (unresolved && unresolved[name]) {
-              usedLexically = true;
-            }
-          });
-          if (!usedLexically) {
-            var references = scope.references.filter(function(ref) {
-              return (ref.identifier.name === name);
-            });
-            if (references.length) {
-              var node = references[0].identifier;
-              var isVarInit = (node.parent.type === 'VariableDeclarator' && node.parent.init);
-              var isAssignment = (node.parent.type === 'AssignmentExpression' && node.parent.left === node);
-              if (isVarInit || isAssignment) {
-                var implicitlyDefined = block.implicitVars || setHidden(block, 'implicitVars', {});
-                implicitlyDefined[name] = true;
-              }
-            }
-          }
-        }
-      });
-    });
 
     //count is for creating unique variable names
     var count = 0;

@@ -1,7 +1,8 @@
-/*global Transformer, CodeMirror */
+/*global CodeMirror */
 (function() {
 
-  var useWebWorker = !location.search.match(/debug/);
+  var debug = location.search.match(/debug/) ? true : false;
+  var useWebWorker = !debug;
   if (!useWebWorker) {
     document.write('<script src="js/transformer.js"></script>')
     document.write('<script src="js/web-worker.js"></script>')
@@ -59,8 +60,11 @@
     function sendToWorker(sourceCode) {
       postMessage({
         command: 'transform',
-        sourceCode: sourceCode,
-        opts: {noCatch: window.noCatch}
+        noCatch: window.noCatch,
+        params: {
+          source: sourceCode,
+          initVars: debug
+        }
       });
       //todo: use setTimeout to add loading class to output pane
       isWorking = true;
