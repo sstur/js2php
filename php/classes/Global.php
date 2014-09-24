@@ -27,7 +27,7 @@ class GlobalObject extends Object {
   function get($key) {
     $key = preg_replace('/_$/', '__', $key);
     $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
-    $value = $GLOBALS[$key];
+    $value = array_key_exists($key, $GLOBALS) ? $GLOBALS[$key] : null;
     return (self::isValidType($value)) ? $value : null;
   }
 

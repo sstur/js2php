@@ -111,7 +111,6 @@ function f() {
   return f;
 }
 ====
-$f = null;
 $f = new Func("f", function($this_, $arguments) {
   $f = $arguments->callee;
   return $f;
@@ -139,7 +138,6 @@ function $() {
   return $;
 }
 ====
-$«24» = null;
 $«24» = new Func("\$", function($this_, $arguments) {
   $«24» = $arguments->callee;
   set($this_, "foo", 1.0, "+=");
@@ -163,7 +161,6 @@ var a = function a() {
 ====
 $a = new Func("a", function($this_, $arguments) use (&$console) {
   $a = $arguments->callee;
-  $x = null;
   $b = new Func("b", function($this_, $arguments, $y = null) use (&$console, &$x, &$a) {
     call_method($console, "log", $x - $y);
     return $a;
@@ -196,7 +193,6 @@ call_method($r, "match", $s);
 })();
 ====
 call(new Func(function($this_, $arguments) use (&$process, &$Object) {
-  $response = null; $reqHeaders = null;
   $request = get($process, "request");
   $response = get($process, "response");
   $resHeaders = new Object("Content-Type", "text/plain");

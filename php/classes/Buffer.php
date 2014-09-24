@@ -20,7 +20,7 @@ class Buffer extends Object {
 
   function init($args) {
     global $Buffer;
-    list($subject, $encoding, $offset) = $args;
+    list($subject, $encoding, $offset) = array_pad($args, 3, null);
     $type = gettype($subject);
     if ($type === 'integer' || $type === 'double') {
       $this->raw = str_repeat("\0", (int)$subject);
