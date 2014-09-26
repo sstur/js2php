@@ -60,15 +60,28 @@ class RegExp extends Object {
     return $value;
   }
 
-  function toString($writeGlobal = false) {
+  /**
+   * @param bool $pcre - whether to write pcre format. pcre does not allow /g
+   *  flag but does support the non-standard /u flag for utf8
+   * @return string
+   */
+  function toString($pcre = true) {
     $source = $this->source;
     $flags = '';
-    if ($this->ignoreCaseFlag) $flags .= 'i';
-    //preg doesn't support the global flag, so by default we don't write this
-    if ($writeGlobal && $this->globalFlag) {
+    if ($this->ignoreCaseFlag) {
+      $flags .= 'i';
+    }
+    //pcre doesn't support the global flag, so by default we don't write this
+    if (!$pcre && $this->globalFlag) {
       $flags .= 'g';
     }
-    if ($this->multilineFlag) $flags .= 'm';
+    //pcre will interpret the regex and the subject as utf8 with this flag
+    if ($pcre) {
+      $flags .= 'u';
+    }
+    if ($this->multilineFlag) {
+      $flags .= 'm';
+    }
     return '/' . str_replace('/', '\\/', $source) . '/' . $flags;
   }
 
@@ -109,7 +122,7 @@ RegExp::$protoMethods = array(
       return ($result !== false);
     },
   'toString' => function($this_) {
-      return $this_->toString(true);
+      return $this_->toString(false);
     }
 );
 

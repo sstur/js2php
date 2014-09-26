@@ -75,7 +75,8 @@ Str::$protoMethods = array(
   'split' => function($this_, $arguments, $delim) {
       $str = $this_->value;
       if ($delim instanceof RegExp) {
-        $arr = mb_split($delim->toString(), $str);
+        //$arr = mb_split($delim->source, $str);
+        $arr = preg_split($delim->toString(true), $str);
       } else {
         $delim = to_string($delim);
         if ($delim === '') {
@@ -163,7 +164,7 @@ Str::$protoMethods = array(
       $original = $this_->value;
       $isRegEx = ($search instanceof RegExp);
       $limit = ($isRegEx && $search->globalFlag) ? -1 : 1;
-      $search = $isRegEx ? $search->toString() : to_string($search);
+      $search = $isRegEx ? $search->toString(true) : to_string($search);
       if ($replace instanceof Func) {
         $replacer = function($matches) use (&$replace, &$original) {
           //todo: offset

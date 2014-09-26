@@ -1,7 +1,9 @@
 operators: unary_plus, bitwise, ...
-demo: form post
 Error::create() should record stack trace
 Globals: RangeError, ReferenceError, SyntaxError, TypeError
+codegen -> class
+add /u flag to all preg?
+demo: form post
 get/setters should have property descriptors
   Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}
 
@@ -21,8 +23,6 @@ build tool:
 test:
   encodeURI/decodeURI, escape/unescape
   // decodeURI('%E2%86%97%D4%B6') === '↗Զ'
-  string functions (length, slice, split)
-  source transformation including variable decl; hoisting; catch
   function scope stuff including named function expression
   for (i in array) {}
   array set returns value

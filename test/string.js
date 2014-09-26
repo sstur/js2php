@@ -21,6 +21,13 @@ testSuite('strings', function(assert) {
     assert('unicode', '↗Զ'.charCodeAt(1) === 1334);
   });
 
+  testSuite('split', function() {
+    var s = 'abcdabCde';
+    assert('basic', s.split('bc').join(',') === 'a,dabCde');
+    assert('to chars', s.split('').join(',') === 'a,b,c,d,a,b,C,d,e');
+    assert('regex', s.split(/a./).join(',') === ',cd,Cde');
+  });
+
   testSuite('slice', function() {
     var s = 'abcdefghi';
     assert('one char slice', s.slice(0, 1) === 'a');
