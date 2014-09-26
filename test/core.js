@@ -1,5 +1,5 @@
 /*global global, testSuite*/
-(function() {
+testSuite('core', function(assert) {
 
   function throwCatch(value) {
     try {
@@ -9,7 +9,7 @@
     }
   }
 
-  testSuite('in operator', function(assert) {
+  testSuite('in operator', function() {
     var o = {a: null};
     assert('should be true for null', 'a' in o);
     o.b = void 0;
@@ -19,7 +19,7 @@
     assert('should be false when deleted', !('b' in o));
   });
 
-  testSuite('for..in', function(assert) {
+  testSuite('for..in', function() {
     var nothing;
     var a = [];
     var b = {a: null, b: nothing, c: 0, d: false, e: '1'};
@@ -35,9 +35,16 @@
       a.push(k);
     }
     assert('should iterate all keys', a.sort().join('') === 'abcdef');
+    var d = Object.create(null);
+    //todo: Object.getPrototypeOf
+    assert('should allow null proto', Object.keys(d).length === 0);
+    for (var n in d) {
+      var found = true;
+    }
+    assert('should have no keys', found !== true);
   });
 
-  testSuite('global', function(assert) {
+  testSuite('global', function() {
     var nothing = void 0;
     var a = [];
     for (var key in global) {
@@ -60,7 +67,7 @@
 
   });
 
-  testSuite('functions', function(assert) {
+  testSuite('functions', function() {
     var o = {};
     var fn1 = function(a) { return this; };
     assert('instance of Function', fn1 instanceof Function);
@@ -83,7 +90,7 @@
     })();
   });
 
-  testSuite('more functions', function(assert) {
+  testSuite('more functions', function() {
     var fn1 = function(a, b, c) { return [a, b, c]; };
     var fn2 = fn1.bind(null, 1, '2');
     assert('function arity', fn1.length === 3);
@@ -92,37 +99,7 @@
     assert('bound function with args', result.join(';') === '1;2;a');
   });
 
-  testSuite('strings', function(assert) {
-    testSuite('length', function() {
-      var s = 'abcd';
-      assert('ascii', s.length === 4);
-      s = '↗Զ';
-      assert('unicode', s.length === 2);
-      assert('direct access', '↗Զ'.length === 2);
-    });
-    testSuite('charAt', function() {
-      assert('ascii 0', 'abc'.charAt(0) === 'a');
-      assert('ascii 1', 'abc'.charAt(1) === 'b');
-      assert('unicode', '↗Զ'.charAt(1) === 'Զ');
-    });
-    testSuite('charCodeAt', function() {
-      assert('ascii 0', 'abc'.charCodeAt(0) === 97);
-      assert('ascii 1', 'abc'.charCodeAt(1) === 98);
-      assert('unicode', '↗Զ'.charCodeAt(1) === 1334);
-    });
-    testSuite('slice', function() {
-      var s = 'abcdefghi';
-      assert('one char slice', s.slice(0, 1) === 'a');
-      assert('middle slice', s.slice(1, 3) === 'bc');
-      assert('end slice', s.slice(2) === 'cdefghi');
-      assert('neg start', s.slice(-2) === 'hi');
-      assert('neg start, pos end', s.slice(-2, 8) === 'h');
-      assert('neg start, neg end', s.slice(-2, -1) === 'h');
-      assert('pos start, neg end', s.slice(1, -1) === 'bcdefgh');
-    });
-  });
-
-  testSuite('throw/catch', function(assert) {
+  testSuite('throw/catch', function() {
     var nothing = void 0;
     assert('can throw undefined', throwCatch(nothing) === nothing);
     assert('can throw null', throwCatch(null) === null);
@@ -137,4 +114,4 @@
     assert('catch scope doesn\'t bleed', e instanceof Error);
   });
 
-})();
+});

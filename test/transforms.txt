@@ -8,6 +8,16 @@ var $ = 1;
 $«24» = 1.0;
 
 ----
+a = a || b;
+====
+$a = (($or_ = $a) ? $or_ : $b);
+
+----
+x = a && a.b && a.b.c;
+====
+$x = (($and_ = (($and_ = $a) ? get($a, "b") : $and_)) ? get(get($a, "b"), "c") : $and_);
+
+----
 var a = function a() {
   return this;
 };

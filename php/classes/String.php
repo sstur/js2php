@@ -69,6 +69,9 @@ Str::$protoMethods = array(
       }
       return (float)$code;
     },
+  'indexOf' => function($this_, $arguments, $search, $offset = 0) {
+      return (float)mb_strpos($this_->value, $search, $offset);
+    },
   'split' => function($this_, $arguments, $delim) {
       $str = $this_->value;
       if ($delim instanceof RegExp) {
@@ -88,6 +91,45 @@ Str::$protoMethods = array(
       $result = new Arr();
       $result->init($arr);
       return $result;
+    },
+  'substr' => function($this_, $arguments, $start, $num = null) {
+      $len = $this_->length;
+      if ($len === 0) {
+        return '';
+      }
+      $start = (int)$start;
+      if ($start < 0) {
+        $start = $len + $start;
+        if ($start < 0) $start = 0;
+      }
+      if ($start >= $len) {
+        return '';
+      }
+      if ($num === null) {
+        return mb_substr($this_->value, $start);
+      } else {
+        return mb_substr($this_->value, $start, $num);
+      }
+    },
+  'substring' => function($this_, $arguments, $start, $end = null) {
+      $len = $this_->length;
+      //if second param is absent
+      if ($arguments->length === 1) {
+        $end = $len;
+      }
+      $start = (int)$start;
+      $end = (int)$end;
+      if ($start < 0) $start = 0;
+      if ($start > $len) $start = $len;
+      if ($end < 0) $end = 0;
+      if ($end > $len) $end = $len;
+      if ($start === $end) {
+        return '';
+      }
+      if ($end < $start) {
+        list($start, $end) = array($end, $start);
+      }
+      return mb_substr($this_->value, $start, $end - $start);
     },
   'slice' => function($this_, $arguments, $start, $end = null) {
       $len = $this_->length;
@@ -113,6 +155,39 @@ Str::$protoMethods = array(
         $end = $len;
       }
       return mb_substr($this_->value, $start, $end - $start);
+    },
+  'trim' => function($this_, $arguments) {
+      return trim($this_->value);
+    },
+  'replace' => function($this_, $arguments, $search, $replace) {
+      $original = $this_->value;
+      $isRegEx = ($search instanceof RegExp);
+      $limit = ($isRegEx && $search->globalFlag) ? -1 : 1;
+      $search = $isRegEx ? $search->toString() : to_string($search);
+      if ($replace instanceof Func) {
+        $replacer = function($matches) use (&$replace, &$original) {
+          //todo: offset
+          $offset = 0;
+          array_push($matches, $offset);
+          array_push($matches, $original);
+          return to_string($replace->apply(null, $matches));
+        };
+        if ($isRegEx) {
+          return preg_replace_callback($search, $replacer, $original, $limit);
+        } else {
+          //callback gets: $search, $index, $this_-value
+          throw new Ex(Error::create('Not implemented: String.prototype.replace(<string>, <function>)'));
+          //return str_replace_callback($search, $replacer, $original);
+        }
+      }
+      $replace = to_string($replace);
+      if ($isRegEx) {
+        return preg_replace($search, $replace, $original, $limit);
+      } else {
+        $parts = explode($search, $original);
+        $first = array_shift($parts);
+        return $first . $replace . implode($search, $parts);
+      }
     },
   'localeCompare' => function($this_, $arguments, $compareTo) {
       return (float)strcmp($this_->value, to_string($compareTo));

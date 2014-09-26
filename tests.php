@@ -66,6 +66,16 @@ Test::suite(
       'props reflect global vars',
       Object::$global->get('foo') === 'test'
     );
+    Object::$global->set('foo', 'test2');
+    Test::assert(
+      'can set global',
+      Object::$global->get('foo') === 'test2'
+    );
+    Object::$global->set('foo2', 'bar');
+    Test::assert(
+      'can set global which was previously not set',
+      Object::$global->get('foo2') === 'bar'
+    );
     Test::assert(
       'has circular ref',
       Object::$global->get('global') === Object::$global
@@ -373,6 +383,7 @@ Test::suite(
 
 require_once('test/compiled/helpers.php');
 require_once('test/compiled/core.php');
+require_once('test/compiled/string.php');
 require_once('test/compiled/array.php');
 require_once('test/compiled/buffer.php');
 require_once('test/compiled/json.php');

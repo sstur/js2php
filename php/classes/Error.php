@@ -16,7 +16,7 @@ class Error extends Object {
 
   //this is used in class/helper code only
   static function create($str) {
-    return new Error($str);
+    return new self($str);
   }
 
   /**
@@ -25,10 +25,10 @@ class Error extends Object {
    */
   static function getGlobalConstructor() {
     $Error = new Func(function($this_, $arguments, $str = null) {
-      return new Error($str);
+      return new self($str);
     });
-    $Error->set('prototype', Error::$protoObject);
-    $Error->setMethods(Error::$classMethods, true, false, true);
+    $Error->set('prototype', self::$protoObject);
+    $Error->setMethods(self::$classMethods, true, false, true);
     return $Error;
   }
 }

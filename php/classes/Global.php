@@ -5,6 +5,8 @@ class GlobalObject extends Object {
 
   //pre-defined globals
   static $globals = array('Array' => 1, 'Boolean' => 1, 'Buffer' => 1, 'Date' => 1, 'Error' => 1, 'Function' => 1, 'Infinity' => 1, 'JSON' => 1, 'Math' => 1, 'NaN' => 1, 'Number' => 1, 'Object' => 1, 'RegExp' => 1, 'String' => 1, 'console' => 1, 'decodeURI' => 1, 'decodeURIComponent' => 1, 'encodeURI' => 1, 'encodeURIComponent' => 1, 'escape' => 1, 'eval' => 1, 'isFinite' => 1, 'isNaN' => 1, 'parseFloat' => 1, 'parseInt' => 1, 'undefined' => 1, 'unescape' => 1);
+  //copy of the GLOBALS array
+  static $GLOBALS = null;
 
   static $protoObject = null;
   static $classMethods = null;
@@ -16,18 +18,18 @@ class GlobalObject extends Object {
     }
     $key = preg_replace('/_$/', '__', $key);
     $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
-    if (array_key_exists($key, $GLOBALS)) {
-      if (!self::isValidType($GLOBALS[$key])) {
+    if (array_key_exists($key, self::$GLOBALS)) {
+      if (!self::isValidType(self::$GLOBALS[$key])) {
         return $value;
       }
     }
-    return ($GLOBALS[$key] = $value);
+    return (self::$GLOBALS[$key] = $value);
   }
 
   function get($key) {
     $key = preg_replace('/_$/', '__', $key);
     $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
-    $value = array_key_exists($key, $GLOBALS) ? $GLOBALS[$key] : null;
+    $value = array_key_exists($key, self::$GLOBALS) ? self::$GLOBALS[$key] : null;
     return (self::isValidType($value)) ? $value : null;
   }
 
@@ -38,9 +40,9 @@ class GlobalObject extends Object {
     }
     $key = preg_replace('/_$/', '__', $key);
     $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
-    if (array_key_exists($key, $GLOBALS)) {
-      if (self::isValidType($GLOBALS[$key])) {
-        unset($GLOBALS[$key]);
+    if (array_key_exists($key, self::$GLOBALS)) {
+      if (self::isValidType(self::$GLOBALS[$key])) {
+        unset(self::$GLOBALS[$key]);
       }
     }
     return true;
@@ -50,8 +52,8 @@ class GlobalObject extends Object {
   function hasOwnProperty($key) {
     $key = preg_replace('/_$/', '__', $key);
     $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
-    if (array_key_exists($key, $GLOBALS)) {
-      if (self::isValidType($GLOBALS[$key])) {
+    if (array_key_exists($key, self::$GLOBALS)) {
+      if (self::isValidType(self::$GLOBALS[$key])) {
         return true;
       }
     }
@@ -62,8 +64,8 @@ class GlobalObject extends Object {
   function hasProperty($key) {
     $key = preg_replace('/_$/', '__', $key);
     $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
-    if (array_key_exists($key, $GLOBALS)) {
-      if (self::isValidType($GLOBALS[$key])) {
+    if (array_key_exists($key, self::$GLOBALS)) {
+      if (self::isValidType(self::$GLOBALS[$key])) {
         return true;
       }
     }
@@ -77,7 +79,7 @@ class GlobalObject extends Object {
   //produce the list of keys (all globals are enumerable)
   function getOwnKeys($onlyEnumerable) {
     $arr = array();
-    foreach ($GLOBALS as $key => $value) {
+    foreach (self::$GLOBALS as $key => $value) {
       if (!preg_match('/[^_]_$/', $key)) {
         $key = preg_replace('/__$/', '_', $key);
         $key = preg_replace_callback('/«([a-z0-9]+)»/', 'self::decodeChar', $key);
@@ -91,7 +93,7 @@ class GlobalObject extends Object {
 
   //produce the list of keys (walk proto)
   function getKeys(&$arr = array()) {
-    foreach ($GLOBALS as $key => $value) {
+    foreach (self::$GLOBALS as $key => $value) {
       if (!preg_match('/[^_]_$/', $key)) {
         $key = preg_replace('/__$/', '_', $key);
         $key = preg_replace_callback('/«([a-z0-9]+)»/', 'self::decodeChar', $key);
@@ -131,4 +133,5 @@ class GlobalObject extends Object {
 
 }
 
+GlobalObject::$GLOBALS = $GLOBALS;
 Object::$global = new GlobalObject();

@@ -225,6 +225,9 @@ class Property {
 Object::$classMethods = array(
   //todo: getPrototypeOf, seal, freeze, preventExtensions, isSealed, isFrozen, isExtensible
   'create' => function($this_, $arguments, $proto) {
+      if (!($proto instanceof Object) && $proto !== Null::$null) {
+        throw new Ex(Error::create('Object prototype may only be an Object or null'));
+      }
       $obj = new Object();
       $obj->proto = $proto;
       return $obj;

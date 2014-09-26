@@ -15,11 +15,14 @@ Compiling:
   [1, 2] -> new Arr(1, 2)
   /abc/i -> new RegExp('abc', 'i')
   Integer literals to float: 1 -> 1.0
-  operators to functions (x_add, x_typeof, x_instanceof, x_or, x_and, x_eq)
+  && and || -> lazy-eval'd ternary `($or_ = a()) ? $or_ : b()`
+  operators to functions (x_add, x_typeof, x_instanceof, x_eq)
   function () {} -> new Func(function() use (...) {})
 
 Shorthand:
-  Objects can be instantiated like $Array->construct()
+  can instantiate: $Array->construct()
+  can call functions: $func->call($context, $arg1)
+  can call methods: $thing->callMethod('foo', $arg1)
 
 Array -> Arr
 Boolean -> Bln

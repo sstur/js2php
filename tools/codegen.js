@@ -12,8 +12,6 @@
 
     //binary operators
     'b:+': 'plus',
-    'b:&&': 'and',
-    'b:||': 'or',
     //'b:&': 'bitwise_and',
     //'b:|': 'bitwise_or',
     //'b:^': 'bitwise_xor',
@@ -315,6 +313,12 @@
 
     'BinaryExpression': function(node, opts) {
       var op = node.operator;
+      if (op === '&&') {
+        return '(($and_ = ' + generate(node.left, opts) + ') ? ' + generate(node.right, opts) + ' : $and_)';
+      }
+      if (op === '||') {
+        return '(($or_ = ' + generate(node.left, opts) + ') ? $or_ : ' + generate(node.right, opts) + ')';
+      }
       var name = 'b:' + op;
       if (name in OPERATOR_MAP) {
         op = OPERATOR_MAP[name];

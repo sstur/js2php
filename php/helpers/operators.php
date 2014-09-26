@@ -23,6 +23,12 @@ function x_new($fn) {
  * @return bool
  */
 function x_instanceof($obj, $fn) {
+  if (!($obj instanceof Object)) {
+    return false;
+  }
+  if (!($fn instanceof Func)) {
+    throw new Ex(Error::create('Expecting a function in instanceof check'));
+  }
   $proto = $obj->proto;
   $prototype = get($fn, 'prototype');
   while ($proto !== Null::$null) {

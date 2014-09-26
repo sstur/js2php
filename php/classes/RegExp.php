@@ -22,7 +22,7 @@ class RegExp extends Object {
 
   function init($args) {
     $this->source = ($args[0] === null) ? '(?:)' : to_string($args[0]);
-    $flags = ($args[1] === null) ? '' : to_string($args[1]);
+    $flags = array_key_exists('1', $args) ? to_string($args[1]) : '';
     $this->ignoreCaseFlag = (strpos($flags, 'i') !== false);
     $this->globalFlag = (strpos($flags, 'g') !== false);
     $this->multilineFlag = (strpos($flags, 'm') !== false);
@@ -60,11 +60,14 @@ class RegExp extends Object {
     return $value;
   }
 
-  function toString() {
+  function toString($writeGlobal = false) {
     $source = $this->source;
     $flags = '';
     if ($this->ignoreCaseFlag) $flags .= 'i';
-    if ($this->globalFlag) $flags .= 'g';
+    //preg doesn't support the global flag, so by default we don't write this
+    if ($writeGlobal && $this->globalFlag) {
+      $flags .= 'g';
+    }
     if ($this->multilineFlag) $flags .= 'm';
     return '/' . str_replace('/', '\\/', $source) . '/' . $flags;
   }
@@ -106,7 +109,7 @@ RegExp::$protoMethods = array(
       return ($result !== false);
     },
   'toString' => function($this_) {
-      return $this_->toString();
+      return $this_->toString(true);
     }
 );
 

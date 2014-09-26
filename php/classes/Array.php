@@ -132,7 +132,7 @@ Arr::$protoMethods = array(
       }
       return -1.0;
     },
-  'slice' => function($this_, $arguments, $start, $end = null) {
+  'slice' => function($this_, $arguments, $start = 0, $end = null) {
       $len = $this_->length;
       if ($len === 0) {
         return new Arr();

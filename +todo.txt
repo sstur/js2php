@@ -1,11 +1,12 @@
 operators: unary_plus, bitwise, ...
 demo: form post
-get/setters should have "property descriptors"
+Error::create() should record stack trace
+Globals: RangeError, ReferenceError, SyntaxError, TypeError
+get/setters should have property descriptors
   Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}
 
 bug:
-  "implicitly declared vars" not traversing child scopes properly:
-    var a = function a(n) { return a(n - 1) }
+  nested `and`
 
 build tool:
   specify --fragment as true/false flag

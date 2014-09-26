@@ -128,6 +128,15 @@ class Args extends Object {
   static $classMethods = null;
   static $protoMethods = null;
 
+  function toArray() {
+    $results = array();
+    $len = $this->length;
+    for ($i = 0; $i < $len; $i++) {
+      $results[] = $this->get($i);
+    }
+    return $results;
+  }
+
   static function create($args, $callee, $caller = null) {
     $self = new Args();
     $self->args = $args;
@@ -166,14 +175,18 @@ Func::$protoMethods = array(
       return $this_->apply($context, $args);
     },
   'apply' => function($this_, $arguments, $context, $args) {
+      if (!($args instanceof Args) && !($args instanceof Arr)) {
+        throw new Ex(Error::create('Function.prototype.apply: Arguments list has wrong type'));
+      }
       //convert Arr object to native array()
       $args = $args->toArray();
       return $this_->apply($context, $args);
     },
   'toString' => function($this_) {
-      if ($GLOBALS['source_'] && $this_->source_id) {
+      $source = array_key_exists('source_', GlobalObject::$GLOBALS) ? GlobalObject::$GLOBALS['source_'] : null;
+      if ($source && $this_->source_id) {
         $meta = $this_->meta;
-        $source = $GLOBALS['source_'][$meta->id];
+        $source = $source[$meta->id];
         return substr($source, $meta->start, $meta->end - $meta->start + 1);
       }
       return 'function ' . $this_->name . '() { [native code] }';
