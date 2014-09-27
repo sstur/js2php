@@ -190,14 +190,21 @@ Str::$protoMethods = array(
             $count += 1;
           }
           if ($success === false) {
+            //this can happen in the case of invalid utf8 sequences
             throw new Ex(Error::create('String.prototype.replace() failed'));
           }
           $result[] = substr($str, $offset);
           return join('', $result);
         } else {
-          //callback gets: $search, $index, $this_-value
-          throw new Ex(Error::create('Not implemented: String.prototype.replace(<string>, <function>)'));
-          //return str_replace_callback($search, $replacer, $str);
+          $matchIndex = strpos($str, $search);
+          if ($matchIndex === false) {
+            return $str;
+          }
+          $before = substr($str, 0, $matchIndex);
+          $after = substr($str, $matchIndex + strlen($search));
+          //mb_strlen used to calculate multi-byte character index
+          $args = array($search, mb_strlen($before), $str);
+          return $before . to_string($replace->apply(null, $args)) . $after;
         }
       }
       $replace = to_string($replace);

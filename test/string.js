@@ -76,12 +76,16 @@ testSuite('strings', function(assert) {
       assert('last arg is full string', last === s);
       return '[' + args.join(',') + ']';
     };
+    assert('string fn', s.replace('cd', fn) === 'ab[cd,2]abCd');
+    assert('string fn case sensetive', s.replace('Cd', fn) === 'abcdab[Cd,6]');
     assert('regex fn single', s.replace(/ab/, fn) === '[ab,0]cdabCd');
     assert('regex fn global', s.replace(/ab/g, fn) === '[ab,0]cd[ab,4]Cd');
     assert('regex fn insensitive', s.replace(/Cd/i, fn) === 'ab[cd,2]abCd');
     assert('regex fn insensitive global', s.replace(/cd/ig, fn) === 'ab[cd,2]ab[Cd,6]');
     s = 'sstür';
     assert('regex fn unicode', s.replace(/t./, fn) === 'ss[tü,2]r');
+    assert('regex fn unicode position', s.replace(/r/, fn) === 'sstü[r,4]');
+    assert('regex fn unicode in regex', s.replace(/ü/, fn) === 'sst[ü,3]r');
   });
 
 });
