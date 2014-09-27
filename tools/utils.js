@@ -21,7 +21,7 @@
       return (ch in meta) ? meta[ch] : '\\x' + ('0' + ch.charCodeAt(0).toString(16)).slice(-2);
     });
     string = string.replace(/[\x7f-\xff\u0100-\uffff]/g, function(ch) {
-      return encodeURI(ch).toLowerCase().split('%').join('\\x');
+      return encodeURI(ch).split('%').join('\\x');
     });
     return '"' + string + '"';
   }
