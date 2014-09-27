@@ -6642,7 +6642,7 @@ exports.moonwalk = function moonwalk(ast, fn){
   }
 
   function encodeString(string) {
-    return utils.toPHPString(string);
+    return utils.encodeString(string);
   }
 
   function encodeProp(node, opts) {
@@ -6874,11 +6874,11 @@ exports.moonwalk = function moonwalk(ast, fn){
     '\\': '\\\\'
   };
 
-  function toPHPString(string) {
-    string = string.replace(/[\\"\$\x00-\x1f\x7f-\xff]/g, function(ch) {
+  function encodeString(string) {
+    string = string.replace(/[\\"\$\x00-\x1f]/g, function(ch) {
       return (ch in meta) ? meta[ch] : '\\x' + ('0' + ch.charCodeAt(0).toString(16)).slice(-2);
     });
-    string = string.replace(/[\u0100-\uffff]/g, function(ch) {
+    string = string.replace(/[\x7f-\xff\u0100-\uffff]/g, function(ch) {
       return encodeURI(ch).toLowerCase().split('%').join('\\x');
     });
     return '"' + string + '"';
@@ -6892,7 +6892,7 @@ exports.moonwalk = function moonwalk(ast, fn){
     return (parent.type === 'Program') ? parent : parent.body;
   }
 
-  exports.toPHPString = toPHPString;
+  exports.encodeString = encodeString;
   exports.getParentScope = getParentScope;
 
 })();

@@ -80,7 +80,8 @@ testSuite('strings', function(assert) {
     assert('regex fn global', s.replace(/ab/g, fn) === '[ab,0]cd[ab,4]Cd');
     assert('regex fn insensitive', s.replace(/Cd/i, fn) === 'ab[cd,2]abCd');
     assert('regex fn insensitive global', s.replace(/cd/ig, fn) === 'ab[cd,2]ab[Cd,6]');
-    //assert('regex fn unicode', 'sstür'.replace(/t./, fn) === 'ss[tü,2]r');
+    s = 'sstür';
+    assert('regex fn unicode', s.replace(/t./, fn) === 'ss[tü,2]r');
   });
 
 });

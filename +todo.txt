@@ -27,9 +27,9 @@ test:
   for (i in array) {}
   array set returns value
 
-JSON:
-  $thing->callMethod('toJSON')
-  $thing->callMethod('valueOf')
+Optimizations:
+  `a + b + c` => `x_plus($a, $b, $c)`
+  `a + 'b'` => `to_string($a) . "b"`
 
 `to_number('x') + 1` should be NaN
 

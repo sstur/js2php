@@ -502,7 +502,7 @@
   }
 
   function encodeString(string) {
-    return utils.toPHPString(string);
+    return utils.encodeString(string);
   }
 
   function encodeProp(node, opts) {
