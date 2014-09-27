@@ -106,7 +106,7 @@ RegExp::$classMethods = array();
 RegExp::$protoMethods = array(
   'exec' => function($this_, $arguments, $str) {
       $str = to_string($str);
-      $result = preg_match($this_->callMethod('toString'), $str, $matches);
+      $result = preg_match($this_->toString(true), $str, $matches);
       if ($result === false) {
         return Null::$null;
       }
@@ -118,7 +118,7 @@ RegExp::$protoMethods = array(
       return $arr;
     },
   'test' => function($this_, $arguments, $str) {
-      $result = preg_match($this_->callMethod('toString'), to_string($str));
+      $result = preg_match($this_->toString(true), to_string($str));
       return ($result !== false);
     },
   'toString' => function($this_) {

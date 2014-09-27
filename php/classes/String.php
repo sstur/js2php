@@ -161,31 +161,50 @@ Str::$protoMethods = array(
       return trim($this_->value);
     },
   'replace' => function($this_, $arguments, $search, $replace) {
-      $original = $this_->value;
+      $str = $this_->value;
       $isRegEx = ($search instanceof RegExp);
       $limit = ($isRegEx && $search->globalFlag) ? -1 : 1;
       $search = $isRegEx ? $search->toString(true) : to_string($search);
       if ($replace instanceof Func) {
-        $replacer = function($matches) use (&$replace, &$original) {
-          //todo: offset
-          $offset = 0;
-          array_push($matches, $offset);
-          array_push($matches, $original);
-          return to_string($replace->apply(null, $matches));
-        };
         if ($isRegEx) {
-          return preg_replace_callback($search, $replacer, $original, $limit);
+          $count = 0;
+          $offset = 0;
+          $result = array();
+          $success = null;
+          while (
+              ($limit === -1 || $count < $limit) &&
+              ($success = preg_match($search, $str, $matches, PREG_OFFSET_CAPTURE, $offset))
+            ) {
+            $matchIndex = $matches[0][1];
+            $args = array();
+            foreach ($matches as $match) {
+              $args[] = $match[0];
+            }
+            $result[] = substr($str, $offset, $matchIndex - $offset);
+            //calculate multi-byte character index from match index
+            $mbIndex = mb_strlen(substr($str, 0, $matchIndex));
+            array_push($args, $mbIndex);
+            array_push($args, $str);
+            $result[] = to_string($replace->apply(null, $args));
+            $offset = $matchIndex + strlen($args[0]);
+            $count += 1;
+          }
+          if ($success === false) {
+            throw new Ex(Error::create('String.prototype.replace() failed'));
+          }
+          $result[] = substr($str, $offset);
+          return join('', $result);
         } else {
           //callback gets: $search, $index, $this_-value
           throw new Ex(Error::create('Not implemented: String.prototype.replace(<string>, <function>)'));
-          //return str_replace_callback($search, $replacer, $original);
+          //return str_replace_callback($search, $replacer, $str);
         }
       }
       $replace = to_string($replace);
       if ($isRegEx) {
-        return preg_replace($search, $replace, $original, $limit);
+        return preg_replace($search, $replace, $str, $limit);
       } else {
-        $parts = explode($search, $original);
+        $parts = explode($search, $str);
         $first = array_shift($parts);
         return $first . $replace . implode($search, $parts);
       }
