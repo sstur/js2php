@@ -30,7 +30,7 @@ class Ex extends Exception {
     foreach ($stack as $frame) {
       $args = isset($frame['args']) ? $frame['args'] : array();
       $wrapper = null;
-      if ($args[1] instanceof Args) {
+      if (isset($args[1]) && $args[1] instanceof Args) {
         $wrapper = $args[1]->callee;
         $args = $args[1]->args;
       }
