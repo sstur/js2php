@@ -82,7 +82,7 @@ Test::suite(
     );
     Test::assert(
       'can access escaped vars',
-      Object::$global->get('$') === $GLOBALS['«24»']
+      Object::$global->get('$') === GlobalObject::$GLOBALS['«24»']
     );
     Test::assert(
       'can access escaped vars unicode',

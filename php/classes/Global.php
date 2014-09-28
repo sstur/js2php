@@ -7,6 +7,8 @@ class GlobalObject extends Object {
   static $globals = array('Array' => 1, 'Boolean' => 1, 'Buffer' => 1, 'Date' => 1, 'Error' => 1, 'Function' => 1, 'Infinity' => 1, 'JSON' => 1, 'Math' => 1, 'NaN' => 1, 'Number' => 1, 'Object' => 1, 'RegExp' => 1, 'String' => 1, 'console' => 1, 'decodeURI' => 1, 'decodeURIComponent' => 1, 'encodeURI' => 1, 'encodeURIComponent' => 1, 'escape' => 1, 'eval' => 1, 'isFinite' => 1, 'isNaN' => 1, 'parseFloat' => 1, 'parseInt' => 1, 'undefined' => 1, 'unescape' => 1);
   //copy of the GLOBALS array
   static $GLOBALS = null;
+  //copy of the contents of GLOBALS array
+  static $OLD_GLOBALS = null;
 
   static $protoObject = null;
   static $classMethods = null;
@@ -131,7 +133,19 @@ class GlobalObject extends Object {
     return hex2bin($matches[1]);
   }
 
+  static function unsetGlobals() {
+    self::$OLD_GLOBALS = array();
+    foreach ($GLOBALS as $key => $value) {
+      if ($value !== $GLOBALS) {
+        self::$OLD_GLOBALS[$key] = $value;
+        unset($GLOBALS[$key]);
+      }
+    }
+    self::$GLOBALS = $GLOBALS;
+    unset($GLOBALS['GLOBALS']);
+  }
+
 }
 
-GlobalObject::$GLOBALS = $GLOBALS;
+GlobalObject::unsetGlobals();
 Object::$global = new GlobalObject();

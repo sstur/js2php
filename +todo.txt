@@ -10,6 +10,16 @@ get/setters should have property descriptors
 bug:
   nested `and`
 
+$GLOBALS
+  _GET: array
+  _POST: array
+  _COOKIE: array
+  _FILES: array
+  argv: array
+  argc: integer
+  _SERVER: array
+  GLOBALS: array
+
 build tool:
   specify --fragment as true/false flag
   debug mode: Func() gets extra param "meta"

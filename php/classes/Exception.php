@@ -30,11 +30,9 @@ class Ex extends Exception {
     foreach ($stack as $frame) {
       $args = isset($frame['args']) ? $frame['args'] : array();
       $wrapper = null;
-      if (count($args) >= 2) {
-        if (isset($args[1]->callee)) {
-          $wrapper = $args[1]->callee;
-          $args = array_slice($args, 2);
-        }
+      if ($args[1] instanceof Args) {
+        $wrapper = $args[1]->callee;
+        $args = $args[1]->args;
       }
       $list = array();
       foreach ($args as $arg) {
