@@ -71,6 +71,8 @@ $isNaN = new Func(function($global, $arguments, $value) {
   return (to_number($value) === NaN::$nan);
 });
 
+$isFinite = $Number->get('isFinite');
+
 $parseInt = $Number->get('parseInt');
 
 $parseFloat = $Number->get('parseFloat');

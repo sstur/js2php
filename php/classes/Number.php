@@ -38,6 +38,10 @@ class Number extends Object {
 }
 
 Number::$classMethods = array(
+  'isFinite' => function($this_, $arguments, $value) {
+      $value = to_number($value);
+      return !($value === INF || $value === -INF || $value === NaN::$nan);
+    },
   'parseInt' => function($this_, $arguments, $value, $radix = null) {
       $value = to_string($value);
       $value = preg_replace('/^[\\t\\x0B\\f \\xA0\\r\\n]+/', '', $value);

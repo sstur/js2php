@@ -36,9 +36,6 @@ Number
   isFinite, isNaN, isInteger, isSafeInteger
 
 
-Globals:
-  isFinite
-
 String.prototype
   concat, lastIndexOf, localeCompare, match, search
   toLowerCase, toUpperCase, toLocaleLowerCase, toLocaleUpperCase
