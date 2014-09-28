@@ -1,6 +1,5 @@
 operators: unary_plus, bitwise, ...
 Error::create() should record stack trace
-Globals: RangeError, ReferenceError, SyntaxError, TypeError
 codegen -> class
 `to_number('x') + 1` should be NaN
 demo: form post
@@ -39,7 +38,6 @@ Number
 
 Globals:
   isFinite
-  RangeError, ReferenceError, SyntaxError, TypeError
 
 String.prototype
   concat, lastIndexOf, localeCompare, match, search

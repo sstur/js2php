@@ -12,6 +12,10 @@ $Number = Number::getGlobalConstructor();
 $String = Str::getGlobalConstructor();
 $Date = Date::getGlobalConstructor();
 $Error = Error::getGlobalConstructor();
+$RangeError = RangeError::getGlobalConstructor();
+$ReferenceError = ReferenceError::getGlobalConstructor();
+$SyntaxError = SyntaxError::getGlobalConstructor();
+$TypeError = TypeError::getGlobalConstructor();
 $RegExp = RegExp::getGlobalConstructor();
 $Buffer = Buffer::getGlobalConstructor();
 

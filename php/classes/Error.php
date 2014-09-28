@@ -33,6 +33,22 @@ class Error extends Object {
   }
 }
 
+class RangeError extends Error {
+  public $className = "[object RangeError]";
+}
+
+class ReferenceError extends Error {
+  public $className = "[object ReferenceError]";
+}
+
+class SyntaxError extends Error {
+  public $className = "[object SyntaxError]";
+}
+
+class TypeError extends Error {
+  public $className = "[object TypeError]";
+}
+
 Error::$classMethods = array();
 
 Error::$protoMethods = array(
