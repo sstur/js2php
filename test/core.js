@@ -112,6 +112,10 @@ testSuite('core', function(assert) {
       assert('catch creates scope', e === 'foo');
     }
     assert('catch scope doesn\'t bleed', e instanceof Error);
+    var e1 = new TypeError('message');
+    assert('TypeError', e1 instanceof TypeError);
+    assert('TypeError inherits from Error', e1 instanceof Error);
+    assert('TypeError is distinct from Error', TypeError !== Error);
   });
 
 });
