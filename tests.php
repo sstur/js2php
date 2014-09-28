@@ -7,7 +7,6 @@ require_once('php/helpers/operators.php');
 require_once('php/helpers/helpers.php');
 
 require_once('php/classes/Null.php');
-require_once('php/classes/NaN.php');
 require_once('php/classes/Object.php');
 require_once('php/classes/Function.php');
 require_once('php/classes/Global.php');
@@ -358,13 +357,13 @@ Test::suite(
     $num = $Number->callMethod('parseInt', ' -15.');
     Test::assert('parseInt 3', $num === -15.);
     $num = $Number->callMethod('parseInt', 'x');
-    Test::assert('parseInt 4', $num === NaN::$nan);
+    Test::assert('parseInt 4', is_nan($num));
     $num = $Number->callMethod('parseFloat', '-05e2x');
     Test::assert('parseFloat 1', $num === -500.);
     $num = $Number->callMethod('parseFloat', ' +05.');
     Test::assert('parseFloat 2', $num === 5.);
     $num = $Number->callMethod('parseFloat', 'x');
-    Test::assert('parseFloat 3', $num === NaN::$nan);
+    Test::assert('parseFloat 3', is_nan($num));
   }
 );
 

@@ -34,10 +34,7 @@ $JSON = call_user_func(function() {
     if ($value === null) {
       return $inArray ? 'null' : $value;
     }
-    if ($value === Null::$null) {
-      return 'null';
-    }
-    if ($value === NaN::$nan || $value === INF || $value === -INF) {
+    if ($value === Null::$null || $value === INF || $value === -INF) {
       return 'null';
     }
     $type = gettype($value);
@@ -45,7 +42,7 @@ $JSON = call_user_func(function() {
       return $value ? 'true' : 'false';
     }
     if ($type === 'integer' || $type === 'double') {
-      return $value . '';
+      return is_nan($value) ? 'null' : $value . '';
     }
     if ($type === 'string') {
       return $escape($value);

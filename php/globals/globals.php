@@ -2,7 +2,7 @@
 $global = Object::$global;
 $undefined = null;
 $Infinity = INF;
-$NaN = NaN::$nan;
+$NaN = NAN;
 
 $Object = Object::getGlobalConstructor();
 $Function = Func::getGlobalConstructor();

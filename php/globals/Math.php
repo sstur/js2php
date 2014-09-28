@@ -9,33 +9,29 @@ $Math = call_user_func(function() {
 
     'round' => function($this_, $arguments, $num) {
         $num = to_number($num);
-        if ($num === NaN::$nan) return NaN::$nan;
-        return (float)round($num);
+        return is_nan($num) ? NAN : (float)round($num);
       },
 
     'ceil' => function($this_, $arguments, $num) {
         $num = to_number($num);
-        if ($num === NaN::$nan) return NaN::$nan;
-        return (float)ceil($num);
+        return is_nan($num) ? NAN : (float)ceil($num);
       },
 
     'floor' => function($this_, $arguments, $num) {
         $num = to_number($num);
-        if ($num === NaN::$nan) return NaN::$nan;
-        return (float)floor($num);
+        return is_nan($num) ? NAN : (float)floor($num);
       },
 
     'abs' => function($this_, $arguments, $num) {
         $num = to_number($num);
-        if ($num === NaN::$nan) return NaN::$nan;
-        return (float)abs($num);
+        return is_nan($num) ? NAN : (float)abs($num);
       },
 
     'max' => function($this_, $arguments) {
         $max = -INF;
         foreach ($arguments->args as $num) {
           $num = to_number($num);
-          if ($num === NaN::$nan) return NaN::$nan;
+          if (is_nan($num)) return NAN;
           if ($num > $max) $max = $num;
         }
         return (float)$max;
@@ -45,7 +41,7 @@ $Math = call_user_func(function() {
         $min = INF;
         foreach ($arguments->args as $num) {
           $num = to_number($num);
-          if ($num === NaN::$nan) return NaN::$nan;
+          if (is_nan($num)) return NAN;
           if ($num < $min) $min = $num;
         }
         return (float)$min;
@@ -54,61 +50,54 @@ $Math = call_user_func(function() {
     'pow' => function($this_, $arguments, $num, $exp) {
         $num = to_number($num);
         $exp = to_number($exp);
-        if ($num === NaN::$nan || $exp === NaN::$nan) {
-          return NaN::$nan;
+        if (is_nan($num) || is_nan($exp)) {
+          return NAN;
         }
-        return catch_nan(pow($num, $exp));
+        return (float)pow($num, $exp);
       },
 
     'log' => function($this_, $arguments, $num) {
         $num = to_number($num);
-        if ($num === NaN::$nan) return NaN::$nan;
-        return catch_nan(log($num));
+        return is_nan($num) ? NAN : (float)log($num);
       },
 
     'exp' => function($this_, $arguments, $num) {
         $num = to_number($num);
-        if ($num === NaN::$nan) return NaN::$nan;
-        return catch_nan(exp($num));
+        return is_nan($num) ? NAN : (float)exp($num);
       },
 
     'sqrt' => function($this_, $arguments, $num) {
         $num = to_number($num);
-        if ($num === NaN::$nan) return NaN::$nan;
-        return catch_nan(sqrt($num));
+        return is_nan($num) ? NAN : (float)sqrt($num);
       },
 
     'sin' => function($this_, $arguments, $num) {
         $num = to_number($num);
-        if ($num === NaN::$nan) return NaN::$nan;
-        return catch_nan(sin($num));
+        return is_nan($num) ? NAN : (float)sin($num);
       },
 
     'cos' => function($this_, $arguments, $num) {
         $num = to_number($num);
-        if ($num === NaN::$nan) return NaN::$nan;
-        return catch_nan(cos($num));
+        return is_nan($num) ? NAN : (float)cos($num);
       },
 
     'tan' => function($this_, $arguments, $num) {
         $num = to_number($num);
-        if ($num === NaN::$nan) return NaN::$nan;
-        return catch_nan(tan($num));
+        return is_nan($num) ? NAN : (float)tan($num);
       },
 
     'atan' => function($this_, $arguments, $num) {
         $num = to_number($num);
-        if ($num === NaN::$nan) return NaN::$nan;
-        return catch_nan(atan($num));
+        return is_nan($num) ? NAN : (float)atan($num);
       },
 
     'atan2' => function($this_, $arguments, $y, $x) {
         $y = to_number($y);
         $x = to_number($x);
-        if ($y === NaN::$nan || $x === NaN::$nan) {
-          return NaN::$nan;
+        if (is_nan($y) || is_nan($x)) {
+          return NAN;
         }
-        return catch_nan(atan2($y, $x));
+        return (float)atan2($y, $x);
       }
   );
 

@@ -34,7 +34,7 @@ class Number extends Object {
     $Number->set('prototype', Number::$protoObject);
     $Number->setMethods(Number::$classMethods, true, false, true);
     //constants
-    $Number->set('NaN', NaN::$nan);
+    $Number->set('NaN', NAN);
     $Number->set('MAX_VALUE', 1.8e308);
     $Number->set('MIN_VALUE', -1.8e308);
     $Number->set('NEGATIVE_INFINITY', -INF);
@@ -46,7 +46,7 @@ class Number extends Object {
 Number::$classMethods = array(
   'isFinite' => function($this_, $arguments, $value) {
       $value = to_number($value);
-      return !($value === INF || $value === -INF || $value === NaN::$nan);
+      return !($value === INF || $value === -INF || is_nan($value));
     },
   'parseInt' => function($this_, $arguments, $value, $radix = null) {
       $value = to_string($value);
@@ -60,17 +60,17 @@ Number::$classMethods = array(
         $radix = 10;
       } else {
         $radix = to_number($radix);
-        if ($radix === NaN::$nan || $radix < 2 || $radix > 36) {
-          return NaN::$nan;
+        if (is_nan($radix) || $radix < 2 || $radix > 36) {
+          return NAN;
         }
       }
       if ($radix === 10) {
-        return preg_match('/^[0-9]/', $value) ? (float)(intval($value) * $sign) : NaN::$nan;
+        return preg_match('/^[0-9]/', $value) ? (float)(intval($value) * $sign) : NAN;
       } elseif ($radix === 16) {
         $value = preg_replace('/^0x/i', '', $value);
-        return preg_match('/^[0-9a-f]/i', $value) ? (float)(hexdec($value) * $sign) : NaN::$nan;
+        return preg_match('/^[0-9a-f]/i', $value) ? (float)(hexdec($value) * $sign) : NAN;
       } elseif ($radix === 8) {
-        return preg_match('/^[0-7]/', $value) ? (float)(octdec($value) * $sign) : NaN::$nan;
+        return preg_match('/^[0-7]/', $value) ? (float)(octdec($value) * $sign) : NAN;
       }
       $value = strtoupper($value);
       $len = strlen($value);
@@ -94,7 +94,7 @@ Number::$classMethods = array(
         $value = substr($value, 0, $numValidChars);
         return floatval(base_convert($value, $radix, 10));
       }
-      return NaN::$nan;
+      return NAN;
     },
   'parseFloat' => function($this_, $arguments, $value) {
       $value = to_string($value);
@@ -107,10 +107,10 @@ Number::$classMethods = array(
       if (preg_match('/^(\d+\.\d*|\.\d+|\d+)/i', $value, $m)) {
         return (float)($m[0] * $sign);
       }
-      return NaN::$nan;
+      return NAN;
     },
   'isNaN' => function($global, $arguments, $value) {
-      return (to_number($value) === NaN::$nan);
+      return is_nan(to_number($value));
     }
 );
 

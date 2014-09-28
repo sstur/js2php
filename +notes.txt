@@ -4,9 +4,6 @@ php -S 127.0.0.1:8080 build/http.php
 rsync -av ../js2php dev:~/
 
 Divergence from JavaScript
-  "0" -> truthy
-  NaN === NaN
-  NaN.toString()
   get/setters don't have property descriptors
   cannot implicitly set global from child scope
   doesn't throw on use of undeclared var (ReferenceError: foo is not defined)

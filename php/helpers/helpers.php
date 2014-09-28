@@ -34,7 +34,7 @@ function keys($obj, &$arr = array()) {
 }
 
 function is_primitive($value) {
-  return ($value === null || is_scalar($value) || $value === Null::$null || $value === NaN::$nan);
+  return ($value === null || $value === Null::$null || is_scalar($value));
 }
 
 function is_int_or_float($value) {
@@ -61,9 +61,6 @@ function to_string($value) {
     if ($value === -INF) return '-Infinity';
     return $value . '';
   }
-  if ($value === NaN::$nan) {
-    return 'NaN';
-  }
   if ($value instanceof Object) {
     $fn = $value->get('toString');
     if ($fn instanceof Func) {
@@ -77,16 +74,13 @@ function to_string($value) {
 
 function to_number($value) {
   if ($value === null) {
-    return NaN::$nan;
+    return NAN;
   }
   if ($value === Null::$null) {
     return 0.0;
   }
-  if ($value === NaN::$nan) {
-    return NaN::$nan;
-  }
   if (is_int_or_float($value)) {
-    return is_nan($value) ? NaN::$nan : (float)$value;
+    return is_nan($value) ? NAN : (float)$value;
   }
   if (is_bool($value)) {
     return ($value ? 1.0 : 0.0);
@@ -114,7 +108,7 @@ function to_number($value) {
   if (preg_match('/^0x[a-z0-9]+$/i', $value)) {
     return (float)hexdec(substr($value, 2));
   }
-  return NaN::$nan;
+  return NAN;
 }
 
 /**
@@ -128,15 +122,6 @@ function to_primitive($obj) {
     $value = to_string($value);
   }
   return $value;
-}
-
-/**
- * Used in math functions to ensure we don't ever get PHP's NAN
- * @param int|float $num
- * @return float|NaN
- */
-function catch_nan($num) {
-  return is_nan($num) ? NaN::$nan : (float)$num;
 }
 
 /**
@@ -239,10 +224,6 @@ function call($fn) {
 function call_method($obj, $name) {
   if ($obj === null || $obj === Null::$null) {
     throw new Ex(Error::create("Cannot read property '" . $name . "' of " . to_string($obj)));
-  }
-  //todo: NaN should be a number
-  if ($obj === NaN::$nan) {
-    throw new Ex(Error::create("Cannot read property '" . $name . "' of NaN"));
   }
   $obj = objectify($obj);
   $fn = $obj->get($name);

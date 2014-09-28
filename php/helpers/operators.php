@@ -101,9 +101,6 @@ function x_typeof($value) {
   if ($value === Null::$null) {
     return 'object';
   }
-  if ($value === NaN::$nan) {
-    return 'number';
-  }
   $type = gettype($value);
   if ($type === 'integer' || $type === 'double') {
     return 'number';

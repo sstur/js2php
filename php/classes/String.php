@@ -59,7 +59,7 @@ Str::$protoMethods = array(
     },
   'charCodeAt' => function($this_, $arguments, $i) {
       $ch = mb_substr($this_->value, $i, 1);
-      if ($ch === false) return NaN::$nan;
+      if ($ch === false) return NAN;
       $len = strlen($ch);
       if ($len === 1) {
         $code = ord($ch[0]);
