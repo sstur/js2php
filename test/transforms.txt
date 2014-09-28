@@ -104,6 +104,12 @@ for ($i = 0.0, $j = 1.0; $i < 2.0; $i++) {
 }
 
 ----
+for (n in o) {}
+====
+foreach (keys($o) as $n) {
+}
+
+----
 var e = true;
 try {
   throw new Error('foo');

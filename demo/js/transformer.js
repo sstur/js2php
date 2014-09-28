@@ -6315,7 +6315,7 @@ exports.moonwalk = function moonwalk(ast, fn){
         throw new Error('Unknown left part of for..in `' + node.left.type + '`');
       }
       results.push('foreach (keys(');
-      results.push(this.generate(node.right) + ') as $i_ => ' + encodeVar(identifier) + ') {\n');
+      results.push(this.generate(node.right) + ') as ' + encodeVar(identifier) + ') {\n');
       results.push(this.toBlock(node.body));
       results.push(this.indent() + '}');
       return results.join('') + '\n';
