@@ -1,12 +1,10 @@
 operators: unary_plus, bitwise, ...
 Error::create() should record stack trace
 `to_number('x') + 1` should be NaN
+array.push.apply()
 demo: form post
 get/setters should have property descriptors
   Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}
-
-bug:
-  nested `and`
 
 build tool:
   specify --fragment as true/false flag

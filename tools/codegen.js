@@ -318,13 +318,31 @@
       return this.BinaryExpression(node);
     },
 
+    genAnd: function(node) {
+      var opts = this.opts;
+      opts.andDepth = (opts.andDepth == null) ? 0 : opts.andDepth + 1;
+      var name = (opts.andDepth === 0) ? '$and_' : '$and' + opts.andDepth + '_';
+      var result = '((' + name + ' = ' + this.generate(node.left) + ') ? ' + this.generate(node.right) + ' : ' + name + ')';
+      opts.andDepth = (opts.andDepth === 0) ? null : opts.andDepth - 1;
+      return result;
+    },
+
+    genOr: function(node) {
+      var opts = this.opts;
+      opts.orDepth = (opts.orDepth == null) ? 0 : opts.orDepth + 1;
+      var name = (opts.orDepth === 0) ? '$or_' : '$or' + opts.orDepth + '_';
+      var result = '((' + name + ' = ' + this.generate(node.left) + ') ? ' + name + ' : ' + this.generate(node.right) + ')';
+      opts.orDepth = (opts.orDepth === 0) ? null : opts.orDepth - 1;
+      return result;
+    },
+
     'BinaryExpression': function(node) {
       var op = node.operator;
       if (op === '&&') {
-        return '(($and_ = ' + this.generate(node.left) + ') ? ' + this.generate(node.right) + ' : $and_)';
+        return this.genAnd(node);
       }
       if (op === '||') {
-        return '(($or_ = ' + this.generate(node.left) + ') ? $or_ : ' + this.generate(node.right) + ')';
+        return this.genOr(node);
       }
       var name = 'b:' + op;
       if (name in OPERATOR_MAP) {
