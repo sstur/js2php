@@ -33,7 +33,7 @@ String.prototype
   toLowerCase, toUpperCase, toLocaleLowerCase, toLocaleUpperCase
 
 Array.prototype
-  toLocaleString, concat, reverse, shift, unshift, splice, filter, some, every, map, lastIndexOf, reduce, reduceRight
+  shift, unshift, splice, concat, reverse, filter, some, every, map, reduce, reduceRight
 
 Object
   getPrototypeOf, setPrototypeOf

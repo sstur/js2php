@@ -49,6 +49,22 @@ testSuite('array', function(assert) {
   });
 
 
+  testSuite('indexOf', function() {
+    var a = '123123'.split('');
+    assert('finds first', a.indexOf('2') === 1);
+    assert('not found', a.indexOf('a') === -1);
+    assert('finds exact', a.indexOf(2) === -1);
+  });
+
+
+  testSuite('lastIndexOf', function() {
+    var a = '123123'.split('');
+    assert('finds last', a.lastIndexOf('2') === 4);
+    assert('not found', a.lastIndexOf('a') === -1);
+    assert('finds exact', a.lastIndexOf(2) === -1);
+  });
+
+
   testSuite('sort', function() {
     var a = 'iabgcdehf'.split('');
     var b = a.sort();

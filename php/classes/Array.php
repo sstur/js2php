@@ -106,7 +106,7 @@ Arr::$classMethods = array(
     }
 );
 
-// toLocaleString, concat, reverse, shift, unshift, splice, filter, some, every, map, lastIndexOf, reduce, reduceRight
+// shift, unshift, splice, concat, reverse, filter, some, every, map, reduce, reduceRight
 Arr::$protoMethods = array(
   'push' => function($this_, $arguments, $value) {
       //this is a special case, we have a low-level method
@@ -132,6 +132,13 @@ Arr::$protoMethods = array(
   'indexOf' => function($this_, $arguments, $value) {
       $len = $this_->length;
       for ($i = 0; $i < $len; $i++) {
+        if ($this_->get($i) === $value) return (float)$i;
+      }
+      return -1.0;
+    },
+  'lastIndexOf' => function($this_, $arguments, $value) {
+      $i = $this_->length;
+      while ($i--) {
         if ($this_->get($i) === $value) return (float)$i;
       }
       return -1.0;
@@ -201,6 +208,9 @@ Arr::$protoMethods = array(
       return $this_;
     },
   'toString' => function($this_) {
+      return $this_->callMethod('join');
+    },
+  'toLocaleString' => function($this_) {
       return $this_->callMethod('join');
     }
 );
