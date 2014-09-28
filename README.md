@@ -12,21 +12,21 @@ This is a proof-of-concept started at a hackathon recently to see if it could be
 
 ### What could this possibly be used for?
 
-There are plenty of ["compile to JS"][3] languages out there (Coffee, TypeScript, Dart), but few good choices in the PHP world[**](#alternatives). PHP is ubiquitous in bulk hosting (80+ percent of the market). PHP runs on Google App Engine, AppFog, Rackspace Cloud Sites and every LAMP stack in the world. So if you need to host on PHP but don't like writing PHP, well you're hosed. ...unless you could write in JS and deploy to PHP!
+There are dozens of ["compile to JS"][3] languages available (Coffee, TypeScript, Dart), but hardly any good choices in the PHP world[**](#alternatives). PHP is ubiquitous in bulk hosting, it runs on Google App Engine, AppFog, Rackspace Cloud Sites and virtually every LAMP stack in the world. So if you need to host on PHP but don't like writing PHP, well tough luck. ...unless you could write in JS and deploy to PHP!
 
 ### That's madness!
 
-Maybe so. But if you were to write in one language and compile to PHP, JavaScript (or a subset thereof) would be a great choice. There's plenty of tooling, libraries, community, etc. Plus web developers have to know JS anyway because it's in the browser. OK, I'm not suggesting you write production code using this, but who knows, maybe it will mature into something you can take to production in the future. I could imagine someone creating a cool thing in JS and then compiling to PHP to put it up on CodeCanyon. The same application might then be run on [Node][4] using [Fibers][7] and the JVM via [Nahsorn][5] or [DynJS][6].
+Maybe so. But if you wanted a compile-to-PHP language, JavaScript (or a subset thereof) is a pretty solid choice. There's plenty of tooling, libraries, community, etc. Plus web developers have to know JS anyway because it's in the browser. OK, I'm not suggesting you deploy this generated PHP to production, but if this project matures that might become feasable. I could imagine a JS dev creating a cool thing in JS and then compiling to PHP to put it up on CodeCanyon. The same application might then be run on [Node][4] using [Fibers][7] and the JVM via [Nahsorn][5] or [DynJS][6]. Another interesting use case is this: your web app has a need for some user-generated scripting (think plugins) but you can't just run untrusted PHP on your server. Well, what if you could expose a small API via JS instead. Then compile the user's JS into perfectly safe PHP that has no disk or network access.
 
 ### What about performance?
 
 Sure, you pay a performance penalty at runtime, but seriously, have you run mainstream PHP apps before? It's not like the performance bar is too high (I think a default WP install runs 27 SQL queries to render the homepage). Your app is likely not CPU bound anyway (and if it is, then you should be running Node + worker processes or some other awesome solution).
 
-At this point I'm focusing on correctness, not performance, and this is very alpha stuff, so don't expect too much.
+At this point I'm focusing on correctness, not performance, and this is very alpha stuff, but it works.
 
 ### Project Status
 
-The core language is mostly implemented and has some tests (Object, Array, Math lib, String methods, etc) but there is no interface to the outside world besides `console.log()`. There's no file-system, HTTP or Database modules and there's no formal way to call into PHP from JS at this point.
+The core language is mostly implemented and has some tests (Object, Array, Math lib, String methods, etc) but there is no interface to the outside world besides `console.log()` and `process.exit()`. A basic HTTP module is in the works, but there's no file-system or database access and there's no formal way to call into PHP from JS.
 
 Feel free to contribute if this interests you.
 
@@ -41,9 +41,9 @@ Feel free to contribute if this interests you.
 
 ### How it works
 
-We're using the awesome [esprima][8] JavaScript parser with [rocambole][9] to walk the AST and [escope][10] to figure out variable scope, hoist function declarations and so on. After AST manipulation `tools/codegen.js` generates the PHP code from walking the tree.
+We're using the awesome [esprima][8] JavaScript parser with [rocambole][9] to walk the AST and [escope][10] to figure out variable scope, hoist function declarations and so on. After AST manipulation `tools/codegen.js` generates the PHP code by walking the tree.
 
-Various constructs get wrapped in helper functions, for instance, property access, method calls, `&&`, `||` and `+` operators. The runtime helpers for this mostly live in `php/helpers` and there are a bunch of classes in `php/classes` for Array, RegExp and such. All this PHP gets packaged into your output file, or you can save it to a standalone runtime and reference that from your output file like so:
+Various constructs get wrapped in helper functions, for instance, property access, method calls and `+` operator. The runtime helpers can be found in `php/helpers` and there are a bunch of classes in `php/classes` for Array, RegExp and such. All this PHP gets packaged into your output file, or you can save it to a standalone runtime and reference that from your output file like so:
 
     node js2php --runtime-only > runtime.php
     node js2php --runtime runtime.php example.js > example.php
@@ -56,7 +56,6 @@ Have a play with the [online demo][2]. The generated code will look something li
 
 ```php
 <?php
-require_once("runtime.php");
 $HelloWorld = new Func("HelloWorld", function($this_, $arguments, $greeting) {
   set($this_, "greeting", $greeting);
 });
@@ -69,7 +68,7 @@ call_method(x_new($HelloWorld, "Hi"), "go", "world");
 It's not particularly elegant, but it's human-readable and has all the basics we need to implement standards-compliant JS in PHP.
 
 ### Alternatives
-There are a few other "compile to PHP" languages out there, but none have the kind of support and tooling of an established language like JavaScript. [Haxe][11] is probably the most popular and is a solid statically-typed language. I also came across [Pharen][13] (a Lisp implementation), [Mammouth][14] (similar to CoffeeScript) and [Pratphall][15] (TypeScript syntax). There's also another [JS to PHP project][17] which takes a different approach (it's written in PHP and doesn't really produce readable PHP) but is also interesting.
+There's a handful of other "compile to PHP" languages I want to mention (of course these have the kind of support and tooling of an established language like JavaScript). [Haxe][11] is probably the most popular and is a solid statically-typed language. I also came across [Pharen][13] (a Lisp implementation), [Mammouth][14] (similar to CoffeeScript) and [Pratphall][15] (TypeScript syntax). There's also another [JS to PHP project][17] from a few years back which took a different approach (it's written in PHP and doesn't really produce readable output) but is a cool project.
 
 ### Tests
 Run `npm test` which is the same as `node js2php --test`. Requires PHP 5.3+ or [HHVM][16].
