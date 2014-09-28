@@ -8,7 +8,6 @@ get/setters
   Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}
 
 build tool:
-  support `[1,,2]` use Arr::$empty = new StdClass();
   specify --fragment as true/false flag
   debug mode: Func() gets extra param "meta"
     array('source' => 3, 'line' => 4, 'start' => 146, 'end' => 283, 'def' => 'a.b')

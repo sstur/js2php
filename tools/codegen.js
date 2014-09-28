@@ -241,7 +241,7 @@
 
     'ArrayExpression': function(node) {
       var items = node.elements.map(function(el) {
-        return this.generate(el);
+        return (el === null) ? 'Arr::$empty' : this.generate(el);
       }, this);
       return 'new Arr(' + items.join(', ') + ')';
     },

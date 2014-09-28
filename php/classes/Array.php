@@ -6,6 +6,8 @@ class Arr extends Object {
   static $protoObject = null;
   static $classMethods = null;
   static $protoMethods = null;
+  //used to represent a "hole" in an array
+  static $empty = null;
 
   function __construct() {
     parent::__construct();
@@ -19,10 +21,14 @@ class Arr extends Object {
   }
 
   function init($arr) {
+    $len = 0;
     foreach ($arr as $i => $item) {
-      $this->set($i, $item);
+      if ($item !== Arr::$empty) {
+        $this->set($i, $item);
+      }
+      $len += 1;
     }
-    $this->length = count($arr);
+    $this->length = $len;
   }
 
   function push($value) {
@@ -269,3 +275,4 @@ Arr::$protoMethods = array(
 
 Arr::$protoObject = new Object();
 Arr::$protoObject->setMethods(Arr::$protoMethods, true, false, true);
+Arr::$empty = new StdClass();

@@ -53,8 +53,7 @@ testSuite('array', function(assert) {
 
 
   testSuite('shift', function() {
-    var a = ['a', null,'c','d'];
-    delete a[1];
+    var a = ['a', ,'c','d'];
     assert('hole present in array', (1 in a) === false);
     assert('can shift', a.shift() === 'a');
     assert('has new length', a.length === 3);
