@@ -33,6 +33,12 @@ class Number extends Object {
     };
     $Number->set('prototype', Number::$protoObject);
     $Number->setMethods(Number::$classMethods, true, false, true);
+    //constants
+    $Number->set('NaN', NaN::$nan);
+    $Number->set('MAX_VALUE', 1.8e308);
+    $Number->set('MIN_VALUE', -1.8e308);
+    $Number->set('NEGATIVE_INFINITY', -INF);
+    $Number->set('POSITIVE_INFINITY', INF);
     return $Number;
   }
 }

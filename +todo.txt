@@ -3,7 +3,8 @@ Error::create() should record stack trace
 `to_number('x') + 1` should be NaN
 array.push.apply()
 demo: form post
-get/setters should have property descriptors
+get/setters
+  'length' in []
   Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}
 
 build tool:
@@ -26,10 +27,6 @@ test:
 Optimizations:
   `a + b + c` => `x_plus($a, $b, $c)`
   `a + 'b'` => `to_string($a) . "b"`
-
-Number
-  NaN, MAX_VALUE, MIN_VALUE, NEGATIVE_INFINITY, POSITIVE_INFINITY
-  MAX_SAFE_INTEGER, MIN_SAFE_INTEGER, EPSILON
 
 String.prototype
   concat, lastIndexOf, localeCompare, match, search

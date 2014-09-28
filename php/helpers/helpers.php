@@ -220,6 +220,10 @@ function call_method($obj, $name) {
   if ($obj === null || $obj === Null::$null) {
     throw new Ex(Error::create("Cannot read property '" . $name . "' of " . to_string($obj)));
   }
+  //todo: NaN should be a number
+  if ($obj === NaN::$nan) {
+    throw new Ex(Error::create("Cannot read property '" . $name . "' of NaN"));
+  }
   $obj = objectify($obj);
   $fn = $obj->get($name);
   if (!($fn instanceof Func)) {
