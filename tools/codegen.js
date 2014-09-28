@@ -21,7 +21,7 @@
   };
 
   //built-in globals (should not be re-assigned)
-  var GLOBALS = {'Array': 1, 'Boolean': 1, 'Buffer': 1, 'Date': 1, 'Error': 1, 'Function': 1, 'Infinity': 1, 'JSON': 1, 'Math': 1, 'NaN': 1, 'Number': 1, 'Object': 1, 'RegExp': 1, 'String': 1, 'console': 1, 'decodeURI': 1, 'decodeURIComponent': 1, 'encodeURI': 1, 'encodeURIComponent': 1, 'escape': 1, 'eval': 1, 'isFinite': 1, 'isNaN': 1, 'parseFloat': 1, 'parseInt': 1, 'undefined': 1, 'unescape': 1};
+  var GLOBALS = {'Array': 1, 'Boolean': 1, 'Buffer': 1, 'Date': 1, 'Error': 1, 'RangeError': 1, 'ReferenceError': 1, 'SyntaxError': 1, 'TypeError': 1, 'Function': 1, 'Infinity': 1, 'JSON': 1, 'Math': 1, 'NaN': 1, 'Number': 1, 'Object': 1, 'RegExp': 1, 'String': 1, 'console': 1, 'decodeURI': 1, 'decodeURIComponent': 1, 'encodeURI': 1, 'encodeURIComponent': 1, 'escape': 1, 'eval': 1, 'isFinite': 1, 'isNaN': 1, 'parseFloat': 1, 'parseInt': 1, 'undefined': 1, 'unescape': 1};
 
   var gen = {
     //accepts a BlockStatement or an ExpressionStatement (turns to block)
