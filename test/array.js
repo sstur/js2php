@@ -26,6 +26,15 @@ testSuite('array', function(assert) {
   });
 
 
+  testSuite('push', function() {
+    var a = ['a', 'b', 'c'];
+    assert('can push', a.push('d') === 4 && a.join('') === 'abcd');
+    assert('can push multiple', a.push('e', 'f') === 6 && a.join('') === 'abcdef');
+    a.length = 0;
+    assert('can push using apply', Array.prototype.push.apply(a, 'asdf'.split('')) === 4 && a.join('') === 'asdf');
+  });
+
+
   testSuite('slice', function() {
     var a = 'abcdefghi'.split('');
     assert('length', a.length === 9);

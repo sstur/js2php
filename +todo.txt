@@ -2,7 +2,6 @@ operators: unary_plus, bitwise, ...
 Error::create() should record stack trace
 `to_number('x') + 1` should be NaN
 NaN.toString()
-array.push.apply()
 demo: form post
 get/setters
   'length' in []
@@ -34,7 +33,7 @@ String.prototype
   toLowerCase, toUpperCase, toLocaleLowerCase, toLocaleUpperCase
 
 Array.prototype
-  concat, splice, lastIndexOf
+  toLocaleString, concat, reverse, shift, unshift, splice, filter, some, every, map, lastIndexOf, reduce, reduceRight
 
 Object
   getPrototypeOf, setPrototypeOf

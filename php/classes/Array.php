@@ -27,9 +27,12 @@ class Arr extends Object {
 
   function push($value) {
     $i = $this->length;
-    $this->set($i, $value);
+    foreach (func_get_args() as $value) {
+      $this->set($i, $value);
+      $i += 1;
+    }
     //we don't need to return a float here because this is an internal method
-    return ($this->length = $i + 1);
+    return ($this->length = $i);
   }
 
   static function checkInt($s) {
@@ -103,11 +106,12 @@ Arr::$classMethods = array(
     }
 );
 
+// toLocaleString, concat, reverse, shift, unshift, splice, filter, some, every, map, lastIndexOf, reduce, reduceRight
 Arr::$protoMethods = array(
-  //todo: concat, splice, lastIndexOf
   'push' => function($this_, $arguments, $value) {
       //this is a special case, we have a low-level method
-      return (float)$this_->push($value);
+      $length = call_user_func_array(array($this_, 'push'), $arguments->args);
+      return (float)$length;
     },
   'pop' => function($this_) {
       $i = $this_->length - 1;
