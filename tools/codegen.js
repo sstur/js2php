@@ -23,17 +23,22 @@
   //built-in globals (should not be re-assigned)
   var GLOBALS = {'Array': 1, 'Boolean': 1, 'Buffer': 1, 'Date': 1, 'Error': 1, 'RangeError': 1, 'ReferenceError': 1, 'SyntaxError': 1, 'TypeError': 1, 'Function': 1, 'Infinity': 1, 'JSON': 1, 'Math': 1, 'NaN': 1, 'Number': 1, 'Object': 1, 'RegExp': 1, 'String': 1, 'console': 1, 'decodeURI': 1, 'decodeURIComponent': 1, 'encodeURI': 1, 'encodeURIComponent': 1, 'escape': 1, 'eval': 1, 'isFinite': 1, 'isNaN': 1, 'parseFloat': 1, 'parseInt': 1, 'undefined': 1, 'unescape': 1};
 
-  var gen = {
+  function Generator(opts) {
+    this.opts = Object.create(opts || {});
+  }
+
+  Generator.prototype = {
     //accepts a BlockStatement or an ExpressionStatement (turns to block)
     // assumes the `{}` have already been generated
-    toBlock: function(node, opts) {
+    toBlock: function(node) {
+      var opts = this.opts;
       if (node.type === 'BlockStatement') {
-        return gen.Body(node, opts);
+        return this.Body(node);
       }
       opts.indentLevel += 1;
-      var result = generate(node, opts);
+      var result = this.generate(node);
       if (result) {
-        result = indent(opts.indentLevel) + result;
+        result = this.indent() + result;
       }
       opts.indentLevel -= 1;
       return result;
@@ -41,12 +46,13 @@
 
     //generate function or program body
     // assumes the `{}` have already been written
-    'Body': function(node, opts) {
+    'Body': function(node) {
+      var opts = this.opts;
       var scopeIndex = node.scopeIndex || Object.create(null);
       var results = [];
       opts.indentLevel += 1;
       if (node.type === 'Program' && scopeIndex.thisFound) {
-        results.push(indent(opts.indentLevel) + '$this_ = $global;\n');
+        results.push(this.indent() + '$this_ = $global;\n');
       }
       if (node.vars && opts.initVars) {
         var declarations = [];
@@ -54,43 +60,43 @@
           declarations.push(encodeVarName(name) + ' = null;');
         });
         if (declarations.length) {
-          results.push(indent(opts.indentLevel) + declarations.join(' ') + '\n');
+          results.push(this.indent() + declarations.join(' ') + '\n');
         }
       }
       var funcDeclarations = node.funcs;
       if (funcDeclarations) {
         Object.keys(funcDeclarations).forEach(function(name) {
-          var func = gen.FunctionExpression(funcDeclarations[name], opts);
-          results.push(indent(opts.indentLevel) + encodeVarName(name) + ' = ' + func + ';\n');
-        });
+          var func = this.FunctionExpression(funcDeclarations[name]);
+          results.push(this.indent() + encodeVarName(name) + ' = ' + func + ';\n');
+        }, this);
       }
 
       node.body.forEach(function(node) {
-        var result = generate(node, opts);
+        var result = this.generate(node);
         if (result) {
-          results.push(indent(opts.indentLevel) + result);
+          results.push(this.indent() + result);
         }
-      });
+      }, this);
       if (opts.indentLevel > 0) {
         opts.indentLevel -= 1;
       }
       return results.join('');
     },
 
-    'BlockStatement': function(node, opts) {
+    'BlockStatement': function(node) {
       var results = ['{\n'];
-      results.push(gen.Body(node, opts));
-      results.push(indent(opts.indentLevel) + '}');
+      results.push(this.Body(node));
+      results.push(this.indent() + '}');
       return results.join('') + '\n';
     },
 
-    'VariableDeclaration': function(node, opts) {
+    'VariableDeclaration': function(node) {
       var results = [];
       node.declarations.forEach(function(node) {
         if (node.init) {
-          results.push(encodeVar(node.id) + ' = ' + generate(node.init, opts));
+          results.push(encodeVar(node.id) + ' = ' + this.generate(node.init));
         }
-      });
+      }, this);
       if (!results.length) {
         return '';
       }
@@ -100,64 +106,65 @@
       return results.join('; ') + ';\n';
     },
 
-    'IfStatement': function(node, opts) {
+    'IfStatement': function(node) {
       var results = ['if ('];
-      results.push(generate(node.test, opts));
+      results.push(this.generate(node.test));
       results.push(') {\n');
-      results.push(gen.toBlock(node.consequent, opts));
-      results.push(indent(opts.indentLevel) + '}');
+      results.push(this.toBlock(node.consequent));
+      results.push(this.indent() + '}');
       if (node.alternate) {
         results.push(' else ');
         if (node.alternate.type === 'IfStatement') {
-          results.push(generate(node.alternate, opts));
+          results.push(this.generate(node.alternate));
         } else {
           results.push('{\n');
-          results.push(gen.toBlock(node.alternate, opts));
-          results.push(indent(opts.indentLevel) + '}\n');
+          results.push(this.toBlock(node.alternate));
+          results.push(this.indent() + '}\n');
         }
       }
       return results.join('') + '\n';
     },
 
-    'SwitchStatement': function(node, opts) {
+    'SwitchStatement': function(node) {
+      var opts = this.opts;
       var results = ['switch ('];
-      results.push(generate(node.discriminant, opts));
+      results.push(this.generate(node.discriminant));
       results.push(') {\n');
       opts.indentLevel += 1;
       node.cases.forEach(function(node) {
-        results.push(indent(opts.indentLevel));
+        results.push(this.indent());
         if (node.test === null) {
           results.push('default:\n');
         } else {
-          results.push('case ' + generate(node.test, opts) + ':\n');
+          results.push('case ' + this.generate(node.test) + ':\n');
         }
         opts.indentLevel += 1;
         node.consequent.forEach(function(node) {
-          results.push(indent(opts.indentLevel) + generate(node, opts));
-        });
+          results.push(this.indent() + this.generate(node));
+        }, this);
         opts.indentLevel -= 1;
-      });
+      }, this);
       opts.indentLevel -= 1;
-      results.push(indent(opts.indentLevel) + '}');
+      results.push(this.indent() + '}');
       return results.join('') + '\n';
     },
 
-    'ConditionalExpression': function(node, opts) {
-      return generate(node.test, opts) + ' ? ' + generate(node.consequent, opts) + ' : ' + generate(node.alternate, opts);
+    'ConditionalExpression': function(node) {
+      return this.generate(node.test) + ' ? ' + this.generate(node.consequent) + ' : ' + this.generate(node.alternate);
     },
 
-    'ForStatement': function(node, opts) {
+    'ForStatement': function(node) {
       var results = ['for ('];
-      results.push(generate(node.init, opts) + '; ');
-      results.push(generate(node.test, opts) + '; ');
-      results.push(generate(node.update, opts));
+      results.push(this.generate(node.init) + '; ');
+      results.push(this.generate(node.test) + '; ');
+      results.push(this.generate(node.update));
       results.push(') {\n');
-      results.push(gen.toBlock(node.body, opts));
-      results.push(indent(opts.indentLevel) + '}');
+      results.push(this.toBlock(node.body));
+      results.push(this.indent() + '}');
       return results.join('') + '\n';
     },
 
-    'ForInStatement': function(node, opts) {
+    'ForInStatement': function(node) {
       var results = [];
       if (node.left.type === 'VariableDeclaration') {
         var identifier = node.left.declarations[0].id;
@@ -168,45 +175,45 @@
         throw new Error('Unknown left part of for..in `' + node.left.type + '`');
       }
       results.push('foreach (keys(');
-      results.push(generate(node.right, opts) + ') as $i_ => ' + encodeVar(identifier) + ') {\n');
-      results.push(gen.toBlock(node.body, opts));
-      results.push(indent(opts.indentLevel) + '}');
+      results.push(this.generate(node.right) + ') as $i_ => ' + encodeVar(identifier) + ') {\n');
+      results.push(this.toBlock(node.body));
+      results.push(this.indent() + '}');
       return results.join('') + '\n';
     },
 
-    'WhileStatement': function(node, opts) {
+    'WhileStatement': function(node) {
       var results = ['while ('];
-      results.push(generate(node.test, opts));
+      results.push(this.generate(node.test));
       results.push(') {\n');
-      results.push(gen.toBlock(node.body, opts));
-      results.push(indent(opts.indentLevel) + '}');
+      results.push(this.toBlock(node.body));
+      results.push(this.indent() + '}');
       return results.join('') + '\n';
     },
 
-    'DoWhileStatement': function(node, opts) {
+    'DoWhileStatement': function(node) {
       var results = ['do {\n'];
-      results.push(gen.toBlock(node.body, opts));
-      results.push(indent(opts.indentLevel) + '} while (' + generate(node.test, opts) + ');');
+      results.push(this.toBlock(node.body));
+      results.push(this.indent() + '} while (' + this.generate(node.test) + ');');
       return results.join('') + '\n';
     },
 
-    'TryStatement': function(node, opts) {
+    'TryStatement': function(node) {
       var catchClause = node.handlers[0];
       var param = catchClause.param;
       var results = ['try {\n'];
-      results.push(gen.Body(node.block, opts));
-      results.push(indent(opts.indentLevel) + '} catch(Exception ' + encodeVar(param) + ') {\n');
-      results.push(indent(opts.indentLevel + 1) + 'if (' + encodeVar(param) + ' instanceof Ex) ' + encodeVar(param) + ' = ' + encodeVar(param) + '->value;\n');
-      results.push(gen.Body(catchClause.body, opts));
-      results.push(indent(opts.indentLevel) + '}');
+      results.push(this.Body(node.block));
+      results.push(this.indent() + '} catch(Exception ' + encodeVar(param) + ') {\n');
+      results.push(this.indent(1) + 'if (' + encodeVar(param) + ' instanceof Ex) ' + encodeVar(param) + ' = ' + encodeVar(param) + '->value;\n');
+      results.push(this.Body(catchClause.body));
+      results.push(this.indent() + '}');
       return results.join('') + '\n';
     },
 
-    'ThrowStatement': function(node, opts) {
-      return 'throw new Ex(' + generate(node.argument, opts) + ');\n';
+    'ThrowStatement': function(node) {
+      return 'throw new Ex(' + this.generate(node.argument) + ');\n';
     },
 
-    'FunctionExpression': function(node, opts) {
+    'FunctionExpression': function(node) {
       var results = ['new Func('];
       if (node.id) {
         results.push(encodeString(node.id.name) + ', ');
@@ -225,61 +232,61 @@
       var useClause = unresolvedRefs.length ? 'use (&' + unresolvedRefs.map(encodeVarName).join(', &') + ') ' : '';
       results.push('function(' + params.join(', ') + ') ' + useClause + '{\n');
       if (scopeIndex.referenced[functionName]) {
-        results.push(indent(opts.indentLevel + 1) + encodeVarName(functionName) + ' = $arguments->callee;\n');
+        results.push(this.indent(1) + encodeVarName(functionName) + ' = $arguments->callee;\n');
       }
-      results.push(gen.Body(node.body, opts));
-      results.push(indent(opts.indentLevel) + '})');
+      results.push(this.Body(node.body));
+      results.push(this.indent() + '})');
       return results.join('');
     },
 
-    'ArrayExpression': function(node, opts) {
+    'ArrayExpression': function(node) {
       var items = node.elements.map(function(el) {
-        return generate(el, opts);
-      });
+        return this.generate(el);
+      }, this);
       return 'new Arr(' + items.join(', ') + ')';
     },
 
-    'ObjectExpression': function(node, opts) {
+    'ObjectExpression': function(node) {
       var items = [];
       node.properties.forEach(function(node) {
         var key = node.key;
         //key can be a literal or an identifier (quoted or not)
         var keyName = (key.type === 'Identifier') ? key.name : String(key.value);
         items.push(encodeString(keyName));
-        items.push(generate(node.value, opts));
-      });
+        items.push(this.generate(node.value));
+      }, this);
       return 'new Object(' + items.join(', ') + ')';
     },
 
-    'CallExpression': function(node, opts) {
+    'CallExpression': function(node) {
       var args = node.arguments.map(function(arg) {
-        return generate(arg, opts);
-      });
+        return this.generate(arg);
+      }, this);
       if (node.callee.type === 'MemberExpression') {
-        return 'call_method(' + generate(node.callee.object, opts) + ', ' + encodeProp(node.callee, opts) + (args.length ? ', ' + args.join(', ') : '') + ')';
+        return 'call_method(' + this.generate(node.callee.object) + ', ' + this.encodeProp(node.callee) + (args.length ? ', ' + args.join(', ') : '') + ')';
       } else {
-        return 'call(' + generate(node.callee, opts) + (args.length ? ', ' + args.join(', ') : '') + ')';
+        return 'call(' + this.generate(node.callee) + (args.length ? ', ' + args.join(', ') : '') + ')';
       }
     },
 
-    'MemberExpression': function(node, opts) {
-      return 'get(' + generate(node.object, opts) + ', ' + encodeProp(node, opts) + ')';
+    'MemberExpression': function(node) {
+      return 'get(' + this.generate(node.object) + ', ' + this.encodeProp(node) + ')';
     },
 
-    'NewExpression': function(node, opts) {
+    'NewExpression': function(node) {
       var args = node.arguments.map(function(arg) {
-        return generate(arg, opts);
-      });
-      return 'x_new(' + generate(node.callee, opts) + (args.length ? ', ' + args.join(', ') : '') + ')';
+        return this.generate(arg);
+      }, this);
+      return 'x_new(' + this.generate(node.callee) + (args.length ? ', ' + args.join(', ') : '') + ')';
     },
 
-    'AssignmentExpression': function(node, opts) {
+    'AssignmentExpression': function(node) {
       if (node.left.type === 'MemberExpression') {
         //`a.b = 1` -> `set(a, "b", 1)` but `a.b += 1` -> `set(a, "b", 1, "+=")`
         if (node.operator === '=') {
-          return 'set(' + generate(node.left.object, opts) + ', ' + encodeProp(node.left, opts) + ', ' + generate(node.right, opts) + ')';
+          return 'set(' + this.generate(node.left.object) + ', ' + this.encodeProp(node.left) + ', ' + this.generate(node.right) + ')';
         } else {
-          return 'set(' + generate(node.left.object, opts) + ', ' + encodeProp(node.left, opts) + ', ' + generate(node.right, opts) + ', "' + node.operator + '")';
+          return 'set(' + this.generate(node.left.object) + ', ' + this.encodeProp(node.left) + ', ' + this.generate(node.right) + ', "' + node.operator + '")';
         }
       }
       if (node.left.name in GLOBALS) {
@@ -288,53 +295,53 @@
           node.left.appendSuffix = '_';
         }
       }
-      return encodeVar(node.left) + ' ' + node.operator + ' ' + generate(node.right, opts);
+      return encodeVar(node.left) + ' ' + node.operator + ' ' + this.generate(node.right);
     },
 
-    'UpdateExpression': function(node, opts) {
+    'UpdateExpression': function(node) {
       if (node.argument.type === 'MemberExpression') {
         //convert `++a` to `a += 1`
         var operator = (node.operator === '++') ? '+=' : '-=';
         // ++i returns the new (updated) value; i++ returns the old value
         var returnOld = node.prefix ? false : true;
-        return 'set(' + generate(node.argument.object, opts) + ', ' + encodeProp(node.argument, opts) + ', 1, "' + operator + '", ' + returnOld + ')';
+        return 'set(' + this.generate(node.argument.object) + ', ' + this.encodeProp(node.argument) + ', 1, "' + operator + '", ' + returnOld + ')';
       }
       //todo: [hacky] this works only work on numbers
       if (node.prefix) {
-        return node.operator + generate(node.argument, opts);
+        return node.operator + this.generate(node.argument);
       } else {
-        return generate(node.argument, opts) + node.operator;
+        return this.generate(node.argument) + node.operator;
       }
     },
 
-    'LogicalExpression': function(node, opts) {
-      return gen.BinaryExpression(node, opts);
+    'LogicalExpression': function(node) {
+      return this.BinaryExpression(node);
     },
 
-    'BinaryExpression': function(node, opts) {
+    'BinaryExpression': function(node) {
       var op = node.operator;
       if (op === '&&') {
-        return '(($and_ = ' + generate(node.left, opts) + ') ? ' + generate(node.right, opts) + ' : $and_)';
+        return '(($and_ = ' + this.generate(node.left) + ') ? ' + this.generate(node.right) + ' : $and_)';
       }
       if (op === '||') {
-        return '(($or_ = ' + generate(node.left, opts) + ') ? $or_ : ' + generate(node.right, opts) + ')';
+        return '(($or_ = ' + this.generate(node.left) + ') ? $or_ : ' + this.generate(node.right) + ')';
       }
       var name = 'b:' + op;
       if (name in OPERATOR_MAP) {
         op = OPERATOR_MAP[name];
       }
       if (op.match(/^[a-z_]+$/)) {
-        return 'x_' + op + '(' + generate(node.left, opts) + ', ' + generate(node.right, opts) + ')';
+        return 'x_' + op + '(' + this.generate(node.left) + ', ' + this.generate(node.right) + ')';
       }
       var parentType = node.parent && node.parent.type;
-      var result = generate(node.left, opts) + ' ' + op + ' ' + generate(node.right, opts);
+      var result = this.generate(node.left) + ' ' + op + ' ' + this.generate(node.right);
       if (parentType === 'BinaryExpression' || parentType === 'LogicalExpression') {
         return '(' + result + ')';
       }
       return result;
     },
 
-    'UnaryExpression': function(node, opts) {
+    'UnaryExpression': function(node) {
       var op = node.operator;
       var name = 'u:' + op;
       if (name in OPERATOR_MAP) {
@@ -346,123 +353,139 @@
       }
       //special case here because `delete a.b.c` needs to compute a.b and then delete c
       if (op === 'delete' && node.argument.type === 'MemberExpression') {
-        return 'x_delete(' + generate(node.argument.object, opts) + ', ' + encodeProp(node.argument, opts) + ')';
+        return 'x_delete(' + this.generate(node.argument.object) + ', ' + this.encodeProp(node.argument) + ')';
       }
       if (op.match(/^[a-z_]+$/)) {
-        return 'x_' + op + '(' + generate(node.argument, opts) + ')';
+        return 'x_' + op + '(' + this.generate(node.argument) + ')';
       }
-      return op + generate(node.argument, opts);
+      return op + this.generate(node.argument);
     },
 
-    'SequenceExpression': function(node, opts) {
+    'SequenceExpression': function(node) {
       var expressions = node.expressions.map(function(node) {
-        return generate(node, opts);
-      });
+        return this.generate(node);
+      }, this);
       //allow sequence expression only in the init of a for loop
       if (node.parent.type === 'ForStatement' && node.parent.init === node) {
         return expressions.join(', ');
       } else {
         return 'x_seq(' + expressions.join(', ') + ')';
       }
+    },
+
+    generate: function(node) {
+      var opts = this.opts;
+      if (opts.indentLevel == null) {
+        opts.indentLevel = -1;
+      }
+      //we might get a null call `for (; i < l; i++) { ... }`
+      if (node == null) {
+        return '';
+      }
+      var type = node.type;
+      var result;
+      switch (type) {
+        //STATEMENTS
+        case 'Program':
+          result = this.Body(node);
+          break;
+        case 'ExpressionStatement':
+          result = this.generate(node.expression) + ';\n';
+          break;
+        case 'ReturnStatement':
+          result = 'return ' + this.generate(node.argument) + ';\n';
+          break;
+        case 'ContinueStatement':
+          result = 'continue;\n';
+          break;
+        case 'BreakStatement':
+          result = 'break;\n';
+          break;
+        case 'EmptyStatement':
+        case 'DebuggerStatement':
+        //this is handled at beginning of parent scope
+        case 'FunctionDeclaration':
+          result = '';
+          break;
+        case 'VariableDeclaration':
+        case 'IfStatement':
+        case 'SwitchStatement':
+        case 'ForStatement':
+        case 'ForInStatement':
+        case 'WhileStatement':
+        case 'DoWhileStatement':
+        case 'BlockStatement':
+        case 'TryStatement':
+        case 'ThrowStatement':
+          result = this[type](node);
+          break;
+        //these should never be encountered here because they are handled elsewhere
+        case 'SwitchCase':
+        case 'CatchClause':
+          throw new Error('should never encounter: "' + type + '"');
+          break;
+        //these are not implemented (some are es6, some are irrelevant)
+        case 'DirectiveStatement':
+        case 'ForOfStatement':
+        case 'LabeledStatement':
+        case 'WithStatement':
+          throw new Error('unsupported: "' + type + '"');
+          break;
+
+        //EXPRESSIONS
+        case 'Literal':
+          result = encodeLiteral(node.value);
+          break;
+        case 'Identifier':
+          result = encodeVar(node);
+          break;
+        case 'ThisExpression':
+          result = '$this_';
+          break;
+        case 'FunctionExpression':
+        case 'AssignmentExpression':
+        case 'CallExpression':
+        case 'MemberExpression':
+        case 'NewExpression':
+        case 'ArrayExpression':
+        case 'ObjectExpression':
+        case 'UnaryExpression':
+        case 'BinaryExpression':
+        case 'LogicalExpression':
+        case 'SequenceExpression':
+        case 'UpdateExpression':
+        case 'ConditionalExpression':
+          result = this[type](node);
+          break;
+        //these are not implemented (es6)
+        case 'ArrayPattern':
+        case 'ObjectPattern':
+        case 'Property':
+          throw new Error('unsupported: "' + type + '"');
+          break;
+
+        default:
+          throw new Error('unknown node type: "' + type + '"');
+      }
+
+      return result;
+    },
+
+    encodeProp: function(node) {
+      if (node.computed) {
+        //a[0] or a[b] or a[b + 1]
+        return this.generate(node.property);
+      } else {
+        //a.b
+        return encodeLiteral(node.property.name);
+      }
+    },
+
+    indent: function(count) {
+      var indentLevel = this.opts.indentLevel + (count || 0);
+      return repeat('  ', indentLevel);
     }
   };
-
-  function generate(node, opts) {
-    if (opts.indentLevel == null) {
-      opts.indentLevel = -1;
-    }
-    //we might get a null call `for (; i < l; i++) { ... }`
-    if (node == null) {
-      return '';
-    }
-    var type = node.type;
-    var result;
-    switch (type) {
-      //STATEMENTS
-      case 'Program':
-        result = gen.Body(node, opts);
-        break;
-      case 'ExpressionStatement':
-        result = generate(node.expression, opts) + ';\n';
-        break;
-      case 'ReturnStatement':
-        result = 'return ' + generate(node.argument, opts) + ';\n';
-        break;
-      case 'ContinueStatement':
-        result = 'continue;\n';
-        break;
-      case 'BreakStatement':
-        result = 'break;\n';
-        break;
-      case 'EmptyStatement':
-      case 'DebuggerStatement':
-      //this is handled at beginning of parent scope
-      case 'FunctionDeclaration':
-        result = '';
-        break;
-      case 'VariableDeclaration':
-      case 'IfStatement':
-      case 'SwitchStatement':
-      case 'ForStatement':
-      case 'ForInStatement':
-      case 'WhileStatement':
-      case 'DoWhileStatement':
-      case 'BlockStatement':
-      case 'TryStatement':
-      case 'ThrowStatement':
-        result = gen[type](node, opts);
-        break;
-      //these should never be encountered here because they are handled elsewhere
-      case 'SwitchCase':
-      case 'CatchClause':
-        throw new Error('should never encounter: "' + type + '"');
-        break;
-      //these are not implemented (some are es6, some are irrelevant)
-      case 'DirectiveStatement':
-      case 'ForOfStatement':
-      case 'LabeledStatement':
-      case 'WithStatement':
-        throw new Error('unsupported: "' + type + '"');
-        break;
-
-      //EXPRESSIONS
-      case 'Literal':
-        result = encodeLiteral(node.value, opts);
-        break;
-      case 'Identifier':
-        result = encodeVar(node);
-        break;
-      case 'ThisExpression':
-        result = '$this_';
-        break;
-      case 'FunctionExpression':
-      case 'AssignmentExpression':
-      case 'CallExpression':
-      case 'MemberExpression':
-      case 'NewExpression':
-      case 'ArrayExpression':
-      case 'ObjectExpression':
-      case 'UnaryExpression':
-      case 'BinaryExpression':
-      case 'LogicalExpression':
-      case 'SequenceExpression':
-      case 'UpdateExpression':
-      case 'ConditionalExpression':
-        result = gen[type](node, opts);
-        break;
-      //these are not implemented (es6?)
-      case 'ArrayPattern':
-      case 'ObjectPattern':
-      case 'Property':
-        throw new Error('unsupported: "' + type + '"');
-        break;
-
-      default:
-        throw new Error('unknown node type: "' + type + '"');
-    }
-
-    return result;
-  }
 
 
   function encodeLiteral(value) {
@@ -501,18 +524,8 @@
     return 'new RegExp(' + encodeString(source) + ', ' + encodeString(flags) + ')';
   }
 
-  function encodeString(string) {
-    return utils.encodeString(string);
-  }
-
-  function encodeProp(node, opts) {
-    if (node.computed) {
-      //a[0] or a[b] or a[b + 1]
-      return generate(node.property, opts);
-    } else {
-      //a.b
-      return encodeLiteral(node.property.name);
-    }
+  function encodeString(value) {
+    return utils.encodeString(value);
   }
 
   function encodeVar(identifier) {
@@ -539,16 +552,12 @@
     return encodeURI(ch).replace(/%(..)/g, '«$1»').toLowerCase();
   }
 
-  function indent(count) {
-    return repeat('  ', count);
-  }
-
   function repeat(str, count) {
     return new Array(count + 1).join(str);
   }
 
   exports.generate = function(ast, opts) {
-    opts = Object.create(opts || {});
-    return generate(ast, opts);
+    var generator = new Generator(opts);
+    return generator.generate(ast);
   };
 })();

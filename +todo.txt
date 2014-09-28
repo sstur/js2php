@@ -1,6 +1,5 @@
 operators: unary_plus, bitwise, ...
 Error::create() should record stack trace
-codegen -> class
 `to_number('x') + 1` should be NaN
 demo: form post
 get/setters should have property descriptors
