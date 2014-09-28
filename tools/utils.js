@@ -6,7 +6,6 @@
 
   // table of character substitutions
   var meta = {
-    '\b': '\\x08',
     '\t': '\\t',
     '\n': '\\n',
     '\f': '\\f',
@@ -16,11 +15,15 @@
     '\\': '\\\\'
   };
 
+  function pad(s) {
+    return (s.length < 2) ? '0' + s : s;
+  }
+
   function encodeString(string) {
-    string = string.replace(/[\\"\$\x00-\x1f]/g, function(ch) {
-      return (ch in meta) ? meta[ch] : '\\x' + ('0' + ch.charCodeAt(0).toString(16)).slice(-2);
+    string = string.replace(/[\\"\$\x00-\x1F]/g, function(ch) {
+      return (ch in meta) ? meta[ch] : '\\x' + pad(ch.charCodeAt(0).toString(16).toUpperCase());
     });
-    string = string.replace(/[\x7f-\xff\u0100-\uffff]/g, function(ch) {
+    string = string.replace(/[\x7F-\xFF\u0100-\uFFFF]/g, function(ch) {
       return encodeURI(ch).split('%').join('\\x');
     });
     return '"' + string + '"';

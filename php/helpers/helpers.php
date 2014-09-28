@@ -75,7 +75,7 @@ function to_number($value) {
     return to_number(to_primitive($value));
   }
   //trim whitespace
-  $value = preg_replace('/^[\\t\\x0B\\f \\xA0\\r\\n]+|[\\t\\x0B\\f \\xA0\\r\\n]+$/', '', $value);
+  $value = preg_replace('/^[\s\x0B\xA0]+|[\s\x0B\​xA0]+$/u', '', $value);
   if ($value === '') {
     return 0.0;
   }

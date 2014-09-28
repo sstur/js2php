@@ -2,7 +2,7 @@ operators: unary_plus, bitwise, ...
 Error::create() should record stack trace
 Globals: RangeError, ReferenceError, SyntaxError, TypeError
 codegen -> class
-add /u flag to all preg?
+`to_number('x') + 1` should be NaN
 demo: form post
 get/setters should have property descriptors
   Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}
@@ -18,7 +18,7 @@ build tool:
       $GLOBALS['files_'] = array('path/file1.js', ...)
       $GLOBALS['source_'] = array('var a = 1;', ...)
     line number, source start/end offsets
-    def is a best-guess name: a.b = function() {}
+    def: best-guess name: a.b = function() {}
 
 test:
   encodeURI/decodeURI, escape/unescape
@@ -31,45 +31,31 @@ Optimizations:
   `a + b + c` => `x_plus($a, $b, $c)`
   `a + 'b'` => `to_string($a) . "b"`
 
-`to_number('x') + 1` should be NaN
-
-String.prototype
-  concat, indexOf, lastIndexOf, localeCompare, match, replace, search, split, substr, substring
-  toLowerCase, toUpperCase, toLocaleLowerCase, toLocaleUpperCase
-  trim, trimLeft, trimRight
-
 Number
   NaN, MAX_VALUE, MIN_VALUE, NEGATIVE_INFINITY, POSITIVE_INFINITY
   MAX_SAFE_INTEGER, MIN_SAFE_INTEGER, EPSILON
   isFinite, isNaN, isInteger, isSafeInteger
 
 
-preg_replace($pattern, $replacement, $subject, $limit)
-  $limit -> 1 or -1 (all)
-  $& -> $0
-  \ -> \\
-
 Globals:
   isFinite
   RangeError, ReferenceError, SyntaxError, TypeError
 
-String:
-  indexOf, lastIndexOf
+String.prototype
+  concat, lastIndexOf, localeCompare, match, search
+  toLowerCase, toUpperCase, toLocaleLowerCase, toLocaleUpperCase
 
-Array:
+Array.prototype
   concat, splice, lastIndexOf
 
-Object:
+Object
   getPrototypeOf, setPrototypeOf
   preventExtensions, isExtensible, seal, isSealed, freeze, isFrozen
 
-Date:
+Date.prototype
   getDate, getDay, getFullYear, getHours, getMilliseconds, getMinutes, getMonth, getSeconds
   getUTCDate, getUTCDay, getUTCFullYear, getUTCHours, getUTCMilliseconds, getUTCMinutes, getUTCMonth, getUTCSeconds
   setDate, setFullYear, setHours, setMilliseconds, setMinutes, setMonth, setSeconds
   setUTCDate, setUTCFullYear, setUTCHours, setUTCMilliseconds, setUTCMinutes, setUTCMonth, setUTCSeconds
   getTimezoneOffset, getTime, getYear, setTime, setYear
   toDateString, toGMTString, toISOString, toLocaleDateString, toLocaleString, toLocaleTimeString, toTimeString, toUTCString
-
-Devserver:
-  use process.cwd() as root

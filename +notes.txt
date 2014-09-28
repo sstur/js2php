@@ -24,6 +24,12 @@ Shorthand:
   can call functions: $func->call($context, $arg1)
   can call methods: $thing->callMethod('foo', $arg1)
 
+Double Quoted Strings:
+  \n \r \t \\ \$ \"
+  \000 or \x00
+  Since 5.2.5: \v = \x0B, \f = \x0C
+  Since 5.4: \e = \x1B
+
 Array -> Arr
 Boolean -> Bln
 Buffer

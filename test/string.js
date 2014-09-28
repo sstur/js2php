@@ -56,7 +56,10 @@ testSuite('strings', function(assert) {
   });
 
   testSuite('trim', function() {
-    //todo
+    var s = ' \f\n\r\t\v\xA0abc\xA0\v\t\r\n\f ';
+    assert('whitespace before and after', s.trim() === 'abc');
+    s = ' \f\n\r\t\v\xA0';
+    assert('all whitespace', s.trim() === '');
   });
 
   testSuite('replace', function() {

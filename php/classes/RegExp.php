@@ -61,6 +61,9 @@ class RegExp extends Object {
   }
 
   /**
+   * Note: JS RegExp has different character classes than PCRE. For instance
+   *   in JS `\w` is [ \f\n\r\t\v​\xA0] (and a bunch of unicode spaces) but
+   *   in PCRE it's only [ \f\n\r\t]
    * @param bool $pcre - whether to write pcre format. pcre does not allow /g
    *  flag but does support the non-standard /u flag for utf8
    * @return string
@@ -71,7 +74,7 @@ class RegExp extends Object {
     if ($this->ignoreCaseFlag) {
       $flags .= 'i';
     }
-    //pcre doesn't support the global flag, so by default we don't write this
+    //pcre doesn't support the global flag
     if (!$pcre && $this->globalFlag) {
       $flags .= 'g';
     }
@@ -83,6 +86,17 @@ class RegExp extends Object {
       $flags .= 'm';
     }
     return '/' . str_replace('/', '\\/', $source) . '/' . $flags;
+  }
+
+  /**
+   * Format replacement string for preg_replace
+   * @param string $str
+   * @return string
+   */
+  static function toReplacementString($str) {
+    $str = str_replace('\\', '\\\\', $str);
+    $str = str_replace('$&', '$0', $str);
+    return $str;
   }
 
   /**

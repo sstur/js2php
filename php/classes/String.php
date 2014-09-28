@@ -158,7 +158,9 @@ Str::$protoMethods = array(
       return mb_substr($this_->value, $start, $end - $start);
     },
   'trim' => function($this_, $arguments) {
-      return trim($this_->value);
+      //todo: unicode [\u1680​\u180e\u2000​\u2001\u2002​\u2003\u2004​\u2005\u2006​\u2007\u2008​\u2009\u200a​\u2028\u2029​​\u202f\u205f​\u3000]
+      //note: trim doesn't work here because \xA0 is a multibyte character in utf8
+      return preg_replace('/^[\s\x0B\xA0]+|[\s\x0B\​xA0]+$/u', '', $this_->value);
     },
   'replace' => function($this_, $arguments, $search, $replace) {
       $str = $this_->value;
@@ -209,6 +211,7 @@ Str::$protoMethods = array(
       }
       $replace = to_string($replace);
       if ($isRegEx) {
+        $replace = RegExp::toReplacementString($replace);
         return preg_replace($search, $replace, $str, $limit);
       } else {
         $parts = explode($search, $str);
