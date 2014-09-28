@@ -70,7 +70,19 @@ Str::$protoMethods = array(
       return (float)$code;
     },
   'indexOf' => function($this_, $arguments, $search, $offset = 0) {
-      return (float)mb_strpos($this_->value, $search, $offset);
+      $index = mb_strpos($this_->value, $search, $offset);
+      return ($index === false) ? -1.0 : (float)$index;
+    },
+  'lastIndexOf' => function($this_, $arguments, $search, $offset = null) {
+      $str = $this_->value;
+      if ($offset !== null) {
+        $offset = to_number($offset);
+        if ($offset > 0 && $offset < $this_->length) {
+          $str = mb_substr($str, 0, $offset + 1);
+        }
+      }
+      $index = mb_strrpos($str, $search);
+      return ($index === false) ? -1.0 : (float)$index;
     },
   'split' => function($this_, $arguments, $delim) {
       $str = $this_->value;

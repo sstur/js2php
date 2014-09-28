@@ -29,7 +29,7 @@ Optimizations:
   `a + 'b'` => `to_string($a) . "b"`
 
 String.prototype
-  concat, lastIndexOf, match, search
+  concat, match, search
   toLowerCase, toUpperCase, toLocaleLowerCase, toLocaleUpperCase
 
 Array.prototype

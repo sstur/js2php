@@ -51,8 +51,18 @@ testSuite('strings', function(assert) {
     var s = 'abcdabCd';
     assert('at start', s.indexOf('ab') === 0);
     assert('in mid', s.indexOf('cd') === 2);
+    assert('not found', s.indexOf('x') === -1);
     assert('use offset', s.indexOf('ab', 1) === 4);
     assert('case sensitive', s.indexOf('Cd') === 6);
+  });
+
+
+  testSuite('lastIndexOf', function() {
+    var s = 'abcdabCd';
+    assert('finds last', s.lastIndexOf('ab') === 4);
+    assert('not found', s.lastIndexOf('x') === -1);
+    assert('use offset', s.lastIndexOf('ab', 4) === 0);
+    assert('case sensitive', s.lastIndexOf('cd') === 2);
   });
 
   testSuite('trim', function() {
