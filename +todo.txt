@@ -30,7 +30,6 @@ Optimizations:
 
 String.prototype
   concat, match, search
-  toLowerCase, toUpperCase, toLocaleLowerCase, toLocaleUpperCase
 
 Array.prototype
   splice, concat, reverse, filter, some, every, map, reduce, reduceRight

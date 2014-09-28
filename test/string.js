@@ -72,6 +72,16 @@ testSuite('strings', function(assert) {
     assert('all whitespace', s.trim() === '');
   });
 
+  testSuite('toLowerCase', function() {
+    assert('works on ascii and unicode', 'stÜüR '.toLowerCase() === 'stüür ');
+    assert('does not change empty string', ''.toLowerCase() === '');
+  });
+
+  testSuite('toUpperCase', function() {
+    assert('works on ascii and unicode', 'stÜüR '.toUpperCase() === 'STÜÜR ');
+    assert('does not change empty string', ''.toUpperCase() === '');
+  });
+
   testSuite('replace', function() {
     var s = 'abcdabCd';
     assert('at start', s.replace('ab', '__') === '__cdabCd');

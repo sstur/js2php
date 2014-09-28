@@ -231,6 +231,18 @@ Str::$protoMethods = array(
         return $first . $replace . implode($search, $parts);
       }
     },
+  'toLowerCase' => function($this_, $arguments) {
+      return mb_strtolower($this_->value);
+    },
+  'toLocaleLowerCase' => function($this_, $arguments) {
+      return mb_strtolower($this_->value);
+    },
+  'toUpperCase' => function($this_, $arguments) {
+      return mb_strtoupper($this_->value);
+    },
+  'toLocaleUpperCase' => function($this_, $arguments) {
+      return mb_strtoupper($this_->value);
+    },
   'localeCompare' => function($this_, $arguments, $compareTo) {
       return (float)strcmp($this_->value, to_string($compareTo));
     },
