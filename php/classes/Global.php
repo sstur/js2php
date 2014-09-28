@@ -20,11 +20,6 @@ class GlobalObject extends Object {
     }
     $key = preg_replace('/_$/', '__', $key);
     $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
-    if (array_key_exists($key, self::$GLOBALS)) {
-      if (!self::isValidType(self::$GLOBALS[$key])) {
-        return $value;
-      }
-    }
     return (self::$GLOBALS[$key] = $value);
   }
 
@@ -32,7 +27,7 @@ class GlobalObject extends Object {
     $key = preg_replace('/_$/', '__', $key);
     $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
     $value = array_key_exists($key, self::$GLOBALS) ? self::$GLOBALS[$key] : null;
-    return (self::isValidType($value)) ? $value : null;
+    return $value;
   }
 
   function remove($key) {
@@ -43,9 +38,7 @@ class GlobalObject extends Object {
     $key = preg_replace('/_$/', '__', $key);
     $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
     if (array_key_exists($key, self::$GLOBALS)) {
-      if (self::isValidType(self::$GLOBALS[$key])) {
-        unset(self::$GLOBALS[$key]);
-      }
+      unset(self::$GLOBALS[$key]);
     }
     return true;
   }
@@ -54,12 +47,7 @@ class GlobalObject extends Object {
   function hasOwnProperty($key) {
     $key = preg_replace('/_$/', '__', $key);
     $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
-    if (array_key_exists($key, self::$GLOBALS)) {
-      if (self::isValidType(self::$GLOBALS[$key])) {
-        return true;
-      }
-    }
-    return false;
+    return array_key_exists($key, self::$GLOBALS);
   }
 
   //determine if a valid value exists at the given key (walk proto)
@@ -67,9 +55,7 @@ class GlobalObject extends Object {
     $key = preg_replace('/_$/', '__', $key);
     $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
     if (array_key_exists($key, self::$GLOBALS)) {
-      if (self::isValidType(self::$GLOBALS[$key])) {
-        return true;
-      }
+      return true;
     }
     $proto = $this->proto;
     if ($proto instanceof Object) {
@@ -85,9 +71,7 @@ class GlobalObject extends Object {
       if (!preg_match('/[^_]_$/', $key)) {
         $key = preg_replace('/__$/', '_', $key);
         $key = preg_replace_callback('/«([a-z0-9]+)»/', 'self::decodeChar', $key);
-        if (self::isValidType($value)) {
-          $arr[] = $key;
-        }
+        $arr[] = $key;
       }
     }
     return $arr;
@@ -99,9 +83,7 @@ class GlobalObject extends Object {
       if (!preg_match('/[^_]_$/', $key)) {
         $key = preg_replace('/__$/', '_', $key);
         $key = preg_replace_callback('/«([a-z0-9]+)»/', 'self::decodeChar', $key);
-        if (self::isValidType($value)) {
-          $arr[] = $key;
-        }
+        $arr[] = $key;
       }
     }
     $proto = $this->proto;
@@ -109,20 +91,6 @@ class GlobalObject extends Object {
       $proto->getKeys($arr);
     }
     return $arr;
-  }
-
-  static function isValidType($value) {
-    if ($value === null || $value === Null::$null || $value === NaN::$nan) {
-      return true;
-    }
-    if ($value instanceof Object) {
-      return true;
-    }
-    $type = gettype($value);
-    if ($type === 'string' || $type === 'boolean' || $type === 'double') {
-      return true;
-    }
-    return false;
   }
 
   static function encodeChar($matches) {
