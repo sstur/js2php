@@ -1,6 +1,26 @@
 <?php
 
 /**
+ * Determine if a value is "truthy" which is anything besides: null,
+ *   undefined, false, empty string, zero or NaN
+ *   Used in `if`, `for`, `while`, ternary and logical operators
+ * @param $x
+ * @return bool
+ */
+function is($x) {
+  return $x !== false && $x !== 0 && $x !== '' && $x !== null && $x !== Null::$null && !is_nan($x);
+}
+
+/**
+ * Determine if a value is "falsy". Just the opposite of `is()`
+ * @param $x
+ * @return bool
+ */
+function not($x) {
+  return $x === false || $x === 0 || $x === '' || $x === null || $x === Null::$null || is_nan($x);
+}
+
+/**
  * Used in `for..in` to get keys (including up the proto chain)
  * @param $obj
  * @param array $arr

@@ -1,5 +1,5 @@
 <?php
-class NaN extends SimpleXmlElement {
+class NaN {
   static $nan = null;
 }
-NaN::$nan = new NaN('<false/>');
+NaN::$nan = new NaN();

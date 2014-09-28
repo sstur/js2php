@@ -1,5 +1,5 @@
 <?php
-class Null extends SimpleXmlElement {
+class Null {
   static $null = null;
 }
-Null::$null = new Null('<false/>');
+Null::$null = new Null();

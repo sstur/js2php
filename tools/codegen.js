@@ -107,9 +107,9 @@
     },
 
     'IfStatement': function(node) {
-      var results = ['if ('];
+      var results = ['if (is('];
       results.push(this.generate(node.test));
-      results.push(') {\n');
+      results.push(')) {\n');
       results.push(this.toBlock(node.consequent));
       results.push(this.indent() + '}');
       if (node.alternate) {
@@ -150,13 +150,13 @@
     },
 
     'ConditionalExpression': function(node) {
-      return this.generate(node.test) + ' ? ' + this.generate(node.consequent) + ' : ' + this.generate(node.alternate);
+      return 'is(' + this.generate(node.test) + ') ? ' + this.generate(node.consequent) + ' : ' + this.generate(node.alternate);
     },
 
     'ForStatement': function(node) {
       var results = ['for ('];
       results.push(this.generate(node.init) + '; ');
-      results.push(this.generate(node.test) + '; ');
+      results.push('is(' + this.generate(node.test) + '); ');
       results.push(this.generate(node.update));
       results.push(') {\n');
       results.push(this.toBlock(node.body));
@@ -182,9 +182,9 @@
     },
 
     'WhileStatement': function(node) {
-      var results = ['while ('];
+      var results = ['while (is('];
       results.push(this.generate(node.test));
-      results.push(') {\n');
+      results.push(')) {\n');
       results.push(this.toBlock(node.body));
       results.push(this.indent() + '}');
       return results.join('') + '\n';
@@ -193,7 +193,7 @@
     'DoWhileStatement': function(node) {
       var results = ['do {\n'];
       results.push(this.toBlock(node.body));
-      results.push(this.indent() + '} while (' + this.generate(node.test) + ');');
+      results.push(this.indent() + '} while (is(' + this.generate(node.test) + '));');
       return results.join('') + '\n';
     },
 
@@ -322,7 +322,7 @@
       var opts = this.opts;
       opts.andDepth = (opts.andDepth == null) ? 0 : opts.andDepth + 1;
       var name = (opts.andDepth === 0) ? '$and_' : '$and' + opts.andDepth + '_';
-      var result = '((' + name + ' = ' + this.generate(node.left) + ') ? ' + this.generate(node.right) + ' : ' + name + ')';
+      var result = '(is(' + name + ' = ' + this.generate(node.left) + ') ? ' + this.generate(node.right) + ' : ' + name + ')';
       opts.andDepth = (opts.andDepth === 0) ? null : opts.andDepth - 1;
       return result;
     },
@@ -331,7 +331,7 @@
       var opts = this.opts;
       opts.orDepth = (opts.orDepth == null) ? 0 : opts.orDepth + 1;
       var name = (opts.orDepth === 0) ? '$or_' : '$or' + opts.orDepth + '_';
-      var result = '((' + name + ' = ' + this.generate(node.left) + ') ? ' + name + ' : ' + this.generate(node.right) + ')';
+      var result = '(is(' + name + ' = ' + this.generate(node.left) + ') ? ' + name + ' : ' + this.generate(node.right) + ')';
       opts.orDepth = (opts.orDepth === 0) ? null : opts.orDepth - 1;
       return result;
     },
@@ -361,6 +361,9 @@
 
     'UnaryExpression': function(node) {
       var op = node.operator;
+      if (op === '!') {
+        return 'not(' + this.generate(node.argument) + ')';
+      }
       var name = 'u:' + op;
       if (name in OPERATOR_MAP) {
         op = OPERATOR_MAP[name];

@@ -46,7 +46,7 @@ Test::suite(
   function() {
     Test::assert(
       'is falsy',
-      Null::$null ? false : true
+      is(Null::$null) ? false : true
     );
     Test::assert(
       'check typeof',
