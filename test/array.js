@@ -35,6 +35,34 @@ testSuite('array', function(assert) {
   });
 
 
+  testSuite('pop', function() {
+    var a = ['a', 'b', 'c'];
+    assert('can pop', a.pop() === 'c');
+    assert('has new length', a.length === 2);
+    assert('old index is empty', a[2] === undefined && !(2 in a));
+  });
+
+
+  testSuite('unshift', function() {
+    var a = ['a', 'b', 'c'];
+    assert('can unshift', a.unshift('x') === 4 && a.join('') === 'xabc');
+    assert('can unshift multiple', a.unshift('1', '2') === 6 && a.join('') === '12xabc');
+    a.length = 0;
+    assert('can unshift using apply', Array.prototype.unshift.apply(a, 'asdf'.split('')) === 4 && a.join('') === 'asdf');
+  });
+
+
+  testSuite('shift', function() {
+    var a = ['a', null,'c','d'];
+    delete a[1];
+    assert('hole present in array', (1 in a) === false);
+    assert('can shift', a.shift() === 'a');
+    assert('has new length', a.length === 3);
+    assert('old last element is empty', a[3] === undefined && !(3 in a));
+    assert('hole present at new location', (0 in a) === false);
+  });
+
+
   testSuite('slice', function() {
     var a = 'abcdefghi'.split('');
     assert('length', a.length === 9);

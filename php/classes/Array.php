@@ -35,6 +35,49 @@ class Arr extends Object {
     return ($this->length = $i);
   }
 
+  function shift() {
+    $el = $this->get(0);
+    //shift all elements
+    $data = $this->data;
+    $len = $this->length;
+    for ($pos = 1; $pos < $len; $pos ++) {
+      $newPos = $pos - 1;
+      if (property_exists($data, $pos)) {
+        $data->{$newPos} = $data->{$pos};
+      } else if (property_exists($data, $newPos)) {
+        unset($data->{$newPos});
+      }
+    }
+    //remove what was previously the last element
+    unset($data->{$len - 1});
+    $this->length = $len - 1;
+    return $el;
+  }
+
+  function unshift($value) {
+    $len = $this->length;
+    $num = func_num_args();
+    //shift all elements
+    $data = $this->data;
+    $pos = $len;
+    while ($pos--) {
+      $newPos = $pos + $num;
+      if (property_exists($data, $pos)) {
+        $data->{$newPos} = $data->{$pos};
+        unset($data->{$pos});
+      } else if (property_exists($data, $newPos)) {
+        unset($data->{$newPos});
+      }
+    }
+    $this->length = $len + $num;
+    //add new element(s)
+    foreach (func_get_args() as $i => $value) {
+      $this->set($i, $value);
+    }
+    //we don't need to return a float here because this is an internal method
+    return $this->length;
+  }
+
   static function checkInt($s) {
     if (is_int($s) && $s >= 0) return (float)$s;
     $s = to_string($s);
@@ -106,10 +149,10 @@ Arr::$classMethods = array(
     }
 );
 
-// shift, unshift, splice, concat, reverse, filter, some, every, map, reduce, reduceRight
+// splice, concat, reverse, filter, some, every, map, reduce, reduceRight
 Arr::$protoMethods = array(
   'push' => function($this_, $arguments, $value) {
-      //this is a special case, we have a low-level method
+      //for this we have a low-level method
       $length = call_user_func_array(array($this_, 'push'), $arguments->args);
       return (float)$length;
     },
@@ -119,6 +162,15 @@ Arr::$protoMethods = array(
       $this_->remove($i);
       $this_->length = $i;
       return $result;
+    },
+  'unshift' => function($this_, $arguments, $value) {
+      //for this we have a low-level method
+      $length = call_user_func_array(array($this_, 'unshift'), $arguments->args);
+      return (float)$length;
+    },
+  'shift' => function($this_) {
+      //for this we have a low-level method
+      return $this_->shift();
     },
   'join' => function($this_, $arguments, $str = ',') {
       $results = array();
