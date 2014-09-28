@@ -32,8 +32,6 @@ Optimizations:
 Number
   NaN, MAX_VALUE, MIN_VALUE, NEGATIVE_INFINITY, POSITIVE_INFINITY
   MAX_SAFE_INTEGER, MIN_SAFE_INTEGER, EPSILON
-  isFinite, isNaN, isInteger, isSafeInteger
-
 
 String.prototype
   concat, lastIndexOf, localeCompare, match, search

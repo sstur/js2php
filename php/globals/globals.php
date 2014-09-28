@@ -67,12 +67,7 @@ $decodeURIComponent = new Func(function($global, $arguments, $str) {
   return urldecode($str);
 });
 
-$isNaN = new Func(function($global, $arguments, $value) {
-  return (to_number($value) === NaN::$nan);
-});
-
+$isNaN = $Number->get('isNaN');
 $isFinite = $Number->get('isFinite');
-
 $parseInt = $Number->get('parseInt');
-
 $parseFloat = $Number->get('parseFloat');

@@ -102,6 +102,9 @@ Number::$classMethods = array(
         return (float)($m[0] * $sign);
       }
       return NaN::$nan;
+    },
+  'isNaN' => function($global, $arguments, $value) {
+      return (to_number($value) === NaN::$nan);
     }
 );
 
