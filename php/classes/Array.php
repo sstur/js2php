@@ -183,7 +183,7 @@ Arr::$protoMethods = array(
       $len = $this_->length;
       for ($i = 0; $i < $len; $i++) {
         $value = $this_->get($i);
-        $results[] = ($value === null || $value === Null::$null) ? '' : to_string($value);
+        $results[] = ($value === null || $value === Object::$null) ? '' : to_string($value);
       }
       return join(to_string($str), $results);
     },

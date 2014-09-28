@@ -3,7 +3,7 @@ $JSON = call_user_func(function() {
 
   $decode = function($value) use (&$decode) {
     if ($value === null) {
-      return Null::$null;
+      return Object::$null;
     }
     $type = gettype($value);
     if ($type === 'integer') {
@@ -34,7 +34,7 @@ $JSON = call_user_func(function() {
     if ($value === null) {
       return $inArray ? 'null' : $value;
     }
-    if ($value === Null::$null || $value === INF || $value === -INF) {
+    if ($value === Object::$null || $value === INF || $value === -INF) {
       return 'null';
     }
     $type = gettype($value);

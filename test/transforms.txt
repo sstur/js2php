@@ -140,7 +140,7 @@ $f = new Func("f", function($this_, $arguments) {
 ----
 a = {a: 1, undefined: undefined, null: null};
 ====
-$a = new Object("a", 1.0, "undefined", $undefined, "null", Null::$null);
+$a = new Object("a", 1.0, "undefined", $undefined, "null", Object::$null);
 
 ----
 undefined = 1;
@@ -168,7 +168,7 @@ $«24» = new Func("\$", function($this_, $arguments) {
 ----
 var a = [1, false, null, undefined, new Date(), a];
 ====
-$a = new Arr(1.0, false, Null::$null, $undefined, x_new($Date), $a);
+$a = new Arr(1.0, false, Object::$null, $undefined, x_new($Date), $a);
 
 ----
 var a = function a() {

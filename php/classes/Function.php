@@ -29,8 +29,8 @@ class Func extends Object {
     $prototype = new Object();
     $prototype->setProperty('constructor', $this, true, false, true);
     $this->setProperty('prototype', $prototype, true, false, true);
-    $this->setProperty('arguments', Null::$null, true, false, true);
-    $this->setProperty('caller', Null::$null, true, false, true);
+    $this->setProperty('arguments', Object::$null, true, false, true);
+    $this->setProperty('caller', Object::$null, true, false, true);
   }
 
   function construct() {
@@ -54,7 +54,7 @@ class Func extends Object {
     if ($this->bound !== null) {
       $context = $this->bound;
     }
-    if ($context === null || $context === Null::$null) {
+    if ($context === null || $context === Object::$null) {
       $context = Object::$global;
     } else
     //primitives (boolean, number, string) should be wrapped in object
@@ -74,8 +74,8 @@ class Func extends Object {
     $this->set('caller', $caller);
     $this->set('arguments', $arguments);
     $result = call_user_func_array($this->fn, $args);
-    $this->set('arguments', Null::$null);
-    $this->set('caller', Null::$null);
+    $this->set('arguments', Object::$null);
+    $this->set('caller', Object::$null);
     array_pop(self::$callStack);
     return $result;
   }

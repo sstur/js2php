@@ -2,7 +2,7 @@
 call(new Func(function($this_, $arguments) use (&$Array, &$Error, &$Object, &$String, &$Function) {
   $toObject = null;
   $toObject = new Func("toObject", function($this_, $arguments, $o) use (&$Error, &$Object) {
-    if ($o == Null::$null) {
+    if ($o == Object::$null) {
       throw new Ex(x_new($Error, x_plus(x_plus("can't convert ", $o), " to object")));
     }
     return call($Object, $o);

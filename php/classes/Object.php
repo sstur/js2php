@@ -7,6 +7,7 @@ class Object {
   static $protoObject = null;
   static $classMethods = null;
   static $protoMethods = null;
+  static $null = null;
 
   /**
    * holds the "global" object (on which all global variables exist as properties)
@@ -40,7 +41,7 @@ class Object {
       return $this->{'get_' . $key}();
     }
     $obj = $this;
-    while ($obj !== Null::$null) {
+    while ($obj !== Object::$null) {
       $data = $obj->data;
       if (property_exists($data, $key)) {
         return $data->{$key}->value;
@@ -184,7 +185,7 @@ class Object {
     $Object = new Func(function($this_, $arguments, $value = null) {
       if ($arguments->length === 0) {
         return new Object();
-      } else if ($value === null || $value === Null::$null) {
+      } else if ($value === null || $value === Object::$null) {
         return new Object();
       } else {
         return objectify($value);
@@ -225,7 +226,7 @@ class Property {
 Object::$classMethods = array(
   //todo: getPrototypeOf, seal, freeze, preventExtensions, isSealed, isFrozen, isExtensible
   'create' => function($this_, $arguments, $proto) {
-      if (!($proto instanceof Object) && $proto !== Null::$null) {
+      if (!($proto instanceof Object) && $proto !== Object::$null) {
         throw new Ex(Error::create('Object prototype may only be an Object or null'));
       }
       $obj = new Object();
@@ -294,6 +295,7 @@ Object::$protoMethods = array(
     }
 );
 
+Object::$null = new StdClass();
 //the methods are not set on Object.prototype until *after* Func class is defined
 Object::$protoObject = new Object();
-Object::$protoObject->proto = Null::$null;
+Object::$protoObject->proto = Object::$null;

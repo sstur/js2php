@@ -31,7 +31,7 @@ function x_instanceof($obj, $fn) {
   }
   $proto = $obj->proto;
   $prototype = get($fn, 'prototype');
-  while ($proto !== Null::$null) {
+  while ($proto !== Object::$null) {
     if ($proto === $prototype) {
       return true;
     }
@@ -72,7 +72,7 @@ function x_delete($obj, $key = null) {
   if (func_num_args() === 1) {
     return false;
   }
-  if ($obj === null || $obj === Null::$null) {
+  if ($obj === null || $obj === Object::$null) {
     throw new Ex(Error::create("Cannot convert undefined or null to object"));
   }
   $obj = objectify($obj);
@@ -98,7 +98,7 @@ function x_typeof($value) {
     return 'undefined';
   }
   //js weirdness
-  if ($value === Null::$null) {
+  if ($value === Object::$null) {
     return 'object';
   }
   $type = gettype($value);

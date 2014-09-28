@@ -6,7 +6,6 @@ error_reporting(E_ALL);
 require_once('php/helpers/operators.php');
 require_once('php/helpers/helpers.php');
 
-require_once('php/classes/Null.php');
 require_once('php/classes/Object.php');
 require_once('php/classes/Function.php');
 require_once('php/classes/Global.php');
@@ -45,15 +44,15 @@ Test::suite(
   function() {
     Test::assert(
       'is falsy',
-      is(Null::$null) ? false : true
+      is(Object::$null) ? false : true
     );
     Test::assert(
       'check typeof',
-      x_typeof(Null::$null) === 'object'
+      x_typeof(Object::$null) === 'object'
     );
     Test::assert(
       'check to_string',
-      to_string(Null::$null) === 'null'
+      to_string(Object::$null) === 'null'
     );
   }
 );
@@ -99,7 +98,7 @@ Test::suite(
     );
     Test::assert(
       '__proto__ is null',
-      Object::$protoObject->proto === Null::$null
+      Object::$protoObject->proto === Object::$null
     );
     Test::assert(
       'check toString',

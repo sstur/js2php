@@ -122,7 +122,7 @@ RegExp::$protoMethods = array(
       $str = to_string($str);
       $result = preg_match($this_->toString(true), $str, $matches);
       if ($result === false) {
-        return Null::$null;
+        return Object::$null;
       }
       $this_->set('lastIndex', (float)($result + strlen($matches[0])));
       $arr = new Arr();

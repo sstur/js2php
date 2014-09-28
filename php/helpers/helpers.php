@@ -8,7 +8,7 @@
  * @return bool
  */
 function is($x) {
-  return $x !== false && $x !== 0 && $x !== '' && $x !== null && $x !== Null::$null && !is_nan($x);
+  return $x !== false && $x !== 0 && $x !== '' && $x !== null && $x !== Object::$null && !is_nan($x);
 }
 
 /**
@@ -17,7 +17,7 @@ function is($x) {
  * @return bool
  */
 function not($x) {
-  return $x === false || $x === 0 || $x === '' || $x === null || $x === Null::$null || is_nan($x);
+  return $x === false || $x === 0 || $x === '' || $x === null || $x === Object::$null || is_nan($x);
 }
 
 /**
@@ -34,7 +34,7 @@ function keys($obj, &$arr = array()) {
 }
 
 function is_primitive($value) {
-  return ($value === null || $value === Null::$null || is_scalar($value));
+  return ($value === null || $value === Object::$null || is_scalar($value));
 }
 
 function is_int_or_float($value) {
@@ -45,7 +45,7 @@ function to_string($value) {
   if ($value === null) {
     return 'undefined';
   }
-  if ($value === Null::$null) {
+  if ($value === Object::$null) {
     return 'null';
   }
   $type = gettype($value);
@@ -76,7 +76,7 @@ function to_number($value) {
   if ($value === null) {
     return NAN;
   }
-  if ($value === Null::$null) {
+  if ($value === Object::$null) {
     return 0.0;
   }
   if (is_int_or_float($value)) {
@@ -152,7 +152,7 @@ function objectify($value) {
  * @throws Exception
  */
 function get($obj, $name) {
-  if ($obj === null || $obj === Null::$null) {
+  if ($obj === null || $obj === Object::$null) {
     throw new Ex(Error::create("Cannot read property '" . $name . "' of " . to_string($obj)));
   }
   $obj = objectify($obj);
@@ -171,7 +171,7 @@ function get($obj, $name) {
  * @throws Exception
  */
 function set($obj, $name, $value, $op = '=', $returnOld = false) {
-  if ($obj === null || $obj === Null::$null) {
+  if ($obj === null || $obj === Object::$null) {
     throw new Ex(Error::create("Cannot set property '" . $name . "' of " . to_string($obj)));
   }
   $obj = objectify($obj);
@@ -222,7 +222,7 @@ function call($fn) {
  * @throws Exception
  */
 function call_method($obj, $name) {
-  if ($obj === null || $obj === Null::$null) {
+  if ($obj === null || $obj === Object::$null) {
     throw new Ex(Error::create("Cannot read property '" . $name . "' of " . to_string($obj)));
   }
   $obj = objectify($obj);

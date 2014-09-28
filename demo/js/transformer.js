@@ -6655,7 +6655,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       return 'null';
     }
     if (type === 'null') {
-      return 'Null::$null';
+      return 'Object::$null';
     }
     if (type === 'string') {
       return encodeString(value);
