@@ -155,7 +155,7 @@ Arr::$classMethods = array(
     }
 );
 
-// splice, concat, reverse, filter, some, every, map, reduce, reduceRight
+// splice, reverse, filter, some, every, map, reduce, reduceRight
 Arr::$protoMethods = array(
   'push' => function($this_, $arguments, $value) {
       //for this we have a low-level method
@@ -264,6 +264,21 @@ Arr::$protoMethods = array(
         $this_->data->{$i} = $prop;
       }
       return $this_;
+    },
+  'concat' => function($this_, $arguments) {
+      $items = $this_->toArray();
+      foreach ($arguments->args as $item) {
+        if ($item instanceof Arr) {
+          foreach ($item->toArray() as $subitem) {
+            $items[] = $subitem;
+          }
+        } else {
+          $items[] = $item;
+        }
+      }
+      $arr = new Arr();
+      $arr->init($items);
+      return $arr;
     },
   'toString' => function($this_) {
       return $this_->callMethod('join');

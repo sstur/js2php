@@ -8,6 +8,7 @@ get/setters
   Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}
 
 build tool:
+  syntactic sugar: `if (a === b)` needs no truthy wrap
   specify --fragment as true/false flag
   debug mode: Func() gets extra param "meta"
     array('source' => 3, 'line' => 4, 'start' => 146, 'end' => 283, 'def' => 'a.b')
@@ -32,7 +33,7 @@ String.prototype
   concat, match, search
 
 Array.prototype
-  splice, concat, reverse, filter, some, every, map, reduce, reduceRight
+  splice, reverse, filter, some, every, map, reduce, reduceRight
 
 Object
   getPrototypeOf, setPrototypeOf
