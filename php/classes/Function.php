@@ -154,9 +154,6 @@ class Args extends Object {
   }
 }
 
-//set the methods on Object.prototype before we proceed
-Object::$protoObject->setMethods(Object::$protoMethods, true, false, true);
-
 Func::$classMethods = array();
 
 Func::$protoMethods = array(
@@ -174,12 +171,15 @@ Func::$protoMethods = array(
       $context = array_shift($args);
       return $this_->apply($context, $args);
     },
-  'apply' => function($this_, $arguments, $context, $args) {
-      if (!($args instanceof Args) && !($args instanceof Arr)) {
+  'apply' => function($this_, $arguments, $context, $args = null) {
+      if ($args === null) {
+        $args = array();
+      } else
+      if ($args instanceof Args || $args instanceof Arr) {
+        $args = $args->toArray();
+      } else {
         throw new Ex(Error::create('Function.prototype.apply: Arguments list has wrong type'));
       }
-      //convert Arr object to native array()
-      $args = $args->toArray();
       return $this_->apply($context, $args);
     },
   'toString' => function($this_) {
@@ -195,3 +195,6 @@ Func::$protoMethods = array(
 
 Func::$protoObject = new Object();
 Func::$protoObject->setMethods(Func::$protoMethods, true, false, true);
+
+//set the methods on Object.prototype before we proceed
+Object::$protoObject->setMethods(Object::$protoMethods, true, false, true);

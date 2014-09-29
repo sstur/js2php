@@ -1,6 +1,7 @@
 operators: unary_plus, bitwise, ...
 Error::create() should record stack trace
 `to_number('x') + 1` should be NaN
+remove "use strict"
 demo: form post
 get/setters
   'length' in []

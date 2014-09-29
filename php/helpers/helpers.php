@@ -8,7 +8,7 @@
  * @return bool
  */
 function is($x) {
-  return $x !== false && $x !== 0 && $x !== '' && $x !== null && $x !== Object::$null && !is_nan($x);
+  return $x !== false && $x !== 0 && $x !== '' && $x !== null && $x !== Object::$null && $x === $x /* NaN check */;
 }
 
 /**
@@ -17,7 +17,7 @@ function is($x) {
  * @return bool
  */
 function not($x) {
-  return $x === false || $x === 0 || $x === '' || $x === null || $x === Object::$null || is_nan($x);
+  return $x === false || $x === 0 || $x === '' || $x === null || $x === Object::$null || $x !== $x /* NaN check */;
 }
 
 /**
@@ -56,7 +56,7 @@ function to_string($value) {
     return $value ? 'true' : 'false';
   }
   if ($type === 'integer' || $type === 'double') {
-    if (is_nan($value)) return 'NaN';
+    if ($value !== $value) return 'NaN';
     if ($value === INF) return 'Infinity';
     if ($value === -INF) return '-Infinity';
     return $value . '';
@@ -80,7 +80,7 @@ function to_number($value) {
     return 0.0;
   }
   if (is_int_or_float($value)) {
-    return is_nan($value) ? NAN : (float)$value;
+    return ($value !== $value) ? NAN : (float)$value;
   }
   if (is_bool($value)) {
     return ($value ? 1.0 : 0.0);

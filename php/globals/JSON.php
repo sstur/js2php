@@ -42,7 +42,7 @@ $JSON = call_user_func(function() {
       return $value ? 'true' : 'false';
     }
     if ($type === 'integer' || $type === 'double') {
-      return is_nan($value) ? 'null' : $value . '';
+      return ($value !== $value) ? 'null' : $value . '';
     }
     if ($type === 'string') {
       return $escape($value);

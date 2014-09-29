@@ -84,7 +84,9 @@ testSuite('core', function(assert) {
     assert('function properties not enumerable', Object.keys(fn1).length === 0);
     assert('can call null', fn1.call(null) === global);
     assert('can call object', fn1.call(o) === o);
+    assert('can call object.prototype functions', Object.prototype.toString.call([]) === '[object Array]');
     assert('can apply object', fn1.apply(o, []) === o);
+    assert('can apply object without second param', fn1.apply(o) === o);
     var $fn1 = fn1.bind(o);
     assert('bind creates new function', $fn1 !== fn1);
     assert('bind works', $fn1.call(null) === o);
