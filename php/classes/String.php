@@ -40,7 +40,7 @@ class Str extends Object {
     $String->instantiate = function() {
       return new Str();
     };
-    $String->set('prototype', RegExp::$protoObject);
+    $String->set('prototype', Str::$protoObject);
     $String->setMethods(Str::$classMethods, true, false, true);
     return $String;
   }
