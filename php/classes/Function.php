@@ -3,14 +3,17 @@ class Func extends Object {
   public $name = "";
   public $className = "Function";
 
+  public $fn = null;
+  public $meta = null;
+  public $strict = null;
+  public $bound = null;
+  public $boundArgs = null;
   /**
    * Instantiate is an optional method that can be specified if calling `new` on
    * this function should instantiate a different `this` than `new Object()`
    * @var callable
    */
   public $instantiate = null;
-  public $bound = null;
-  public $boundArgs = null;
 
   static $protoObject = null;
   static $classMethods = null;
@@ -25,7 +28,8 @@ class Func extends Object {
       $this->name = array_shift($args);
     }
     $this->fn = array_shift($args);
-    $this->meta = (count($args) === 1) ? $args[0] : array();
+    $this->meta = isset($args[0]) ? $args[0] : array();
+    $this->strict = isset($this->meta['strict']);
     $prototype = new Object();
     $prototype->setProperty('constructor', $this, true, false, true);
     $this->setProperty('prototype', $prototype, true, false, true);
@@ -53,16 +57,17 @@ class Func extends Object {
   function apply($context, $args) {
     if ($this->bound !== null) {
       $context = $this->bound;
+      if ($this->boundArgs) {
+        $args = array_merge($this->boundArgs, $args);
+      }
     }
-    if ($context === null || $context === Object::$null) {
-      $context = Object::$global;
-    } else
-    //primitives (boolean, number, string) should be wrapped in object
-    if (!($context instanceof Object)) {
-      $context = objectify($context);
-    }
-    if ($this->boundArgs) {
-      $args = array_merge($this->boundArgs, $args);
+    if (!$this->strict) {
+      if ($context === null || $context === Object::$null) {
+        $context = Object::$global;
+      } else if (!($context instanceof Object)) {
+        //primitives (boolean, number, string) should be wrapped in object
+        $context = objectify($context);
+      }
     }
     $stackSize = count(self::$callStack);
     $caller = $stackSize > 0 ? self::$callStack[$stackSize - 1] : null;
@@ -184,10 +189,12 @@ Func::$protoMethods = array(
     },
   'toString' => function($this_) {
       $source = array_key_exists('source_', GlobalObject::$GLOBALS) ? GlobalObject::$GLOBALS['source_'] : null;
-      if ($source && $this_->source_id) {
+      if ($source) {
         $meta = $this_->meta;
-        $source = $source[$meta->id];
-        return substr($source, $meta->start, $meta->end - $meta->start + 1);
+        if (isset($meta['id']) && isset($source[$meta['id']])) {
+          $source = $source[$meta['id']];
+          return substr($source, $meta['start'], $meta['end'] - $meta['start'] + 1);
+        }
       }
       return 'function ' . $this_->name . '() { [native code] }';
     }

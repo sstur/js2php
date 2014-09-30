@@ -162,7 +162,9 @@ class Object {
    */
   function setMethods($methods, $writable = null, $enumerable = null, $configurable = null) {
     foreach ($methods as $key => $fn) {
-      $this->setProperty($key, new Func($fn), $writable, $enumerable, $configurable);
+      $func = new Func($fn);
+      $func->strict = true;
+      $this->setProperty($key, $func, $writable, $enumerable, $configurable);
     }
   }
 

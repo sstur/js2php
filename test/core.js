@@ -11,8 +11,8 @@ testSuite('core', function(assert) {
 
   testSuite('object', function() {
     var toString = Object.prototype.toString;
-    //assert('toString.call(null)', toString.call(null) === '[object Null]');
-    //assert('toString.call(undefined)', toString.call(undefined) === '[object Undefined]');
+    assert('toString.call(null)', toString.call(null) === '[object Null]');
+    assert('toString.call(undefined)', toString.call(undefined) === '[object Undefined]');
     assert('toString.call("")', toString.call('') === '[object String]');
     assert('toString.call(0)', toString.call(0) === '[object Number]');
     assert('toString.call(false)', toString.call(false) === '[object Boolean]');
@@ -90,10 +90,17 @@ testSuite('core', function(assert) {
   testSuite('functions', function() {
     var o = {};
     var fn1 = function(a) { return this; };
+    var fnStrict = function(a) {
+      "use strict";
+      return this;
+    };
     assert('instance of Function', fn1 instanceof Function);
     assert('function has length', fn1.length === 1);
     assert('function properties not enumerable', Object.keys(fn1).length === 0);
     assert('can call null', fn1.call(null) === global);
+    assert('can call null (strict)', fnStrict.call(null) === null);
+    assert('can call primitive', fn1.call('s') instanceof String);
+    assert('can call primitive (strict)', fnStrict.call('s') === 's');
     assert('can call object', fn1.call(o) === o);
     assert('can call object.prototype functions', Object.prototype.toString.call([]) === '[object Array]');
     assert('can apply object', fn1.apply(o, []) === o);

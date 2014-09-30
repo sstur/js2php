@@ -6354,6 +6354,13 @@ exports.moonwalk = function moonwalk(ast, fn){
     },
 
     'FunctionExpression': function(node) {
+      var meta = [];
+      var opts = this.opts;
+      var parentIsStrict = opts.isStrict;
+      opts.isStrict = parentIsStrict || isStrictDirective(node.body.body[0]);
+      if (opts.isStrict) {
+        meta.push('"strict" => true');
+      }
       var results = ['new Func('];
       if (node.id) {
         results.push(encodeString(node.id.name) + ', ');
@@ -6370,12 +6377,18 @@ exports.moonwalk = function moonwalk(ast, fn){
       }
       var unresolvedRefs = Object.keys(scopeIndex.unresolved);
       var useClause = unresolvedRefs.length ? 'use (&' + unresolvedRefs.map(encodeVarName).join(', &') + ') ' : '';
+
       results.push('function(' + params.join(', ') + ') ' + useClause + '{\n');
       if (scopeIndex.referenced[functionName]) {
         results.push(this.indent(1) + encodeVarName(functionName) + ' = $arguments->callee;\n');
       }
       results.push(this.Body(node.body));
-      results.push(this.indent() + '})');
+      results.push(this.indent() + '}');
+      if (meta.length) {
+        results.push(', array(' + meta.join(', ') + ')');
+      }
+      results.push(')');
+      opts.isStrict = parentIsStrict;
       return results.join('');
     },
 
@@ -6548,10 +6561,11 @@ exports.moonwalk = function moonwalk(ast, fn){
       switch (type) {
         //STATEMENTS
         case 'Program':
+          opts.isStrict = isStrictDirective(node.body[0]);
           result = this.Body(node);
           break;
         case 'ExpressionStatement':
-          result = this.generate(node.expression) + ';\n';
+          result = isStrictDirective(node) ? '' : this.generate(node.expression) + ';\n';
           break;
         case 'ReturnStatement':
           result = 'return ' + this.generate(node.argument) + ';\n';
@@ -6647,6 +6661,17 @@ exports.moonwalk = function moonwalk(ast, fn){
       return repeat('  ', indentLevel);
     }
   };
+
+
+  function isStrictDirective(stmt) {
+    if (stmt && stmt.type === 'ExpressionStatement') {
+      var expr = stmt.expression;
+      if (expr.type === 'Literal' && expr.value === 'use strict') {
+        return true;
+      }
+    }
+    return false;
+  }
 
 
   function encodeLiteral(value) {

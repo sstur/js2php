@@ -27,6 +27,27 @@ $a = new Func("a", function($this_, $arguments) {
 });
 
 ----
+var a = function a() {
+  "use strict";
+  return this;
+};
+====
+$a = new Func("a", function($this_, $arguments) {
+  return $this_;
+}, array("strict" => true));
+
+----
+"use strict";
+function f() {
+  return function() {};
+}
+====
+$f = new Func("f", function($this_, $arguments) {
+  return new Func(function($this_, $arguments) {
+  }, array("strict" => true));
+}, array("strict" => true));
+
+----
 var result = a('foo');
 function a(x, y) {
   return x + y;
