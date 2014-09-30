@@ -1,6 +1,6 @@
 <?php
 class RegExp extends Object {
-  public $className = "[object RegExp]";
+  public $className = "RegExp";
 
   public $source = '';
   public $ignoreCaseFlag = false;

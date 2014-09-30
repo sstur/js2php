@@ -1,6 +1,6 @@
 <?php
 class Number extends Object {
-  public $className = "[object Number]";
+  public $className = "Number";
   public $value = null;
 
   static $protoObject = null;

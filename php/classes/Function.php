@@ -1,7 +1,7 @@
 <?php
 class Func extends Object {
   public $name = "";
-  public $className = "[object Function]";
+  public $className = "Function";
 
   /**
    * Instantiate is an optional method that can be specified if calling `new` on

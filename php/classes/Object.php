@@ -2,7 +2,7 @@
 class Object {
   public $data = null;
   public $proto = null;
-  public $className = "[object Object]";
+  public $className = "Object";
 
   static $protoObject = null;
   static $classMethods = null;
@@ -288,7 +288,7 @@ Object::$protoMethods = array(
       return property_exists($this_->data, $key);
     },
   'toString' => function($this_) {
-      return $this_->className;
+      return '[object ' . $this_->className . ']';
     },
   'valueOf' => function($this_) {
       return $this_;

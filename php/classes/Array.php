@@ -1,6 +1,6 @@
 <?php
 class Arr extends Object {
-  public $className = "[object Array]";
+  public $className = "Array";
   public $length = 0;
 
   static $protoObject = null;

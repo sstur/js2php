@@ -1,6 +1,6 @@
 <?php
 class Str extends Object {
-  public $className = "[object String]";
+  public $className = "String";
   public $value = null;
 
   static $protoObject = null;

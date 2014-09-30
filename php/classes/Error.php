@@ -1,6 +1,6 @@
 <?php
 class Error extends Object {
-  public $className = "[object Error]";
+  public $className = "Error";
   public $stack = null;
 
   static $protoObject = null;
@@ -17,8 +17,7 @@ class Error extends Object {
 
   public function getMessage() {
     $message = $this->get('message');
-    //todo: TypeError, SyntaxError, etc
-    return $message ? 'Error: ' . $message : 'Error';
+    return $this->className . ($message ? ': ' . $message : '');
   }
 
   //this is used in class/helper code only
@@ -45,19 +44,19 @@ class Error extends Object {
 }
 
 class RangeError extends Error {
-  public $className = "[object RangeError]";
+  public $className = "RangeError";
 }
 
 class ReferenceError extends Error {
-  public $className = "[object ReferenceError]";
+  public $className = "ReferenceError";
 }
 
 class SyntaxError extends Error {
-  public $className = "[object SyntaxError]";
+  public $className = "SyntaxError";
 }
 
 class TypeError extends Error {
-  public $className = "[object TypeError]";
+  public $className = "TypeError";
 }
 
 Error::$classMethods = array();

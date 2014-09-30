@@ -1,6 +1,6 @@
 <?php
 class Bln extends Object {
-  public $className = "[object Boolean]";
+  public $className = "Boolean";
   public $value = null;
 
   static $protoObject = null;

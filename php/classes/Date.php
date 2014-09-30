@@ -1,6 +1,6 @@
 <?php
 class Date extends Object {
-  public $className = "[object Date]";
+  public $className = "Date";
   public $date = null;
 
   static $LOCAL_TZ = null;
