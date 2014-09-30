@@ -18,6 +18,7 @@ testSuite('core', function(assert) {
     assert('toString.call(false)', toString.call(false) === '[object Boolean]');
     assert('toString.call([])', toString.call([]) === '[object Array]');
     assert('toString.call(new String)', toString.call(new String()) === '[object String]');
+    assert('new String() instanceof String', new String('s') instanceof String);
   });
 
   testSuite('in operator', function() {
@@ -105,9 +106,9 @@ testSuite('core', function(assert) {
     assert('can call object.prototype functions', Object.prototype.toString.call([]) === '[object Array]');
     assert('can apply object', fn1.apply(o, []) === o);
     assert('can apply object without second param', fn1.apply(o) === o);
-    var $fn1 = fn1.bind(o);
-    assert('bind creates new function', $fn1 !== fn1);
-    assert('bind works', $fn1.call(null) === o);
+    var fn1_ = fn1.bind(o);
+    assert('bind creates new function', fn1_ !== fn1);
+    assert('bind works', fn1_.call(null) === o);
     var fn2 = function() { return arguments.length; };
     assert('can call args', fn2.call(null, false, void 0) === 2);
     assert('can apply args', fn2.apply(o, [0, null, o]) === 3);
@@ -140,7 +141,7 @@ testSuite('core', function(assert) {
     } catch(e) {
       assert('catch creates scope', e === 'foo');
     }
-    assert('catch scope doesn\'t bleed', e instanceof Error);
+    assert('catch scope should not bleed', e instanceof Error);
     var e1 = new TypeError('message');
     assert('TypeError', e1 instanceof TypeError);
     assert('TypeError inherits from Error', e1 instanceof Error);
