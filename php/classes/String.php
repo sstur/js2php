@@ -29,7 +29,7 @@ class Str extends Object {
    * @return Func
    */
   static function getGlobalConstructor() {
-    $String = new Func(function($this_, $arguments, $value) {
+    $String = new Func(function($this_, $arguments, $value = '') {
       if ($this_ instanceof Str) {
         $this_->value = to_string($value);
         return $this_;

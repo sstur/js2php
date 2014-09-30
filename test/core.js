@@ -9,6 +9,17 @@ testSuite('core', function(assert) {
     }
   }
 
+  testSuite('object', function() {
+    var toString = Object.prototype.toString;
+    //assert('toString.call(null)', toString.call(null) === '[object Null]');
+    //assert('toString.call(undefined)', toString.call(undefined) === '[object Undefined]');
+    assert('toString.call("")', toString.call('') === '[object String]');
+    assert('toString.call(0)', toString.call(0) === '[object Number]');
+    assert('toString.call(false)', toString.call(false) === '[object Boolean]');
+    assert('toString.call([])', toString.call([]) === '[object Array]');
+    assert('toString.call(new String)', toString.call(new String()) === '[object String]');
+  });
+
   testSuite('in operator', function() {
     var o = {a: null};
     assert('should be true for null', 'a' in o);

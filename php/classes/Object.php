@@ -288,7 +288,15 @@ Object::$protoMethods = array(
       return property_exists($this_->data, $key);
     },
   'toString' => function($this_) {
-      return '[object ' . $this_->className . ']';
+      if ($this_ === null) {
+        $className = 'Undefined';
+      } else if ($this_ === Object::$null) {
+        $className = 'Null';
+      } else {
+        $obj = objectify($this_);
+        $className = $obj->className;
+      }
+      return '[object ' . $className . ']';
     },
   'valueOf' => function($this_) {
       return $this_;
