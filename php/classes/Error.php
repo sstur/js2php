@@ -1,6 +1,7 @@
 <?php
 class Error extends Object {
   public $className = "[object Error]";
+  public $stack = null;
 
   static $protoObject = null;
   static $classMethods = null;
@@ -14,9 +15,17 @@ class Error extends Object {
     }
   }
 
+  public function getMessage() {
+    $message = $this->get('message');
+    //todo: TypeError, SyntaxError, etc
+    return $message ? 'Error: ' . $message : 'Error';
+  }
+
   //this is used in class/helper code only
   static function create($str) {
-    return new self($str);
+    $error = new self($str);
+    $error->stack = debug_backtrace();
+    return $error;
   }
 
   /**
@@ -25,7 +34,9 @@ class Error extends Object {
    */
   static function getGlobalConstructor() {
     $Error = new Func(function($this_, $arguments, $str = null) {
-      return new self($str);
+      $error = new self($str);
+      $error->stack = debug_backtrace();
+      return $error;
     });
     $Error->set('prototype', self::$protoObject);
     $Error->setMethods(self::$classMethods, true, false, true);

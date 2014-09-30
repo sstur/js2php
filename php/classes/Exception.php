@@ -4,8 +4,7 @@ class Ex extends Exception {
 
   function __construct($value) {
     if ($value instanceof Error) {
-      $message = $value->get('message');
-      $message = $message ? 'Error: ' . $message : 'Error';
+      $message = $value->getMessage();
     } else {
       $message = to_string($value);
     }
@@ -18,11 +17,26 @@ class Ex extends Exception {
    * @param Exception $ex
    */
   static function handleException($ex) {
-    echo $ex->getFile() . "(" . $ex->getLine() . ")\n";
-    echo $ex->getMessage() . "\n";
-    $stack = $ex->getTrace();
-    self::renderStack($stack);
+    $stack = null;
+    if ($ex instanceof Ex) {
+      $value = $ex->value;
+      if ($value instanceof Error) {
+        $stack = $value->stack;
+        $frame = array_shift($stack);
+        if (isset($frame['file'])) {
+          echo $frame['file'] . "(" . $frame['line'] . ")\n";
+        }
+        echo $value->getMessage() . "\n";
+      }
+    }
+    if ($stack === null) {
+      echo $ex->getFile() . "(" . $ex->getLine() . ")\n";
+      echo $ex->getMessage() . "\n";
+      $stack = $ex->getTrace();
+    }
+    echo self::renderStack($stack) . "\n";
     echo "----\n";
+    exit(1);
   }
 
   static function renderStack($stack) {
@@ -39,11 +53,11 @@ class Ex extends Exception {
         if (is_string($arg)) {
           $list[] = "'" . $arg . "'";
         } else if (is_array($arg)) {
-          $list[] = "array()";
+          $list[] = 'array()';
         } else if (is_null($arg)) {
           $list[] = 'null';
         } else if (is_bool($arg)) {
-          $list[] = ($arg) ? "true" : "false";
+          $list[] = ($arg) ? 'true' : 'false';
         } else if (is_object($arg)) {
           $list[] = get_class($arg);
         } else if (is_resource($arg)) {
@@ -60,15 +74,14 @@ class Ex extends Exception {
       if (isset($frame['class'])) {
         $function = $frame['class'] . '->' . $function;
       }
-      $line = "    at ";
+      $line = '    at ';
       if (isset($frame['file'])) {
-        $line .= $frame['file'] . "(" . $frame['line'] . ") ";
+        $line .= $frame['file'] . '(' . $frame['line'] . ') ';
       }
-      $line .= $function . "(" . join(", ", $list) . ") ";
+      $line .= $function . '(' . join(', ', $list) . ') ';
       array_push($lines, $line);
     }
-    echo join("\n", $lines) . "\n";
-    exit(1);
+    return join("\n", $lines);
   }
 
 }

@@ -295,7 +295,9 @@ Object::$protoMethods = array(
     }
 );
 
-Object::$null = new StdClass();
+class Null {}
+
+Object::$null = new Null();
 //the methods are not set on Object.prototype until *after* Func class is defined
 Object::$protoObject = new Object();
 Object::$protoObject->proto = Object::$null;
