@@ -23,6 +23,18 @@ console.log('hi ' + name + '!');
 call_method($console, "log", x_concat("hi ", $name, "!"));
 
 ----
+x = a + b / c + d;
+====
+$x = x_plus($a, ($b / $c), $d);
+
+----
+x = a + (function() { return b; })() + c;
+====
+$x = x_plus($a, call(new Func(function($this_, $arguments) use (&$b) {
+  return $b;
+})), $c);
+
+----
 var a = function a() {
   return this;
 };

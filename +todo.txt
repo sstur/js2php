@@ -27,7 +27,6 @@ test:
   array set returns value
 
 Optimizations:
-  `a + b + c` => `x_plus($a, $b, $c)`
   `a + 'b'` => `to_string($a) . "b"`
 
 String.prototype
