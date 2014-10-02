@@ -6160,8 +6160,10 @@ exports.moonwalk = function moonwalk(ast, fn){
     'b:>>>': 'bitwise_zfrs' //zero-fill right shift
   };
 
+  var BOOL_SAFE_OPS = {'===': 1, '!==': 1, '==': 1, '!=': 1, '<': 1, '>': 1, '<=': 1, '>=': 1};
+
   //built-in globals (should not be re-assigned)
-  var GLOBALS = {'Array': 1, 'Boolean': 1, 'Buffer': 1, 'Date': 1, 'Error': 1, 'RangeError': 1, 'ReferenceError': 1, 'SyntaxError': 1, 'TypeError': 1, 'Function': 1, 'Infinity': 1, 'JSON': 1, 'Math': 1, 'NaN': 1, 'Number': 1, 'Object': 1, 'RegExp': 1, 'String': 1, 'console': 1, 'decodeURI': 1, 'decodeURIComponent': 1, 'encodeURI': 1, 'encodeURIComponent': 1, 'escape': 1, 'eval': 1, 'isFinite': 1, 'isNaN': 1, 'parseFloat': 1, 'parseInt': 1, 'undefined': 1, 'unescape': 1};
+  var GLOBALS = {Array: 1, Boolean: 1, Buffer: 1, Date: 1, Error: 1, RangeError: 1, ReferenceError: 1, SyntaxError: 1, TypeError: 1, Function: 1, Infinity: 1, JSON: 1, Math: 1, NaN: 1, Number: 1, Object: 1, RegExp: 1, String: 1, console: 1, decodeURI: 1, decodeURIComponent: 1, encodeURI: 1, encodeURIComponent: 1, escape: 1, eval: 1, isFinite: 1, isNaN: 1, parseFloat: 1, parseInt: 1, undefined: 1, unescape: 1};
 
   function Generator(opts) {
     this.opts = Object.create(opts || {});
@@ -6186,7 +6188,7 @@ exports.moonwalk = function moonwalk(ast, fn){
 
     //generate function or program body
     // assumes the `{}` have already been written
-    'Body': function(node) {
+    Body: function(node) {
       var opts = this.opts;
       var scopeIndex = node.scopeIndex || Object.create(null);
       var results = [];
@@ -6223,14 +6225,14 @@ exports.moonwalk = function moonwalk(ast, fn){
       return results.join('');
     },
 
-    'BlockStatement': function(node) {
+    BlockStatement: function(node) {
       var results = ['{\n'];
       results.push(this.Body(node));
       results.push(this.indent() + '}');
       return results.join('') + '\n';
     },
 
-    'VariableDeclaration': function(node) {
+    VariableDeclaration: function(node) {
       var results = [];
       node.declarations.forEach(function(node) {
         if (node.init) {
@@ -6246,10 +6248,10 @@ exports.moonwalk = function moonwalk(ast, fn){
       return results.join('; ') + ';\n';
     },
 
-    'IfStatement': function(node) {
-      var results = ['if (is('];
-      results.push(this.generate(node.test));
-      results.push(')) {\n');
+    IfStatement: function(node) {
+      var results = ['if ('];
+      results.push(this.truthyWrap(node.test));
+      results.push(') {\n');
       results.push(this.toBlock(node.consequent));
       results.push(this.indent() + '}');
       if (node.alternate) {
@@ -6265,7 +6267,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       return results.join('') + '\n';
     },
 
-    'SwitchStatement': function(node) {
+    SwitchStatement: function(node) {
       var opts = this.opts;
       var results = ['switch ('];
       results.push(this.generate(node.discriminant));
@@ -6289,14 +6291,14 @@ exports.moonwalk = function moonwalk(ast, fn){
       return results.join('') + '\n';
     },
 
-    'ConditionalExpression': function(node) {
-      return 'is(' + this.generate(node.test) + ') ? ' + this.generate(node.consequent) + ' : ' + this.generate(node.alternate);
+    ConditionalExpression: function(node) {
+      return this.truthyWrap(node.test) + ' ? ' + this.generate(node.consequent) + ' : ' + this.generate(node.alternate);
     },
 
-    'ForStatement': function(node) {
+    ForStatement: function(node) {
       var results = ['for ('];
       results.push(this.generate(node.init) + '; ');
-      results.push('is(' + this.generate(node.test) + '); ');
+      results.push(this.truthyWrap(node.test) + '; ');
       results.push(this.generate(node.update));
       results.push(') {\n');
       results.push(this.toBlock(node.body));
@@ -6304,7 +6306,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       return results.join('') + '\n';
     },
 
-    'ForInStatement': function(node) {
+    ForInStatement: function(node) {
       var results = [];
       if (node.left.type === 'VariableDeclaration') {
         var identifier = node.left.declarations[0].id;
@@ -6321,23 +6323,23 @@ exports.moonwalk = function moonwalk(ast, fn){
       return results.join('') + '\n';
     },
 
-    'WhileStatement': function(node) {
-      var results = ['while (is('];
-      results.push(this.generate(node.test));
-      results.push(')) {\n');
+    WhileStatement: function(node) {
+      var results = ['while ('];
+      results.push(this.truthyWrap(node.test));
+      results.push(') {\n');
       results.push(this.toBlock(node.body));
       results.push(this.indent() + '}');
       return results.join('') + '\n';
     },
 
-    'DoWhileStatement': function(node) {
+    DoWhileStatement: function(node) {
       var results = ['do {\n'];
       results.push(this.toBlock(node.body));
-      results.push(this.indent() + '} while (is(' + this.generate(node.test) + '));');
+      results.push(this.indent() + '} while (' + this.truthyWrap(node.test) + ');');
       return results.join('') + '\n';
     },
 
-    'TryStatement': function(node) {
+    TryStatement: function(node) {
       var catchClause = node.handlers[0];
       var param = catchClause.param;
       var results = ['try {\n'];
@@ -6349,11 +6351,11 @@ exports.moonwalk = function moonwalk(ast, fn){
       return results.join('') + '\n';
     },
 
-    'ThrowStatement': function(node) {
+    ThrowStatement: function(node) {
       return 'throw new Ex(' + this.generate(node.argument) + ');\n';
     },
 
-    'FunctionExpression': function(node) {
+    FunctionExpression: function(node) {
       var meta = [];
       var opts = this.opts;
       var parentIsStrict = opts.isStrict;
@@ -6392,14 +6394,14 @@ exports.moonwalk = function moonwalk(ast, fn){
       return results.join('');
     },
 
-    'ArrayExpression': function(node) {
+    ArrayExpression: function(node) {
       var items = node.elements.map(function(el) {
         return (el === null) ? 'Arr::$empty' : this.generate(el);
       }, this);
       return 'new Arr(' + items.join(', ') + ')';
     },
 
-    'ObjectExpression': function(node) {
+    ObjectExpression: function(node) {
       var items = [];
       node.properties.forEach(function(node) {
         var key = node.key;
@@ -6411,7 +6413,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       return 'new Object(' + items.join(', ') + ')';
     },
 
-    'CallExpression': function(node) {
+    CallExpression: function(node) {
       var args = node.arguments.map(function(arg) {
         return this.generate(arg);
       }, this);
@@ -6422,18 +6424,18 @@ exports.moonwalk = function moonwalk(ast, fn){
       }
     },
 
-    'MemberExpression': function(node) {
+    MemberExpression: function(node) {
       return 'get(' + this.generate(node.object) + ', ' + this.encodeProp(node) + ')';
     },
 
-    'NewExpression': function(node) {
+    NewExpression: function(node) {
       var args = node.arguments.map(function(arg) {
         return this.generate(arg);
       }, this);
       return 'x_new(' + this.generate(node.callee) + (args.length ? ', ' + args.join(', ') : '') + ')';
     },
 
-    'AssignmentExpression': function(node) {
+    AssignmentExpression: function(node) {
       if (node.left.type === 'MemberExpression') {
         //`a.b = 1` -> `set(a, "b", 1)` but `a.b += 1` -> `set(a, "b", 1, "+=")`
         if (node.operator === '=') {
@@ -6451,7 +6453,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       return encodeVar(node.left) + ' ' + node.operator + ' ' + this.generate(node.right);
     },
 
-    'UpdateExpression': function(node) {
+    UpdateExpression: function(node) {
       if (node.argument.type === 'MemberExpression') {
         //convert `++a` to `a += 1`
         var operator = (node.operator === '++') ? '+=' : '-=';
@@ -6467,7 +6469,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       }
     },
 
-    'LogicalExpression': function(node) {
+    LogicalExpression: function(node) {
       return this.BinaryExpression(node);
     },
 
@@ -6489,7 +6491,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       return result;
     },
 
-    'BinaryExpression': function(node) {
+    BinaryExpression: function(node) {
       var op = node.operator;
       if (op === '&&') {
         return this.genAnd(node);
@@ -6520,7 +6522,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       return result;
     },
 
-    'UnaryExpression': function(node) {
+    UnaryExpression: function(node) {
       var op = node.operator;
       if (op === '!') {
         return 'not(' + this.generate(node.argument) + ')';
@@ -6543,7 +6545,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       return op + this.generate(node.argument);
     },
 
-    'SequenceExpression': function(node) {
+    SequenceExpression: function(node) {
       var expressions = node.expressions.map(function(node) {
         return this.generate(node);
       }, this);
@@ -6553,6 +6555,23 @@ exports.moonwalk = function moonwalk(ast, fn){
       } else {
         return 'x_seq(' + expressions.join(', ') + ')';
       }
+    },
+
+    truthyWrap: function(node) {
+      var op = node.operator;
+      var type = node.type;
+      if (type === 'LogicalExpression') {
+        if (op === '&&' || op === '||') {
+          return this.truthyWrap(node.left) + ' ' + op + ' ' + this.truthyWrap(node.right);
+        }
+      }
+      if (type === 'BinaryExpression' || op in BOOL_SAFE_OPS) {
+        return this.generate(node.left) + ' ' + op + ' ' + this.generate(node.right);
+      }
+      if (type === 'UnaryExpression' && node.operator === '!') {
+        return this.generate(node);
+      }
+      return 'is(' + this.generate(node) + ')';
     },
 
     generate: function(node) {

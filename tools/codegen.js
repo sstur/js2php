@@ -20,6 +20,8 @@
     'b:>>>': 'bitwise_zfrs' //zero-fill right shift
   };
 
+  var BOOL_SAFE_OPS = {'===': 1, '!==': 1, '==': 1, '!=': 1, '<': 1, '>': 1, '<=': 1, '>=': 1};
+
   //built-in globals (should not be re-assigned)
   var GLOBALS = {Array: 1, Boolean: 1, Buffer: 1, Date: 1, Error: 1, RangeError: 1, ReferenceError: 1, SyntaxError: 1, TypeError: 1, Function: 1, Infinity: 1, JSON: 1, Math: 1, NaN: 1, Number: 1, Object: 1, RegExp: 1, String: 1, console: 1, decodeURI: 1, decodeURIComponent: 1, encodeURI: 1, encodeURIComponent: 1, escape: 1, eval: 1, isFinite: 1, isNaN: 1, parseFloat: 1, parseInt: 1, undefined: 1, unescape: 1};
 
@@ -107,9 +109,9 @@
     },
 
     IfStatement: function(node) {
-      var results = ['if (is('];
-      results.push(this.generate(node.test));
-      results.push(')) {\n');
+      var results = ['if ('];
+      results.push(this.truthyWrap(node.test));
+      results.push(') {\n');
       results.push(this.toBlock(node.consequent));
       results.push(this.indent() + '}');
       if (node.alternate) {
@@ -150,13 +152,13 @@
     },
 
     ConditionalExpression: function(node) {
-      return 'is(' + this.generate(node.test) + ') ? ' + this.generate(node.consequent) + ' : ' + this.generate(node.alternate);
+      return this.truthyWrap(node.test) + ' ? ' + this.generate(node.consequent) + ' : ' + this.generate(node.alternate);
     },
 
     ForStatement: function(node) {
       var results = ['for ('];
       results.push(this.generate(node.init) + '; ');
-      results.push('is(' + this.generate(node.test) + '); ');
+      results.push(this.truthyWrap(node.test) + '; ');
       results.push(this.generate(node.update));
       results.push(') {\n');
       results.push(this.toBlock(node.body));
@@ -182,9 +184,9 @@
     },
 
     WhileStatement: function(node) {
-      var results = ['while (is('];
-      results.push(this.generate(node.test));
-      results.push(')) {\n');
+      var results = ['while ('];
+      results.push(this.truthyWrap(node.test));
+      results.push(') {\n');
       results.push(this.toBlock(node.body));
       results.push(this.indent() + '}');
       return results.join('') + '\n';
@@ -193,7 +195,7 @@
     DoWhileStatement: function(node) {
       var results = ['do {\n'];
       results.push(this.toBlock(node.body));
-      results.push(this.indent() + '} while (is(' + this.generate(node.test) + '));');
+      results.push(this.indent() + '} while (' + this.truthyWrap(node.test) + ');');
       return results.join('') + '\n';
     },
 
@@ -413,6 +415,23 @@
       } else {
         return 'x_seq(' + expressions.join(', ') + ')';
       }
+    },
+
+    truthyWrap: function(node) {
+      var op = node.operator;
+      var type = node.type;
+      if (type === 'LogicalExpression') {
+        if (op === '&&' || op === '||') {
+          return this.truthyWrap(node.left) + ' ' + op + ' ' + this.truthyWrap(node.right);
+        }
+      }
+      if (type === 'BinaryExpression' || op in BOOL_SAFE_OPS) {
+        return this.generate(node.left) + ' ' + op + ' ' + this.generate(node.right);
+      }
+      if (type === 'UnaryExpression' && node.operator === '!') {
+        return this.generate(node);
+      }
+      return 'is(' + this.generate(node) + ')';
     },
 
     generate: function(node) {
