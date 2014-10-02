@@ -128,12 +128,7 @@
 
 
   function buildRuntime() {
-    var source = fs.readFileSync(path.join(__dirname, '../tests.php'), 'utf8');
-    var index = source.indexOf('//</BOILERPLATE>');
-    if (index === -1) {
-      throw new Error('Unable to find runtime.');
-    }
-    source = source.slice(0, index);
+    var source = fs.readFileSync(path.join(__dirname, '../runtime.php'), 'utf8');
     var output = [];
     source.replace(/require_once\('(.+?)'\)/g, function(_, file) {
       var source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');

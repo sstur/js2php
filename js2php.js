@@ -30,11 +30,11 @@
 
     logToStdOut = !!outfile;
 
-    var pathToRuntime = (argv.runtime === true) ? 'runtime.php' : argv.runtime;
+    var pathToRuntime = argv.runtime;
     if (!argv.fragment && !pathToRuntime) {
       var runtime = transform.buildRuntime();
       if (argv['runtime-only']) {
-        outputContent(outfile, runtime, 'runtime.php');
+        outputContent(outfile, '<?php\n' + runtime, 'runtime.php');
         process.exit(0);
       }
     }

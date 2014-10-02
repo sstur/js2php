@@ -1,5 +1,6 @@
 operators: unary_plus, bitwise, ...
 `to_number('x') + 1` should be NaN
+static properties can be assigned inline
 demo: form post
 get/setters
   'length' in []
