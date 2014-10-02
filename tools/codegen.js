@@ -21,7 +21,7 @@
   };
 
   //built-in globals (should not be re-assigned)
-  var GLOBALS = {'Array': 1, 'Boolean': 1, 'Buffer': 1, 'Date': 1, 'Error': 1, 'RangeError': 1, 'ReferenceError': 1, 'SyntaxError': 1, 'TypeError': 1, 'Function': 1, 'Infinity': 1, 'JSON': 1, 'Math': 1, 'NaN': 1, 'Number': 1, 'Object': 1, 'RegExp': 1, 'String': 1, 'console': 1, 'decodeURI': 1, 'decodeURIComponent': 1, 'encodeURI': 1, 'encodeURIComponent': 1, 'escape': 1, 'eval': 1, 'isFinite': 1, 'isNaN': 1, 'parseFloat': 1, 'parseInt': 1, 'undefined': 1, 'unescape': 1};
+  var GLOBALS = {Array: 1, Boolean: 1, Buffer: 1, Date: 1, Error: 1, RangeError: 1, ReferenceError: 1, SyntaxError: 1, TypeError: 1, Function: 1, Infinity: 1, JSON: 1, Math: 1, NaN: 1, Number: 1, Object: 1, RegExp: 1, String: 1, console: 1, decodeURI: 1, decodeURIComponent: 1, encodeURI: 1, encodeURIComponent: 1, escape: 1, eval: 1, isFinite: 1, isNaN: 1, parseFloat: 1, parseInt: 1, undefined: 1, unescape: 1};
 
   function Generator(opts) {
     this.opts = Object.create(opts || {});
@@ -46,7 +46,7 @@
 
     //generate function or program body
     // assumes the `{}` have already been written
-    'Body': function(node) {
+    Body: function(node) {
       var opts = this.opts;
       var scopeIndex = node.scopeIndex || Object.create(null);
       var results = [];
@@ -83,14 +83,14 @@
       return results.join('');
     },
 
-    'BlockStatement': function(node) {
+    BlockStatement: function(node) {
       var results = ['{\n'];
       results.push(this.Body(node));
       results.push(this.indent() + '}');
       return results.join('') + '\n';
     },
 
-    'VariableDeclaration': function(node) {
+    VariableDeclaration: function(node) {
       var results = [];
       node.declarations.forEach(function(node) {
         if (node.init) {
@@ -106,7 +106,7 @@
       return results.join('; ') + ';\n';
     },
 
-    'IfStatement': function(node) {
+    IfStatement: function(node) {
       var results = ['if (is('];
       results.push(this.generate(node.test));
       results.push(')) {\n');
@@ -125,7 +125,7 @@
       return results.join('') + '\n';
     },
 
-    'SwitchStatement': function(node) {
+    SwitchStatement: function(node) {
       var opts = this.opts;
       var results = ['switch ('];
       results.push(this.generate(node.discriminant));
@@ -149,11 +149,11 @@
       return results.join('') + '\n';
     },
 
-    'ConditionalExpression': function(node) {
+    ConditionalExpression: function(node) {
       return 'is(' + this.generate(node.test) + ') ? ' + this.generate(node.consequent) + ' : ' + this.generate(node.alternate);
     },
 
-    'ForStatement': function(node) {
+    ForStatement: function(node) {
       var results = ['for ('];
       results.push(this.generate(node.init) + '; ');
       results.push('is(' + this.generate(node.test) + '); ');
@@ -164,7 +164,7 @@
       return results.join('') + '\n';
     },
 
-    'ForInStatement': function(node) {
+    ForInStatement: function(node) {
       var results = [];
       if (node.left.type === 'VariableDeclaration') {
         var identifier = node.left.declarations[0].id;
@@ -181,7 +181,7 @@
       return results.join('') + '\n';
     },
 
-    'WhileStatement': function(node) {
+    WhileStatement: function(node) {
       var results = ['while (is('];
       results.push(this.generate(node.test));
       results.push(')) {\n');
@@ -190,14 +190,14 @@
       return results.join('') + '\n';
     },
 
-    'DoWhileStatement': function(node) {
+    DoWhileStatement: function(node) {
       var results = ['do {\n'];
       results.push(this.toBlock(node.body));
       results.push(this.indent() + '} while (is(' + this.generate(node.test) + '));');
       return results.join('') + '\n';
     },
 
-    'TryStatement': function(node) {
+    TryStatement: function(node) {
       var catchClause = node.handlers[0];
       var param = catchClause.param;
       var results = ['try {\n'];
@@ -209,11 +209,11 @@
       return results.join('') + '\n';
     },
 
-    'ThrowStatement': function(node) {
+    ThrowStatement: function(node) {
       return 'throw new Ex(' + this.generate(node.argument) + ');\n';
     },
 
-    'FunctionExpression': function(node) {
+    FunctionExpression: function(node) {
       var meta = [];
       var opts = this.opts;
       var parentIsStrict = opts.isStrict;
@@ -252,14 +252,14 @@
       return results.join('');
     },
 
-    'ArrayExpression': function(node) {
+    ArrayExpression: function(node) {
       var items = node.elements.map(function(el) {
         return (el === null) ? 'Arr::$empty' : this.generate(el);
       }, this);
       return 'new Arr(' + items.join(', ') + ')';
     },
 
-    'ObjectExpression': function(node) {
+    ObjectExpression: function(node) {
       var items = [];
       node.properties.forEach(function(node) {
         var key = node.key;
@@ -271,7 +271,7 @@
       return 'new Object(' + items.join(', ') + ')';
     },
 
-    'CallExpression': function(node) {
+    CallExpression: function(node) {
       var args = node.arguments.map(function(arg) {
         return this.generate(arg);
       }, this);
@@ -282,18 +282,18 @@
       }
     },
 
-    'MemberExpression': function(node) {
+    MemberExpression: function(node) {
       return 'get(' + this.generate(node.object) + ', ' + this.encodeProp(node) + ')';
     },
 
-    'NewExpression': function(node) {
+    NewExpression: function(node) {
       var args = node.arguments.map(function(arg) {
         return this.generate(arg);
       }, this);
       return 'x_new(' + this.generate(node.callee) + (args.length ? ', ' + args.join(', ') : '') + ')';
     },
 
-    'AssignmentExpression': function(node) {
+    AssignmentExpression: function(node) {
       if (node.left.type === 'MemberExpression') {
         //`a.b = 1` -> `set(a, "b", 1)` but `a.b += 1` -> `set(a, "b", 1, "+=")`
         if (node.operator === '=') {
@@ -311,7 +311,7 @@
       return encodeVar(node.left) + ' ' + node.operator + ' ' + this.generate(node.right);
     },
 
-    'UpdateExpression': function(node) {
+    UpdateExpression: function(node) {
       if (node.argument.type === 'MemberExpression') {
         //convert `++a` to `a += 1`
         var operator = (node.operator === '++') ? '+=' : '-=';
@@ -327,7 +327,7 @@
       }
     },
 
-    'LogicalExpression': function(node) {
+    LogicalExpression: function(node) {
       return this.BinaryExpression(node);
     },
 
@@ -349,7 +349,7 @@
       return result;
     },
 
-    'BinaryExpression': function(node) {
+    BinaryExpression: function(node) {
       var op = node.operator;
       if (op === '&&') {
         return this.genAnd(node);
@@ -380,7 +380,7 @@
       return result;
     },
 
-    'UnaryExpression': function(node) {
+    UnaryExpression: function(node) {
       var op = node.operator;
       if (op === '!') {
         return 'not(' + this.generate(node.argument) + ')';
@@ -403,7 +403,7 @@
       return op + this.generate(node.argument);
     },
 
-    'SequenceExpression': function(node) {
+    SequenceExpression: function(node) {
       var expressions = node.expressions.map(function(node) {
         return this.generate(node);
       }, this);
