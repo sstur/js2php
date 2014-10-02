@@ -40,13 +40,28 @@ function x_instanceof($obj, $fn) {
   return false;
 }
 
-function x_plus($a, $b) {
-  //todo: to_primitive() [object -> string]
-  if (gettype($a) === 'string' || gettype($a) === 'string') {
-    return to_string($a) . to_string($b);
+function x_plus() {
+  $total = 0;
+  $strings = array();
+  $isString = false;
+  foreach (func_get_args() as $arg) {
+    if (is_string($arg)) {
+      $isString = true;
+    }
+    $strings[] = to_string($arg);
+    if (!$isString) {
+      $total += to_number($arg);
+    }
   }
-  //todo: to_number()
-  return $a + $b;
+  return $isString ? join('', $strings) : $total;
+}
+
+function x_concat() {
+  $strings = array();
+  foreach (func_get_args() as $arg) {
+    $strings[] = to_string($arg);
+  }
+  return join('', $strings);
 }
 
 function x_negate($val) {

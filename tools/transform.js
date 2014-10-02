@@ -22,6 +22,47 @@
   module.exports.Transformer = Transformer;
   module.exports.buildRuntime = buildRuntime;
 
+  var nodeHandlers = {
+    VariableDeclaration: function(node) {
+      var scope = utils.getParentScope(node);
+      var varNames = scope.vars || setHidden(scope, 'vars', {});
+      node.declarations.forEach(function(decl) {
+        varNames[decl.id.name] = true;
+      });
+    },
+    FunctionDeclaration: function(node) {
+      var name = node.id.name;
+      var scope = utils.getParentScope(node);
+      var funcDeclarations = scope.funcs || setHidden(scope, 'funcs', {});
+      funcDeclarations[name] = node;
+    },
+    BinaryExpression: function(node) {
+      if (node.operator === '+') {
+        var terms = getTerms(node, '+');
+        var isConcat = terms.some(function(node) {
+          return (node.type === 'Literal' && typeof node.value === 'string');
+        });
+        setHidden(node, 'terms', terms);
+        setHidden(node, 'isConcat', isConcat);
+      }
+    }
+  };
+
+  function getTerms(node, op) {
+    var terms = [];
+    if (node.left.type === 'BinaryExpression' && node.left.operator === op) {
+      terms = terms.concat(getTerms(node.left, op));
+    } else {
+      terms.push(node.left);
+    }
+    if (node.right.type === 'BinaryExpression' && node.right.operator === op) {
+      terms = terms.concat(getTerms(node.right, op));
+    } else {
+      terms.push(node.right);
+    }
+    return terms;
+  }
+
   function Transformer() {
     return (this instanceof Transformer) ? this : new Transformer();
   }
@@ -42,20 +83,11 @@
   Transformer.prototype.indexScopes = function() {
     var ast = this.ast;
 
-    //index var and function declarations
+    //walk tree and let handlers manipulate specific nodes (by type)
     rocambole.recursive(ast, function(node) {
-      if (node.type === 'VariableDeclaration') {
-        var scope = utils.getParentScope(node);
-        var varNames = scope.vars || setHidden(scope, 'vars', {});
-        node.declarations.forEach(function(decl) {
-          varNames[decl.id.name] = true;
-        });
-      } else
-      if (node.type === 'FunctionDeclaration') {
-        var name = node.id.name;
-        scope = utils.getParentScope(node);
-        var funcDeclarations = scope.funcs || setHidden(scope, 'funcs', {});
-        funcDeclarations[name] = node;
+      var type = node.type;
+      if (type in nodeHandlers) {
+        nodeHandlers[type](node);
       }
     });
 

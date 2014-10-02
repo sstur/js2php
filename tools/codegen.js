@@ -357,6 +357,14 @@
       if (op === '||') {
         return this.genOr(node);
       }
+      if (op === '+') {
+        var terms = node.terms.map(this.generate, this);
+        if (node.isConcat) {
+          return 'x_concat(' + terms.join(', ') + ')';
+        } else {
+          return 'x_plus(' + terms.join(', ') + ')';
+        }
+      }
       var name = 'b:' + op;
       if (name in OPERATOR_MAP) {
         op = OPERATOR_MAP[name];

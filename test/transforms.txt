@@ -18,6 +18,11 @@ x = a && a.b && a.b.c;
 $x = (is($and_ = (is($and1_ = $a) ? get($a, "b") : $and1_)) ? get(get($a, "b"), "c") : $and_);
 
 ----
+console.log('hi ' + name + '!');
+====
+call_method($console, "log", x_concat("hi ", $name, "!"));
+
+----
 var a = function a() {
   return this;
 };
@@ -239,10 +244,10 @@ call(new Func(function($this_, $arguments) use (&$process, &$Object) {
   $response = get($process, "response");
   $resHeaders = new Object("Content-Type", "text/plain");
   call_method($response, "writeHead", 200.0, "OK", $resHeaders);
-  call_method($response, "write", x_plus(x_plus(x_plus(call_method($request, "getMethod"), " "), call_method($request, "getURL")), "\n"));
+  call_method($response, "write", x_concat(call_method($request, "getMethod"), " ", call_method($request, "getURL"), "\n"));
   $reqHeaders = call_method($request, "getHeaders");
   call_method(call_method($Object, "keys", $reqHeaders), "forEach", new Func(function($this_, $arguments, $key = null) use (&$response, &$reqHeaders) {
-    call_method($response, "write", x_plus(x_plus(x_plus($key, ": "), get($reqHeaders, $key)), "\n"));
+    call_method($response, "write", x_concat($key, ": ", get($reqHeaders, $key), "\n"));
   }));
   call_method($response, "end");
 }));
