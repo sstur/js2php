@@ -39,8 +39,7 @@ class Func extends Object {
 
   function construct() {
     if ($this->instantiate !== null) {
-      $instantiate = $this->instantiate;
-      $obj = $instantiate();
+      $obj = call_user_func($this->instantiate);
     } else {
       $obj = new Object();
       $obj->proto = $this->get('prototype');

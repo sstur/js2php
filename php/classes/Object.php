@@ -180,6 +180,23 @@ class Object {
   }
 
   /**
+   * Similar to callMethod, we can call "internal" methods (dynamically-attached
+   * user functions) which are available in PHP land but not from JS
+   *
+   * @param string $name - method name
+   * @param array $args - arguments with which method was called
+   * @return mixed
+   * @throws Ex
+   */
+  function __call($name, $args) {
+    if (isset($this->$name)) {
+      return call_user_func_array($this->$name, $args);
+    } else {
+      throw new Ex(Error::create('Internal method `' . $name . '` not found on ' . gettype($this)));
+    }
+  }
+
+  /**
    * Creates the global constructor used in user-land
    * @return Func
    */

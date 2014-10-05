@@ -25,8 +25,7 @@ require_once('php/globals/JSON.php');
 require_once('php/globals/console.php');
 require_once('php/globals/process.php');
 
-require_once('php/http/Request.php');
-require_once('php/http/Response.php');
+require_once('php/modules/http.php');
 
 require_once('php/helpers/Test.php');
 require_once('php/helpers/Debug.php');
