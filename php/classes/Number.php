@@ -20,7 +20,7 @@ class Number extends Object {
    * @return Func
    */
   static function getGlobalConstructor() {
-    $Number = new Func(function($this_, $arguments, $value) {
+    $Number = new Func(function($this_, $arguments, $value = 0) {
       if ($this_ instanceof Number) {
         $this_->value = to_number($value);
         return $this_;

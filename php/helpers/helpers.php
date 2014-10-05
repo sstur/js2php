@@ -79,8 +79,11 @@ function to_number($value) {
   if ($value === Object::$null) {
     return 0.0;
   }
-  if (is_int_or_float($value)) {
-    return ($value !== $value) ? NAN : (float)$value;
+  if (is_float($value)) {
+    return $value;
+  }
+  if (is_int($value)) {
+    return (float)$value;
   }
   if (is_bool($value)) {
     return ($value ? 1.0 : 0.0);
@@ -89,7 +92,7 @@ function to_number($value) {
     return to_number(to_primitive($value));
   }
   //trim whitespace
-  $value = preg_replace('/^[\s\x0B\xA0]+|[\s\x0B\​xA0]+$/u', '', $value);
+  $value = preg_replace('/^[\s\x0B\xA0]+|[\s\x0B\xA0]+$/u', '', $value);
   if ($value === '') {
     return 0.0;
   }
@@ -103,7 +106,7 @@ function to_number($value) {
     return (float)$value;
   }
   if (preg_match('/^([+-]?)(\d+\.\d*|\.\d+|\d+)e([+-]?[0-9]+)$/i', $value, $m)) {
-    return catch_nan(pow($m[1] . $m[2], $m[3]));
+    return pow($m[1] . $m[2], $m[3]);
   }
   if (preg_match('/^0x[a-z0-9]+$/i', $value)) {
     return (float)hexdec(substr($value, 2));

@@ -78,16 +78,6 @@ testSuite('core', function(assert) {
     assert('deleting built-in global does nothing', typeof global.Infinity === 'number');
   });
 
-  testSuite('numbers', function() {
-    assert('NaN global', 'NaN' in global);
-    assert('Number.NaN', NaN.toString() === Number.NaN.toString());
-    assert('Number.NaN', String(NaN) === String(Number.NaN));
-    assert('isNaN', isNaN(NaN));
-    assert('non-equality', NaN !== NaN);
-    assert('Positive Infinity', Number.POSITIVE_INFINITY === Infinity);
-    assert('Negative Infinity', Number.NEGATIVE_INFINITY === -Infinity);
-  });
-
   testSuite('functions', function() {
     var o = {};
     var fn1 = function(a) { return this; };

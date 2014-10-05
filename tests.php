@@ -130,14 +130,14 @@ Test::suite(
     Test::assert('proto exists', $arr->proto instanceof Object);
     Test::assert('proto is set correctly', $arr->proto === $Array->get('prototype'));
     Test::assert('proto chain', $arr->proto->proto === Object::$protoObject);
-    Test::assert('length', $arr->get('length') === 1.);
+    Test::assert('length', $arr->get('length') === 1.0);
     Test::assert('get', $arr->get(0) === null);
-    Test::assert('push', call_method($arr, 'push', 9.) === 2.);
-    Test::assert('length 2', $arr->get('length') === 2.);
+    Test::assert('push', call_method($arr, 'push', 9.0) === 2.0);
+    Test::assert('length 2', $arr->get('length') === 2.0);
     Test::assert('join', call_method($arr, 'join', ';') === ';9');
     //implicit push
     $arr->set(2, 'x');
-    Test::assert('length 3', $arr->get('length') === 3.);
+    Test::assert('length 3', $arr->get('length') === 3.0);
     Test::assert('join default', call_method($arr, 'join') === ',9,x');
   }
 );
@@ -145,12 +145,12 @@ Test::suite(
 Test::suite(
   'Array: set length',
   function() use ($Array) {
-    $arr = $Array->construct(1., 2.);
-    Test::assert('length', $arr->get('length') === 2.);
-    $arr->set('length', 3.);
+    $arr = $Array->construct(1.0, 2.0);
+    Test::assert('length', $arr->get('length') === 2.0);
+    $arr->set('length', 3.0);
     Test::assert('implicit element', $arr->get(2) === null);
-    $arr->set('2', 3.);
-    Test::assert('explicit element', $arr->get(2) === 3.);
+    $arr->set('2', 3.0);
+    Test::assert('explicit element', $arr->get(2) === 3.0);
     $arr->set('length', 2);
     Test::assert('implicit element removal', $arr->get(2) === null);
   }
@@ -161,7 +161,7 @@ Test::suite(
   function() use ($Array) {
     $arr = $Array->construct('s', 'i', false, 'm');
     $arr->callMethod('sort');
-    Test::assert('length', $arr->get('length') === 4.);
+    Test::assert('length', $arr->get('length') === 4.0);
     Test::assert('sorted', $arr->callMethod('join', ',') === 'false,i,m,s');
     Test::assert('types', $arr->get(0) === false);
   }
@@ -181,12 +181,12 @@ Test::suite(
       Test::assert('arguments.callee', $arguments->get('callee') === $fn);
       Test::assert('arguments is object', $arguments instanceof Object);
       Test::assert('arguments is not array', !($arguments instanceof Arr));
-      Test::assert('arguments has length', $arguments->get('length') === 0.);
+      Test::assert('arguments has length', $arguments->get('length') === 0.0);
       Test::assert('this is global', $this_ === Object::$global);
     });
     $fn->call();
     $fn = new Func('foo', function($this_, $arguments) use ($fn, $Array) {
-      Test::assert('arguments length', $arguments->get('length') === 1.);
+      Test::assert('arguments length', $arguments->get('length') === 1.0);
       Test::assert('arguments -> args', join(',', $arguments->args) === 'foo');
       Test::assert('this is global', $this_ === $Array);
     });
@@ -224,11 +224,11 @@ Test::suite(
   'Object.keys',
   function() use ($Object, $Array, $JSON) {
     $obj = $Object->construct();
-    $obj->set('a', 1.);
-    $obj->set('b', 2.);
+    $obj->set('a', 1.0);
+    $obj->set('b', 2.0);
     $keys = $Object->callMethod('keys', $obj);
     Test::assert('basic keys', $keys->callMethod('toString') === 'a,b');
-    $arr = new Arr(1., 2.);
+    $arr = new Arr(1.0, 2.0);
     $keys = $Object->callMethod('keys', $arr);
     Test::assert('only enumerable keys', $keys->callMethod('toString') === '0,1');
   }
@@ -238,7 +238,7 @@ Test::suite(
   'Object.defineProperty',
   function() use ($Object) {
     $obj = $Object->construct();
-    $obj->set('a', 1.);
+    $obj->set('a', 1.0);
     $descriptor = new Object('enumerable', false);
     $Object->callMethod('defineProperty', $obj, 'foo', $descriptor);
     $keys = $Object->callMethod('keys', $obj);
@@ -256,11 +256,11 @@ Test::suite(
   'Date',
   function() use ($Date, $Object, $Array) {
     $date = new Date(2013, 7, 5, 18, 11, 8, 411);
-    Test::assert('date value', $date->value === 1375751468411.);
+    Test::assert('date value', $date->value === 1375751468411.0);
     Test::assert('date valueOf', $date->value === $date->callMethod('valueOf'));
     Test::assert('date local string', $date->callMethod('toString') === 'Mon Aug 05 2013 18:11:08 GMT-0700 (PDT)');
     Test::assert('date json string', $date->callMethod('toJSON') === '2013-08-06T01:11:08.411Z');
-    $date = new Date(1375751468412.);
+    $date = new Date(1375751468412.0);
     Test::assert('init from value', $date->callMethod('toJSON') === '2013-08-06T01:11:08.412Z');
     $date = new Date('2013-08-06T01:11:08.412Z');
     Test::assert('init from string', $date->callMethod('toJSON') === '2013-08-06T01:11:08.412Z');
@@ -281,10 +281,10 @@ Test::suite(
     Test::assert('reg toString', $reg->callMethod('toString') === '/a(b|c)/i');
     $match = $reg->callMethod('exec', $str);
     Test::assert('match result', $match->get(0) === 'ab');
-    Test::assert('match length', $match->get('length') === 2.);
-    Test::assert('match index', $match->get('index') === 1.);
+    Test::assert('match length', $match->get('length') === 2.0);
+    Test::assert('match index', $match->get('index') === 1.0);
     Test::assert('match input', $match->get('input') === $str);
-    Test::assert('match lastIndex', $reg->get('lastIndex') === 3.);
+    Test::assert('match lastIndex', $reg->get('lastIndex') === 3.0);
   }
 );
 
@@ -305,31 +305,67 @@ Test::suite(
 );
 
 Test::suite(
+  'Number helpers',
+  function() use ($Number) {
+    Test::assert('to_number ""', to_number('') === 0.0);
+    Test::assert('to_number "x"', is_nan(to_number('x')));
+    //if (to_number("") !== 0.0) {
+    //  Test::assert('#1.1: to_number("") === 0. Actual: ' . (to_number("")));
+    //} else if (1 / to_number("") !== INF) {
+    //  Test::assert('#1.2: to_number("") == +0. Actual: -0');
+    //}
+    //if (to_number("+0") !== to_number("0")) {
+    //  Test::assert('#1.1: to_number("+0") === to_number("0")');
+    //} else if (1 / to_number("+0") !== 1.0 / to_number("0")) {
+    //  Test::assert('#2.2: 1/to_number("+0") === 1/to_number("0")');
+    //}
+    //if (to_number("+Infinity") !== to_number("Infinity")) {
+    //  Test::assert('#3: to_number("+Infinity") === to_number("Infinity")');
+    //}
+    //if (to_number("+1234.5678") !== to_number("1234.5678")) {
+    //  Test::assert('#4: to_number("+1234.5678") === to_number("1234.5678")');
+    //}
+    //if (to_number("+1234.5678e90") !== to_number("1234.5678e90")) {
+    //  Test::assert('#5: to_number("+1234.5678e90") === to_number("1234.5678e90")');
+    //}
+    //if (to_number("+1234.5678E90") !== to_number("1234.5678E90")) {
+    //  Test::assert('#6: to_number("+1234.5678E90") === to_number("1234.5678E90")');
+    //}
+    //if (to_number("+1234.5678e-90") !== to_number("1234.5678e-90")) {
+    //  Test::assert('#7: to_number("+1234.5678e-90") === to_number("1234.5678e-90")');
+    //}
+    //if (to_number("+1234.5678E-90") !== to_number("1234.5678E-90")) {
+    //  Test::assert('#8: to_number("+1234.5678E-90") === to_number("1234.5678E-90")');
+    //}
+  }
+);
+
+Test::suite(
   'Number object',
   function() use ($Number, $Object) {
-    $num = $Number->construct(5.);
+    $num = $Number->construct(5.0);
     Test::assert('instanceof', $num instanceof Number);
     Test::assert('type is object', x_typeof($num) === 'object');
-    Test::assert('has value', $num->value === 5.);
+    Test::assert('has value', $num->value === 5.0);
     Test::assert('to string', $num->callMethod('toString') === '5');
     $num = $Number->call(null, '5');
     Test::assert('is not object', !($num instanceof Str));
     Test::assert('primitive', x_typeof($num) === 'number');
     Test::assert('can call on primitive', call_method($num, 'toString') === '5');
     $num = $Number->call(null, '');
-    Test::assert('empty coerced', $num === 0.);
+    Test::assert('empty coerced', $num === 0.0);
     $num = $Number->callMethod('parseInt', '5.x');
-    Test::assert('parseInt 1', $num === 5.);
+    Test::assert('parseInt 1', $num === 5.0);
     $num = $Number->callMethod('parseInt', '+05.1');
-    Test::assert('parseInt 2', $num === 5.);
-    $num = $Number->callMethod('parseInt', ' -15.');
-    Test::assert('parseInt 3', $num === -15.);
+    Test::assert('parseInt 2', $num === 5.0);
+    $num = $Number->callMethod('parseInt', ' -15.0');
+    Test::assert('parseInt 3', $num === -15.0);
     $num = $Number->callMethod('parseInt', 'x');
     Test::assert('parseInt 4', is_nan($num));
     $num = $Number->callMethod('parseFloat', '-05e2x');
-    Test::assert('parseFloat 1', $num === -500.);
-    $num = $Number->callMethod('parseFloat', ' +05.');
-    Test::assert('parseFloat 2', $num === 5.);
+    Test::assert('parseFloat 1', $num === -500.0);
+    $num = $Number->callMethod('parseFloat', ' +05.0');
+    Test::assert('parseFloat 2', $num === 5.0);
     $num = $Number->callMethod('parseFloat', 'x');
     Test::assert('parseFloat 3', is_nan($num));
   }
@@ -340,8 +376,8 @@ Test::suite(
   function() use ($JSON, $Object, $Array) {
     $str = '{"a": [1], "b": false, "c": []}';
     $obj = $JSON->callMethod('parse', $str);
-    Test::assert('parsed empty array', $obj->get('c')->get('length') === 0.);
-    Test::assert('parsed array', $obj->get('a')->get(0) === 1.);
+    Test::assert('parsed empty array', $obj->get('c')->get('length') === 0.0);
+    Test::assert('parsed array', $obj->get('a')->get(0) === 1.0);
     Test::assert('parsed boolean', $obj->get('b') === false);
     $str2 = $JSON->callMethod('stringify', $obj);
     Test::assert('stringify', $str2 === '{"a":[1],"b":false,"c":[]}');
@@ -350,6 +386,7 @@ Test::suite(
 
 require_once('test/compiled/helpers.php');
 require_once('test/compiled/core.php');
+require_once('test/compiled/number.php');
 require_once('test/compiled/string.php');
 require_once('test/compiled/array.php');
 require_once('test/compiled/buffer.php');

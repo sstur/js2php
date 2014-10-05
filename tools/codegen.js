@@ -4,23 +4,36 @@
 
   var toString = Object.prototype.toString;
 
-  var OPERATOR_MAP = {
-    //unary operators
-    'u:-': 'negate',
-    //'u:+': 'unary_plus',
-    //'u:~': 'bitwise_not',
-
-    //binary operators
-    'b:+': 'plus',
-    //'b:&': 'bitwise_and',
-    //'b:|': 'bitwise_or',
-    //'b:^': 'bitwise_xor',
-    //'b:<<': 'bitwise_ls', //left shift
-    //'b:>>': 'bitwise_sprs', //sign-propagating right shift
-    'b:>>>': 'bitwise_zfrs' //zero-fill right shift
+  //these operators expect numbers
+  var UNARY_NUM_OPS = {
+    '-': 'x_negate',
+    '+': 'to_number',
+    '~': '~' //bitwise not
   };
 
-  var BOOL_SAFE_OPS = {'===': 1, '!==': 1, '==': 1, '!=': 1, '<': 1, '>': 1, '<=': 1, '>=': 1};
+  //these operators expect numbers
+  var BINARY_NUM_OPS = {
+    '+': 'x_plus',
+    '-': '-',
+    //'*': '*', '/': '/',
+    //todo: type coercion?
+    //'<': '<', '<=': '<=',
+    //'>': '>', '>=': '>=',
+    '&': '&', //bitwise and
+    '|': '|', //bitwise or
+    '^': '^', //bitwise xor
+    '<<': '<<', //bitwise left shift
+    '>>': '>>', //bitwise sign-propagating right shift
+    'b:>>>': 'x_bitwise_zfrs' //bitwise zero-fill right shift
+  };
+
+  //these operators will always return true/false
+  var BOOL_SAFE_OPS = {
+    '===': 1, '!==': 1,
+    '==': 1, '!=': 1,
+    '<': 1, '<=': 1,
+    '>': 1, '>=': 1
+  };
 
   //built-in globals (should not be re-assigned)
   var GLOBALS = {Array: 1, Boolean: 1, Buffer: 1, Date: 1, Error: 1, RangeError: 1, ReferenceError: 1, SyntaxError: 1, TypeError: 1, Function: 1, Infinity: 1, JSON: 1, Math: 1, NaN: 1, Number: 1, Object: 1, RegExp: 1, String: 1, console: 1, decodeURI: 1, decodeURIComponent: 1, encodeURI: 1, encodeURIComponent: 1, escape: 1, eval: 1, isFinite: 1, isNaN: 1, parseFloat: 1, parseInt: 1, undefined: 1, unescape: 1};
@@ -321,7 +334,7 @@
         var returnOld = node.prefix ? false : true;
         return 'set(' + this.generate(node.argument.object) + ', ' + this.encodeProp(node.argument) + ', 1, "' + operator + '", ' + returnOld + ')';
       }
-      //todo: [hacky] this works only work on numbers
+      //special case (i++ and ++i) assume type is number
       if (node.prefix) {
         return node.operator + this.generate(node.argument);
       } else {
@@ -330,7 +343,13 @@
     },
 
     LogicalExpression: function(node) {
-      return this.BinaryExpression(node);
+      var op = node.operator;
+      if (op === '&&') {
+        return this.genAnd(node);
+      }
+      if (op === '||') {
+        return this.genOr(node);
+      }
     },
 
     genAnd: function(node) {
@@ -353,12 +372,6 @@
 
     BinaryExpression: function(node) {
       var op = node.operator;
-      if (op === '&&') {
-        return this.genAnd(node);
-      }
-      if (op === '||') {
-        return this.genOr(node);
-      }
       if (op === '+') {
         var terms = node.terms.map(this.generate, this);
         if (node.isConcat) {
@@ -367,16 +380,31 @@
           return 'x_plus(' + terms.join(', ') + ')';
         }
       }
-      var name = 'b:' + op;
-      if (name in OPERATOR_MAP) {
-        op = OPERATOR_MAP[name];
+      var toNumber = false;
+      if (op in BINARY_NUM_OPS) {
+        op = BINARY_NUM_OPS[op];
+        toNumber = true;
+      } else
+      if (isWord(op)) {
+        //in, instanceof
+        op = 'x_' + op;
       }
-      if (op.match(/^[a-z_]+$/)) {
-        return 'x_' + op + '(' + this.generate(node.left) + ', ' + this.generate(node.right) + ')';
+      var leftExpr = this.generate(node.left);
+      var rightExpr = this.generate(node.right);
+      if (isWord(op)) {
+        return op + '(' + leftExpr + ', ' + rightExpr + ')';
+      } else
+      if (toNumber) {
+        if (node.left.type !== 'Literal' || typeof node.left.value !== 'number') {
+          leftExpr = 'to_number(' + leftExpr + ')';
+        }
+        if (node.right.type !== 'Literal' || typeof node.right.value !== 'number') {
+          rightExpr = 'to_number(' + rightExpr + ')';
+        }
       }
-      var parentType = node.parent && node.parent.type;
-      var result = this.generate(node.left) + ' ' + op + ' ' + this.generate(node.right);
-      if (parentType === 'BinaryExpression' || parentType === 'LogicalExpression') {
+      var result = leftExpr + ' ' + op + ' ' + rightExpr;
+      //todo: is this really needed?
+      if (node.parent.type === 'BinaryExpression') {
         return '(' + result + ')';
       }
       return result;
@@ -387,22 +415,33 @@
       if (op === '!') {
         return 'not(' + this.generate(node.argument) + ')';
       }
-      var name = 'u:' + op;
-      if (name in OPERATOR_MAP) {
-        op = OPERATOR_MAP[name];
-      }
-      //special case here because -1 is actually a number literal, not negate(1)
-      if (op === 'negate' && node.argument.type === 'Literal' && typeof node.argument.value === 'number') {
+      //special case here: -3 is just a number literal, not negate(3)
+      if (op === '-' && node.argument.type === 'Literal' && typeof node.argument.value === 'number') {
         return '-' + encodeLiteral(node.argument.value);
       }
-      //special case here because `delete a.b.c` needs to compute a.b and then delete c
+      //special case here: `delete a.b.c` needs to compute a.b and then delete c
       if (op === 'delete' && node.argument.type === 'MemberExpression') {
         return 'x_delete(' + this.generate(node.argument.object) + ', ' + this.encodeProp(node.argument) + ')';
       }
-      if (op.match(/^[a-z_]+$/)) {
-        return 'x_' + op + '(' + this.generate(node.argument) + ')';
+      var toNumber = false;
+      if (op in UNARY_NUM_OPS) {
+        op = UNARY_NUM_OPS[op];
+        toNumber = true;
+      } else
+      if (isWord(op)) {
+        //delete, typeof, void
+        op = 'x_' + op;
       }
-      return op + this.generate(node.argument);
+      var result = this.generate(node.argument);
+      if (isWord(op)) {
+        result = '(' + result + ')';
+      } else
+      if (toNumber) {
+        if (node.argument.type !== 'Literal' || typeof node.argument.value !== 'number') {
+          result = 'to_number(' + result + ')';
+        }
+      }
+      return op + result;
     },
 
     SequenceExpression: function(node) {
@@ -629,6 +668,9 @@
     return new Array(count + 1).join(str);
   }
 
+  function isWord(str) {
+    return str.match(/^[a-z_]+$/) ? true : false;
+  }
   exports.generate = function(ast, opts) {
     var generator = new Generator(opts);
     return generator.generate(ast);

@@ -1,7 +1,6 @@
-operators: unary_plus, bitwise, ...
-`to_number('x') + 1` should be NaN
 static properties can be assigned inline
 demo: form post
+x_new -> _new
 get/setters
   'length' in []
   Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}

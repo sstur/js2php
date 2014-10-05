@@ -10,7 +10,7 @@ class Test {
     array_pop(self::$stack);
   }
 
-  static function assert($description, $condition) {
+  static function assert($description, $condition = false) {
     if ($condition instanceof Closure) {
       $condition = $condition();
     }
