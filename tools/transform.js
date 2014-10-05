@@ -171,7 +171,13 @@
     output.unshift('mb_internal_encoding("UTF-8");\n');
     var timezone = new Date().toString().slice(-4, -1);
     output.unshift('define("LOCAL_TZ", "' + timezone + '");\n');
-    return output.join('\n');
+    output = output.join('\n');
+    //note: this is a really primitive way to remove comments from PHP; it will
+    // choke on several edge cases including patterns in strings, but it's OK
+    // because we don't have anything too funky in our runtime code
+    output = output.replace(/\/\*([\s\S]*?)\*\//g, '');
+    output = output.replace(/\/\/[^\n]*/g, '');
+    return output;
   }
 
   function setHidden(object, name, value) {
