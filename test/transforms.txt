@@ -244,7 +244,7 @@ var a = function a() {
     console.log(x - y);
     return a;
   }
-}
+};
 ====
 $a = new Func("a", function($this_, $arguments) use (&$console) {
   $a = $arguments->callee;

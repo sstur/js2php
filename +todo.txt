@@ -1,7 +1,6 @@
 static properties can be assigned inline
 allow piping input to transform script
 opt-in modules at build
-re-write super-globals at build time
 demo: form post
 get/setters
   'length' in []

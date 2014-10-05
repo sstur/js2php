@@ -251,9 +251,10 @@
       if (scopeIndex.unresolved[functionName]) {
         delete scopeIndex.unresolved[functionName];
       }
-      var unresolvedRefs = Object.keys(scopeIndex.unresolved);
-      var useClause = unresolvedRefs.length ? 'use (&' + unresolvedRefs.map(encodeVarName).join(', &') + ') ' : '';
-
+      var unresolvedRefs = Object.keys(scopeIndex.unresolved).map(function(name) {
+        return encodeVarName(name);
+      });
+      var useClause = unresolvedRefs.length ? 'use (&' + unresolvedRefs.join(', &') + ') ' : '';
       results.push('function(' + params.join(', ') + ') ' + useClause + '{\n');
       if (scopeIndex.referenced[functionName]) {
         results.push(this.indent(1) + encodeVarName(functionName) + ' = $arguments->callee;\n');
@@ -643,26 +644,11 @@
 
   function encodeVar(identifier) {
     var name = identifier.name;
-    if (identifier.appendSuffix) {
-      name += identifier.appendSuffix;
-    } else {
-      name = name.replace(/_$/, '__');
-    }
-    return '$' + name.replace(/[^a-z0-9_]/ig, encodeVarChar);
+    return encodeVarName(name, identifier.appendSuffix);
   }
 
-  function encodeVarName(name) {
-    return '$' + name.replace(/_$/, '__').replace(/[^a-z0-9_]/ig, encodeVarChar);
-  }
-
-  function encodeVarChar(ch) {
-    var code = ch.charCodeAt(0);
-    if (code < 128) {
-      var hex = code.toString(16);
-      hex = hex.length === 1 ? '0' + hex : hex;
-      return '«' + hex + '»';
-    }
-    return encodeURI(ch).replace(/%(..)/g, '«$1»').toLowerCase();
+  function encodeVarName(name, suffix) {
+    return utils.encodeVarName(name, suffix);
   }
 
   function repeat(str, count) {

@@ -9,6 +9,8 @@ class GlobalObject extends Object {
   static $GLOBALS = null;
   //copy of the contents of GLOBALS array
   static $OLD_GLOBALS = null;
+  //a list of PHP's superglobals (cannot be accessed via set/get/remove)
+  static $SUPER_GLOBALS = array('GLOBALS' => 1, '_SERVER' => 1, '_GET' => 1, '_POST' => 1, '_FILES' => 1, '_COOKIE' => 1, '_SESSION' => 1, '_REQUEST' => 1, '_ENV' => 1);
 
   static $protoObject = null;
   static $classMethods = null;
@@ -17,14 +19,12 @@ class GlobalObject extends Object {
     if (array_key_exists($key, self::$immutable)) {
       return $value;
     }
-    $key = preg_replace('/_$/', '__', $key);
-    $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
+    $key = self::encodeVar($key);
     return (self::$GLOBALS[$key] = $value);
   }
 
   function get($key) {
-    $key = preg_replace('/_$/', '__', $key);
-    $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
+    $key = self::encodeVar($key);
     $value = array_key_exists($key, self::$GLOBALS) ? self::$GLOBALS[$key] : null;
     return $value;
   }
@@ -33,8 +33,7 @@ class GlobalObject extends Object {
     if (array_key_exists($key, self::$immutable)) {
       return false;
     }
-    $key = preg_replace('/_$/', '__', $key);
-    $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
+    $key = self::encodeVar($key);
     if (array_key_exists($key, self::$GLOBALS)) {
       unset(self::$GLOBALS[$key]);
     }
@@ -43,15 +42,13 @@ class GlobalObject extends Object {
 
   //determine if a valid value exists at the given key (don't walk proto)
   function hasOwnProperty($key) {
-    $key = preg_replace('/_$/', '__', $key);
-    $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
+    $key = self::encodeVar($key);
     return array_key_exists($key, self::$GLOBALS);
   }
 
   //determine if a valid value exists at the given key (walk proto)
   function hasProperty($key) {
-    $key = preg_replace('/_$/', '__', $key);
-    $key = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $key);
+    $key = self::encodeVar($key);
     if (array_key_exists($key, self::$GLOBALS)) {
       return true;
     }
@@ -66,11 +63,7 @@ class GlobalObject extends Object {
   function getOwnKeys($onlyEnumerable) {
     $arr = array();
     foreach (self::$GLOBALS as $key => $value) {
-      if (!preg_match('/[^_]_$/', $key)) {
-        $key = preg_replace('/__$/', '_', $key);
-        $key = preg_replace_callback('/«([a-z0-9]+)»/', 'self::decodeChar', $key);
-        $arr[] = $key;
-      }
+      $arr[] = self::decodeVar($key);
     }
     return $arr;
   }
@@ -78,11 +71,7 @@ class GlobalObject extends Object {
   //produce the list of keys (walk proto)
   function getKeys(&$arr = array()) {
     foreach (self::$GLOBALS as $key => $value) {
-      if (!preg_match('/[^_]_$/', $key)) {
-        $key = preg_replace('/__$/', '_', $key);
-        $key = preg_replace_callback('/«([a-z0-9]+)»/', 'self::decodeChar', $key);
-        $arr[] = $key;
-      }
+      $arr[] = self::decodeVar($key);
     }
     $proto = $this->proto;
     if ($proto instanceof Object) {
@@ -91,8 +80,30 @@ class GlobalObject extends Object {
     return $arr;
   }
 
+  static function encodeVar($str) {
+    if (array_key_exists($str, self::$SUPER_GLOBALS)) {
+      return $str . '_';
+    }
+    $str = preg_replace('/_$/', '__', $str);
+    $str = preg_replace_callback('/[^a-zA-Z0-9_]/', 'self::encodeChar', $str);
+    return $str;
+  }
+
   static function encodeChar($matches) {
     return '«' . bin2hex($matches[0]) . '»';
+  }
+
+  static function decodeVar($str) {
+    $len = strlen($str);
+    if ($str[$len - 1] === '_') {
+      $name = substr($str, 0, $len - 1);
+      if (array_key_exists($name, self::$SUPER_GLOBALS)) {
+        return $name;
+      }
+    }
+    $str = preg_replace('/__$/', '_', $str);
+    $str = preg_replace_callback('/«([a-z0-9]+)»/', 'self::decodeChar', $str);
+    return $str;
   }
 
   static function decodeChar($matches) {
