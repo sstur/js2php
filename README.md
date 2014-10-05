@@ -62,7 +62,7 @@ $HelloWorld = new Func("HelloWorld", function($this_, $arguments, $greeting) {
 set(get($HelloWorld, "prototype"), "go", new Func(function($this_, $arguments, $subject) use (&$console) {
   call_method($console, "log", get($this_, "greeting"), $subject);
 }));
-call_method(x_new($HelloWorld, "Hi"), "go", "world");
+call_method(_new($HelloWorld, "Hi"), "go", "world");
 ```
 
 It's not particularly elegant, but it's human-readable and has all the basics we need to implement standards-compliant JS in PHP.

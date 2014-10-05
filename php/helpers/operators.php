@@ -1,6 +1,6 @@
 <?php
 
-function x_void() {
+function _void() {
   return null;
 }
 
@@ -9,9 +9,9 @@ function x_void() {
  * @return Object
  * @throws Exception
  */
-function x_new($fn) {
+function _new($fn) {
   if (!($fn instanceof Func)) {
-    throw new Ex(Error::create(x_typeof($fn) . " is not a function"));
+    throw new Ex(Error::create(_typeof($fn) . " is not a function"));
   }
   $args = array_slice(func_get_args(), 1);
   return call_user_func_array(array($fn, 'construct'), $args);
@@ -22,7 +22,7 @@ function x_new($fn) {
  * @param Func $fn
  * @return bool
  */
-function x_instanceof($obj, $fn) {
+function _instanceof($obj, $fn) {
   if (!($obj instanceof Object)) {
     return false;
   }
@@ -40,7 +40,7 @@ function x_instanceof($obj, $fn) {
   return false;
 }
 
-function x_plus() {
+function _plus() {
   $total = 0;
   $strings = array();
   $isString = false;
@@ -56,7 +56,7 @@ function x_plus() {
   return $isString ? join('', $strings) : $total;
 }
 
-function x_concat() {
+function _concat() {
   $strings = array();
   foreach (func_get_args() as $arg) {
     $strings[] = to_string($arg);
@@ -64,15 +64,15 @@ function x_concat() {
   return join('', $strings);
 }
 
-function x_negate($val) {
+function _negate($val) {
   return (float)(0 - $val);
 }
 
-function x_and($a, $b) {
+function _and($a, $b) {
   return $a ? $b : $a;
 }
 
-function x_or($a, $b) {
+function _or($a, $b) {
   return $a ? $a : $b;
 }
 
@@ -82,7 +82,7 @@ function x_or($a, $b) {
  * @return bool
  * @throws Exception
  */
-function x_delete($obj, $key = null) {
+function _delete($obj, $key = null) {
   //don't allow deleting of variables, only properties
   if (func_num_args() === 1) {
     return false;
@@ -101,14 +101,14 @@ function x_delete($obj, $key = null) {
  * @return bool
  * @throws Exception
  */
-function x_in($key, $obj) {
+function _in($key, $obj) {
   if (!($obj instanceof Object)) {
     throw new Ex(Error::create("Cannot use 'in' operator to search for '" . $key . "' in " . to_string($obj)));
   }
   return $obj->hasProperty($key);
 }
 
-function x_typeof($value) {
+function _typeof($value) {
   if ($value === null) {
     return 'undefined';
   }
@@ -132,7 +132,7 @@ function x_typeof($value) {
   return 'unknown';
 }
 
-function x_seq() {
+function _seq() {
   $args = func_get_args();
   return array_pop($args);
 }

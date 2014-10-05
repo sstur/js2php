@@ -6146,15 +6146,16 @@ exports.moonwalk = function moonwalk(ast, fn){
 
   //these operators expect numbers
   var UNARY_NUM_OPS = {
-    '-': 'x_negate',
+    '-': '_negate',
     '+': 'to_number',
     '~': '~' //bitwise not
   };
 
   //these operators expect numbers
   var BINARY_NUM_OPS = {
-    '+': 'x_plus',
+    '+': '_plus',
     '-': '-',
+    //todo: 1 / 0 === INF?
     //'*': '*', '/': '/',
     //todo: type coercion?
     //'<': '<', '<=': '<=',
@@ -6164,7 +6165,7 @@ exports.moonwalk = function moonwalk(ast, fn){
     '^': '^', //bitwise xor
     '<<': '<<', //bitwise left shift
     '>>': '>>', //bitwise sign-propagating right shift
-    'b:>>>': 'x_bitwise_zfrs' //bitwise zero-fill right shift
+    'b:>>>': '_bitwise_zfrs' //bitwise zero-fill right shift
   };
 
   //these operators will always return true/false
@@ -6445,7 +6446,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       var args = node.arguments.map(function(arg) {
         return this.generate(arg);
       }, this);
-      return 'x_new(' + this.generate(node.callee) + (args.length ? ', ' + args.join(', ') : '') + ')';
+      return '_new(' + this.generate(node.callee) + (args.length ? ', ' + args.join(', ') : '') + ')';
     },
 
     AssignmentExpression: function(node) {
@@ -6515,9 +6516,9 @@ exports.moonwalk = function moonwalk(ast, fn){
       if (op === '+') {
         var terms = node.terms.map(this.generate, this);
         if (node.isConcat) {
-          return 'x_concat(' + terms.join(', ') + ')';
+          return '_concat(' + terms.join(', ') + ')';
         } else {
-          return 'x_plus(' + terms.join(', ') + ')';
+          return '_plus(' + terms.join(', ') + ')';
         }
       }
       var toNumber = false;
@@ -6527,7 +6528,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       } else
       if (isWord(op)) {
         //in, instanceof
-        op = 'x_' + op;
+        op = '_' + op;
       }
       var leftExpr = this.generate(node.left);
       var rightExpr = this.generate(node.right);
@@ -6561,7 +6562,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       }
       //special case here: `delete a.b.c` needs to compute a.b and then delete c
       if (op === 'delete' && node.argument.type === 'MemberExpression') {
-        return 'x_delete(' + this.generate(node.argument.object) + ', ' + this.encodeProp(node.argument) + ')';
+        return '_delete(' + this.generate(node.argument.object) + ', ' + this.encodeProp(node.argument) + ')';
       }
       var toNumber = false;
       if (op in UNARY_NUM_OPS) {
@@ -6570,7 +6571,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       } else
       if (isWord(op)) {
         //delete, typeof, void
-        op = 'x_' + op;
+        op = '_' + op;
       }
       var result = this.generate(node.argument);
       if (isWord(op)) {
@@ -6592,7 +6593,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       if (node.parent.type === 'ForStatement' && node.parent.init === node) {
         return expressions.join(', ');
       } else {
-        return 'x_seq(' + expressions.join(', ') + ')';
+        return '_seq(' + expressions.join(', ') + ')';
       }
     },
 
@@ -6991,7 +6992,13 @@ exports.moonwalk = function moonwalk(ast, fn){
     output.unshift('mb_internal_encoding("UTF-8");\n');
     var timezone = new Date().toString().slice(-4, -1);
     output.unshift('define("LOCAL_TZ", "' + timezone + '");\n');
-    return output.join('\n');
+    output = output.join('\n');
+    //note: this is a really primitive way to remove comments from PHP; it will
+    // choke on several edge cases including patterns in strings, but it's OK
+    // because we don't have anything too funky in our runtime code
+    output = output.replace(/\/\*([\s\S]*?)\*\//g, '');
+    output = output.replace(/\/\/[^\n]*/g, '');
+    return output;
   }
 
   function setHidden(object, name, value) {

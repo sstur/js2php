@@ -6,14 +6,14 @@
 
   //these operators expect numbers
   var UNARY_NUM_OPS = {
-    '-': 'x_negate',
+    '-': '_negate',
     '+': 'to_number',
     '~': '~' //bitwise not
   };
 
   //these operators expect numbers
   var BINARY_NUM_OPS = {
-    '+': 'x_plus',
+    '+': '_plus',
     '-': '-',
     //todo: 1 / 0 === INF?
     //'*': '*', '/': '/',
@@ -25,7 +25,7 @@
     '^': '^', //bitwise xor
     '<<': '<<', //bitwise left shift
     '>>': '>>', //bitwise sign-propagating right shift
-    'b:>>>': 'x_bitwise_zfrs' //bitwise zero-fill right shift
+    'b:>>>': '_bitwise_zfrs' //bitwise zero-fill right shift
   };
 
   //these operators will always return true/false
@@ -306,7 +306,7 @@
       var args = node.arguments.map(function(arg) {
         return this.generate(arg);
       }, this);
-      return 'x_new(' + this.generate(node.callee) + (args.length ? ', ' + args.join(', ') : '') + ')';
+      return '_new(' + this.generate(node.callee) + (args.length ? ', ' + args.join(', ') : '') + ')';
     },
 
     AssignmentExpression: function(node) {
@@ -376,9 +376,9 @@
       if (op === '+') {
         var terms = node.terms.map(this.generate, this);
         if (node.isConcat) {
-          return 'x_concat(' + terms.join(', ') + ')';
+          return '_concat(' + terms.join(', ') + ')';
         } else {
-          return 'x_plus(' + terms.join(', ') + ')';
+          return '_plus(' + terms.join(', ') + ')';
         }
       }
       var toNumber = false;
@@ -388,7 +388,7 @@
       } else
       if (isWord(op)) {
         //in, instanceof
-        op = 'x_' + op;
+        op = '_' + op;
       }
       var leftExpr = this.generate(node.left);
       var rightExpr = this.generate(node.right);
@@ -422,7 +422,7 @@
       }
       //special case here: `delete a.b.c` needs to compute a.b and then delete c
       if (op === 'delete' && node.argument.type === 'MemberExpression') {
-        return 'x_delete(' + this.generate(node.argument.object) + ', ' + this.encodeProp(node.argument) + ')';
+        return '_delete(' + this.generate(node.argument.object) + ', ' + this.encodeProp(node.argument) + ')';
       }
       var toNumber = false;
       if (op in UNARY_NUM_OPS) {
@@ -431,7 +431,7 @@
       } else
       if (isWord(op)) {
         //delete, typeof, void
-        op = 'x_' + op;
+        op = '_' + op;
       }
       var result = this.generate(node.argument);
       if (isWord(op)) {
@@ -453,7 +453,7 @@
       if (node.parent.type === 'ForStatement' && node.parent.init === node) {
         return expressions.join(', ');
       } else {
-        return 'x_seq(' + expressions.join(', ') + ')';
+        return '_seq(' + expressions.join(', ') + ')';
       }
     },
 

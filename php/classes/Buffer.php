@@ -33,7 +33,7 @@ class Buffer extends Object {
       } else {
         $this->raw = $subject;
       }
-    } else if (x_instanceof($subject, $Buffer)) {
+    } else if (_instanceof($subject, $Buffer)) {
       $this->raw = $subject->raw;
     } else if ($subject instanceof Arr) {
       $this->raw = $util['arrToRaw']($subject);
@@ -79,7 +79,7 @@ class Buffer extends Object {
 Buffer::$classMethods = array(
   'isBuffer' => function($this_, $arguments, $obj) {
       global $Buffer;
-      return x_instanceof($obj, $Buffer);
+      return _instanceof($obj, $Buffer);
     },
   'byteLength' => function($this_, $arguments, $string, $enc = null) {
       $b = new Buffer($string, $enc);

@@ -1,6 +1,5 @@
 static properties can be assigned inline
 allow piping input to transform script
-x_new -> _new
 demo: form post
 get/setters
   'length' in []
