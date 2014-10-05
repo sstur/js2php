@@ -309,34 +309,13 @@ Test::suite(
   function() use ($Number) {
     Test::assert('to_number ""', to_number('') === 0.0);
     Test::assert('to_number "x"', is_nan(to_number('x')));
-    //if (to_number("") !== 0.0) {
-    //  Test::assert('#1.1: to_number("") === 0. Actual: ' . (to_number("")));
-    //} else if (1 / to_number("") !== INF) {
-    //  Test::assert('#1.2: to_number("") == +0. Actual: -0');
-    //}
-    //if (to_number("+0") !== to_number("0")) {
-    //  Test::assert('#1.1: to_number("+0") === to_number("0")');
-    //} else if (1 / to_number("+0") !== 1.0 / to_number("0")) {
-    //  Test::assert('#2.2: 1/to_number("+0") === 1/to_number("0")');
-    //}
-    //if (to_number("+Infinity") !== to_number("Infinity")) {
-    //  Test::assert('#3: to_number("+Infinity") === to_number("Infinity")');
-    //}
-    //if (to_number("+1234.5678") !== to_number("1234.5678")) {
-    //  Test::assert('#4: to_number("+1234.5678") === to_number("1234.5678")');
-    //}
-    //if (to_number("+1234.5678e90") !== to_number("1234.5678e90")) {
-    //  Test::assert('#5: to_number("+1234.5678e90") === to_number("1234.5678e90")');
-    //}
-    //if (to_number("+1234.5678E90") !== to_number("1234.5678E90")) {
-    //  Test::assert('#6: to_number("+1234.5678E90") === to_number("1234.5678E90")');
-    //}
-    //if (to_number("+1234.5678e-90") !== to_number("1234.5678e-90")) {
-    //  Test::assert('#7: to_number("+1234.5678e-90") === to_number("1234.5678e-90")');
-    //}
-    //if (to_number("+1234.5678E-90") !== to_number("1234.5678E-90")) {
-    //  Test::assert('#8: to_number("+1234.5678E-90") === to_number("1234.5678E-90")');
-    //}
+    Test::assert('to_number "+0"', to_number('+0') === 0.0);
+    Test::assert('to_number "+Infinity"', to_number('+Infinity') === INF);
+    Test::assert('to_number "+1234.5678"', to_number('+1234.5678') === to_number('1234.5678'));
+    Test::assert('to_number "+1234.5678e90"', to_number("+1234.5678e90") === to_number("1234.5678e90"));
+    Test::assert('to_number "+1234.5678E90"', to_number("+1234.5678E90") === to_number("1234.5678E90"));
+    Test::assert('to_number "+1234.5678e-90"', to_number("+1234.5678e-90") === to_number("1234.5678e-90"));
+    Test::assert('to_number "+1234.5678E-90"', to_number("+1234.5678E-90") === to_number("1234.5678E-90"));
   }
 );
 

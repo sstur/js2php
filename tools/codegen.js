@@ -15,6 +15,7 @@
   var BINARY_NUM_OPS = {
     '+': 'x_plus',
     '-': '-',
+    //todo: 1 / 0 === INF?
     //'*': '*', '/': '/',
     //todo: type coercion?
     //'<': '<', '<=': '<=',

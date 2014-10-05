@@ -1,6 +1,7 @@
 static properties can be assigned inline
-demo: form post
+allow piping input to transform script
 x_new -> _new
+demo: form post
 get/setters
   'length' in []
   Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}
