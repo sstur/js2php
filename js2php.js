@@ -13,7 +13,7 @@
   var transform = require('./tools/transform.js');
   var child_process = require('child_process');
 
-  var logToStdOut = true;
+  var logTo = argv.quiet ? 'none' : 'stdout';
 
   if (argv.test) {
     require('./test/transforms').run();
@@ -26,8 +26,9 @@
 
   function processTransform(argv) {
     var outfile = argv.o || argv.out;
-
-    logToStdOut = !!outfile;
+    if (logTo === 'stdout' && !outfile) {
+      logTo = 'stderr';
+    }
 
     var pathToRuntime = argv.runtime;
     if (!argv.fragment && !pathToRuntime) {
@@ -145,9 +146,10 @@
   }
 
   function log() {
-    if (logToStdOut) {
+    if (logTo === 'stdout') {
       console.log.apply(console, arguments);
-    } else {
+    } else
+    if (logTo === 'stderr') {
       console.error.apply(console, arguments);
     }
   }
