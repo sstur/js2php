@@ -20,13 +20,12 @@
     compileTests();
     runTests();
   } else {
-    processFiles(argv);
+    processTransform(argv);
   }
 
 
-  function processFiles(argv) {
+  function processTransform(argv) {
     var outfile = argv.o || argv.out;
-    var infiles = argv._;
 
     logToStdOut = !!outfile;
 
@@ -39,36 +38,72 @@
       }
     }
 
-    if (!infiles.length) {
-      log('No input file(s) specified.');
-      process.exit(1);
+    if (!process.stdin.isTTY) {
+      //process input from stdin
+      processInputStream();
+    } else {
+      //process input from files specified as arguments
+      processInputFiles();
     }
 
-    var output = infiles.map(function(infile) {
-      try {
-        var source = fs.readFileSync(infile, 'utf8');
-      } catch(e) {
-        if (e.code === 'ENOENT') {
-          log('Unable to open file `' +  infile + '`');
-          process.exit(1);
-        }
-        throw e;
-      }
-      log('Processing file `' +  infile + '` ...');
-      var output = transform({
-        source: source
+    function processInputStream() {
+      var input = [];
+      var stdin = process.stdin;
+      stdin.setEncoding('utf8');
+      stdin.on('data', function(data) {
+        input.push(data);
       });
-      output.replace(/^\n+|\n+$/g, '');
-      return output;
-    });
-
-    if (runtime) {
-      output.unshift(runtime);
-    } else
-    if (pathToRuntime) {
-      output.unshift('require_once(' + JSON.stringify(pathToRuntime) + ');');
+      stdin.on('end', function() {
+        var source = input.join('');
+        log('Processing input from STDIN ...');
+        var output = transform({
+          source: source
+        });
+        output = output.replace(/^\n+|\n+$/g, '');
+        if (runtime) {
+          output = runtime + '\n\n' + output;
+        } else
+        if (pathToRuntime) {
+          output = 'require_once(' + JSON.stringify(pathToRuntime) + ');\n\n' + output;
+        }
+        outputContent(outfile, '<?php\n' + output + '\n');
+      });
+      stdin.resume();
     }
-    outputContent(outfile, '<?php\n' + output.join('\n\n') + '\n');
+
+    function processInputFiles() {
+      var infiles = argv._;
+      if (!infiles.length) {
+        log('No input file(s) specified.');
+        process.exit(1);
+      }
+      var output = infiles.map(function(infile) {
+        try {
+          var source = fs.readFileSync(infile, 'utf8');
+        } catch(e) {
+          if (e.code === 'ENOENT') {
+            log('Unable to open file `' +  infile + '`');
+            process.exit(1);
+          }
+          throw e;
+        }
+        log('Processing file `' +  infile + '` ...');
+        var output = transform({
+          source: source
+        });
+        output = output.replace(/^\n+|\n+$/g, '');
+        return output;
+      });
+
+      if (runtime) {
+        output.unshift(runtime);
+      } else
+      if (pathToRuntime) {
+        output.unshift('require_once(' + JSON.stringify(pathToRuntime) + ');');
+      }
+      outputContent(outfile, '<?php\n' + output.join('\n\n') + '\n');
+    }
+
   }
 
   function outputContent(outfile, content, defaultFileName) {
@@ -92,7 +127,7 @@
         out: __dirname + '/test/compiled/' + name + '.php',
         _: [__dirname + '/test/' + name + '.js']
       };
-      processFiles(argv);
+      processTransform(argv);
     });
   }
 

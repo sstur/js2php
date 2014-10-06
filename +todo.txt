@@ -1,5 +1,5 @@
 static properties can be assigned inline
-allow piping input to transform script
+fix console.log when STDOUT doesn't exist
 opt-in modules at build
 demo: form post
 get/setters
