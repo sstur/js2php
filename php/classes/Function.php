@@ -187,7 +187,7 @@ Func::$protoMethods = array(
       return $this_->apply($context, $args);
     },
   'toString' => function($this_) {
-      $source = array_key_exists('source_', GlobalObject::$GLOBALS) ? GlobalObject::$GLOBALS['source_'] : null;
+      $source = array_key_exists('source_', $GLOBALS) ? $GLOBALS['source_'] : null;
       if ($source) {
         $meta = $this_->meta;
         if (isset($meta['id']) && isset($source[$meta['id']])) {

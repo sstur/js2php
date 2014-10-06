@@ -6980,10 +6980,17 @@ exports.moonwalk = function moonwalk(ast, fn){
     output.unshift('define("LOCAL_TZ", "' + timezone + '");\n');
     output = output.join('\n');
     //note: this is a really primitive way to remove comments from PHP; it will
-    // choke on several edge cases including patterns in strings, but it's OK
-    // because we don't have anything too funky in our runtime code
-    output = output.replace(/\/\*([\s\S]*?)\*\//g, '');
-    output = output.replace(/\/\/[^\n]*/g, '');
+    // choke on several edge cases, but it's OK because we don't have anything
+    // too funky in our runtime code
+    output = output.replace(/'(\\.|[^'\n])*'|"(\\.|[^"\n])*"|\/\*([\s\S]*?)\*\/|\/\/.*?\n/g, function(match) {
+      var ch = match.charAt(0);
+      if (ch === '"' || ch === "'") {
+        return match;
+      }
+      return (match.slice(0, 2) === '//') ? '\n' : '';
+    });
+    //remove empty lines
+    output = output.replace(/\n([ \t]*\n)+/g, '\n');
     return output;
   }
 

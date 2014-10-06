@@ -1,13 +1,10 @@
 <?php
-//todo: use unicode string functions
 class GlobalObject extends Object {
   public $className = "global";
 
   //disallow mutating pre-defined globals
   static $immutable = array('Array' => 1, 'Boolean' => 1, 'Buffer' => 1, 'Date' => 1, 'Error' => 1, 'RangeError' => 1, 'ReferenceError' => 1, 'SyntaxError' => 1, 'TypeError' => 1, 'Function' => 1, 'Infinity' => 1, 'JSON' => 1, 'Math' => 1, 'NaN' => 1, 'Number' => 1, 'Object' => 1, 'RegExp' => 1, 'String' => 1, 'console' => 1, 'decodeURI' => 1, 'decodeURIComponent' => 1, 'encodeURI' => 1, 'encodeURIComponent' => 1, 'escape' => 1, 'eval' => 1, 'isFinite' => 1, 'isNaN' => 1, 'parseFloat' => 1, 'parseInt' => 1, 'undefined' => 1, 'unescape' => 1);
-  //copy of the GLOBALS array
-  static $GLOBALS = null;
-  //copy of the contents of GLOBALS array
+  //copy of GLOBALS that we have deleted (if any)
   static $OLD_GLOBALS = null;
   //a list of PHP's superglobals (cannot be accessed via set/get/remove)
   static $SUPER_GLOBALS = array('GLOBALS' => 1, '_SERVER' => 1, '_GET' => 1, '_POST' => 1, '_FILES' => 1, '_COOKIE' => 1, '_SESSION' => 1, '_REQUEST' => 1, '_ENV' => 1);
@@ -20,12 +17,12 @@ class GlobalObject extends Object {
       return $value;
     }
     $key = self::encodeVar($key);
-    return (self::$GLOBALS[$key] = $value);
+    return ($GLOBALS[$key] = $value);
   }
 
   function get($key) {
     $key = self::encodeVar($key);
-    $value = array_key_exists($key, self::$GLOBALS) ? self::$GLOBALS[$key] : null;
+    $value = array_key_exists($key, $GLOBALS) ? $GLOBALS[$key] : null;
     return $value;
   }
 
@@ -34,8 +31,8 @@ class GlobalObject extends Object {
       return false;
     }
     $key = self::encodeVar($key);
-    if (array_key_exists($key, self::$GLOBALS)) {
-      unset(self::$GLOBALS[$key]);
+    if (array_key_exists($key, $GLOBALS)) {
+      unset($GLOBALS[$key]);
     }
     return true;
   }
@@ -43,13 +40,13 @@ class GlobalObject extends Object {
   //determine if a valid value exists at the given key (don't walk proto)
   function hasOwnProperty($key) {
     $key = self::encodeVar($key);
-    return array_key_exists($key, self::$GLOBALS);
+    return array_key_exists($key, $GLOBALS);
   }
 
   //determine if a valid value exists at the given key (walk proto)
   function hasProperty($key) {
     $key = self::encodeVar($key);
-    if (array_key_exists($key, self::$GLOBALS)) {
+    if (array_key_exists($key, $GLOBALS)) {
       return true;
     }
     $proto = $this->proto;
@@ -62,7 +59,7 @@ class GlobalObject extends Object {
   //produce the list of keys (all globals are enumerable)
   function getOwnKeys($onlyEnumerable) {
     $arr = array();
-    foreach (self::$GLOBALS as $key => $value) {
+    foreach ($GLOBALS as $key => $value) {
       $arr[] = self::decodeVar($key);
     }
     return $arr;
@@ -70,7 +67,7 @@ class GlobalObject extends Object {
 
   //produce the list of keys (walk proto)
   function getKeys(&$arr = array()) {
-    foreach (self::$GLOBALS as $key => $value) {
+    foreach ($GLOBALS as $key => $value) {
       $arr[] = self::decodeVar($key);
     }
     $proto = $this->proto;
@@ -113,13 +110,11 @@ class GlobalObject extends Object {
   static function unsetGlobals() {
     self::$OLD_GLOBALS = array();
     foreach ($GLOBALS as $key => $value) {
-      if ($value !== $GLOBALS) {
+      if (!array_key_exists($key, self::$SUPER_GLOBALS)) {
         self::$OLD_GLOBALS[$key] = $value;
         unset($GLOBALS[$key]);
       }
     }
-    self::$GLOBALS = $GLOBALS;
-    unset($GLOBALS['GLOBALS']);
   }
 
 }

@@ -1,6 +1,9 @@
 <?php
 $console = call_user_func(function() {
 
+  $stdout = defined('STDOUT') ? STDOUT : null;
+  $stderr = defined('STDERR') ? STDERR : null;
+
   $toString = function($args) {
     $output = array();
     foreach ($args as $value) {
@@ -23,14 +26,20 @@ $console = call_user_func(function() {
 
   $console = new Object();
 
-  $console->set('log', new Func(function($this_, $arguments) use ($toString) {
+  $console->set('log', new Func(function($this_, $arguments) use (&$stdout, &$toString) {
+    if ($stdout === null) {
+      $stdout = fopen('php://stdout', 'w');
+    }
     $output = $toString($arguments->args);
-    fwrite(STDOUT, $output);
+    fwrite($stdout, $output);
   }));
 
-  $console->set('error', new Func(function($this_, $arguments) use ($toString) {
+  $console->set('error', new Func(function($this_, $arguments) use (&$stderr, &$toString) {
+    if ($stderr === null) {
+      $stderr = fopen('php://stderr', 'w');
+    }
     $output = $toString($arguments->args);
-    fwrite(STDERR, $output);
+    fwrite($stderr, $output);
   }));
 
   return $console;
