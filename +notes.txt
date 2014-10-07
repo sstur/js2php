@@ -1,6 +1,7 @@
 browserify tools/transform.js --standalone Transformer -o demo/js/transformer.js
 js2php examples/http.js > _http.php
 php -S 127.0.0.1:8080 _http.php
+echo "console.log(123)" | node js2php --quiet | php
 rsync -av ../js2php dev:~/
 
 Divergence from JavaScript

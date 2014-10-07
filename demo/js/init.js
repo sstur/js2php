@@ -4,8 +4,8 @@
   var debug = location.search.match(/debug/) ? true : false;
   var useWebWorker = !debug;
   if (!useWebWorker) {
-    document.write('<script src="js/transformer.js"></script>')
-    document.write('<script src="js/web-worker.js"></script>')
+    document.write('<script src="js/transformer.js"></script>');
+    document.write('<script src="js/web-worker.js"></script>');
   }
 
   var worker, isWorking, enqueueWork;
@@ -40,6 +40,29 @@
     inputEditor.on('change', processSource);
     processSource();
 
+
+    window.execSource = function() {
+      JSONP({
+        url: 'http://js2php-sstur.rhcloud.com/api/exec',
+        data: {
+          source: inputEditor.getValue()
+        },
+        success: function(data) {
+          if (data.status !== 200) {
+            console.log('HTTP Error:', data.status);
+            return;
+          }
+          data = data.payload;
+          if (data.code !== 0) {
+            console.log('Process exited with code:', data.code);
+            if (data.stderr) {
+              console.log(data.stderr);
+            }
+          }
+          console.log(data.stdout);
+        }
+      });
+    };
 
     function processSource() {
       var sourceCode = inputEditor.getValue();
@@ -84,4 +107,5 @@
     }
 
   }, false);
+
 })();
