@@ -40,8 +40,24 @@
     inputEditor.on('change', processSource);
     processSource();
 
+    var btn = document.querySelector('.console button');
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      if (btn.classList.contains('loading')) {
+        return;
+      }
+      btn.classList.add('loading');
+      execSource(function(output) {
+        document.querySelector('.console').classList.remove('empty');
+        var el = document.querySelector('.console code');
+        el.innerHTML = '';
+        el.appendChild(document.createTextNode(output));
+        btn.classList.remove('loading');
+      });
+    }, false);
 
-    window.execSource = function() {
+
+    function execSource(callback) {
       JSONP({
         url: 'http://js2php-sstur.rhcloud.com/api/exec',
         data: {
@@ -53,16 +69,22 @@
             return;
           }
           data = data.payload;
+          var output = [];
           if (data.code !== 0) {
-            console.log('Process exited with code:', data.code);
+            output.push('Process exited with code: ' + data.code);
             if (data.stderr) {
-              console.log(data.stderr);
+              output.push(data.stderr);
             }
           }
-          console.log(data.stdout);
+          output.push(data.stdout);
+          if (callback) {
+            callback(output.join('\n'));
+          } else {
+            console.log(output.join('\n'));
+          }
         }
       });
-    };
+    }
 
     function processSource() {
       var sourceCode = inputEditor.getValue();
@@ -105,6 +127,8 @@
         }
       }
     }
+
+    window.execSource = execSource;
 
   }, false);
 

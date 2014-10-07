@@ -78,6 +78,64 @@ a:focus {
   margin-right: 0;
 }
 
+.editor:after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+.console {
+  text-align: right;
+}
+
+.console button {
+  display: inline-block;
+  margin: 5px 0;
+  padding: 10px 15px;
+  line-height: 1;
+  border: none;
+  border-radius: 3px;
+  background: transparent none;
+  font-family: inherit;
+  font-size: inherit;
+  color: #484848;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.console button:hover {
+  text-decoration: none;
+  color: #fff;
+  background: #36958e;
+}
+
+.console button.loading {
+  color: transparent;
+  background: #36958e url(../images/loading.gif) center center no-repeat;
+  cursor: default;
+}
+
+.console pre {
+  margin: 0;
+  padding: 10px;
+  text-align: left;
+  border: 1px solid rgba(16, 16, 16, 0.1);
+  border-radius: 3px;
+  background: #f8f5ec;
+  line-height: 20px;
+}
+
+.console code {
+  font-family: source-code-pro, Menlo, 'Courier New', Consolas, monospace;
+  font-size: 13px;
+  font-weight: 300;
+  color: #637c84;
+}
+
+.console.empty pre {
+  display: none;
+}
+
 .cm-s-solarized.CodeMirror {
   -webkit-box-shadow: none;
   -moz-box-shadow: none;
