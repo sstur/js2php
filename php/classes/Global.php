@@ -60,7 +60,9 @@ class GlobalObject extends Object {
   function getOwnKeys($onlyEnumerable) {
     $arr = array();
     foreach ($GLOBALS as $key => $value) {
-      $arr[] = self::decodeVar($key);
+      if (!array_key_exists($key, self::$SUPER_GLOBALS)) {
+        $arr[] = self::decodeVar($key);
+      }
     }
     return $arr;
   }
@@ -68,7 +70,9 @@ class GlobalObject extends Object {
   //produce the list of keys (walk proto)
   function getKeys(&$arr = array()) {
     foreach ($GLOBALS as $key => $value) {
-      $arr[] = self::decodeVar($key);
+      if (!array_key_exists($key, self::$SUPER_GLOBALS)) {
+        $arr[] = self::decodeVar($key);
+      }
     }
     $proto = $this->proto;
     if ($proto instanceof Object) {
