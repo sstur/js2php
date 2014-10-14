@@ -23,6 +23,27 @@
   module.exports.buildRuntime = buildRuntime;
 
   var nodeHandlers = {
+    NewExpression: function(node) {
+      if (node.callee.type === 'Identifier' && node.callee.name === 'Function') {
+        var args = node.arguments.slice(0);
+        //ensure all arguments are string literals
+        for (var i = 0, len = args.length; i < len; i++) {
+          var arg = args[i];
+          if (arg.type !== 'Literal' || typeof arg.value !== 'string') {
+            throw new Error('Parse Error: new Function() not supported except with string literal');
+          }
+        }
+        args = args.map(function(arg) {
+          return arg.value;
+        });
+        var body = args.pop();
+        var code = '(function(' + args.join(', ') + ') {' + body + '})';
+        var ast = this.parse(code);
+        var newNode = ast.body[0].expression;
+        this.replaceNode(node, newNode);
+        setHidden(newNode, 'useStrict', false);
+      }
+    },
     VariableDeclaration: function(node) {
       var scope = utils.getParentScope(node);
       var varNames = scope.vars || setHidden(scope, 'vars', {});
@@ -70,24 +91,25 @@
   Transformer.prototype.process = function(opts) {
     opts = Object.create(opts || {});
     opts.initVars = (opts.initVars !== false);
-    this.parse(opts.source);
-    this.indexScopes();
-    return codegen.generate(this.ast, opts);
+    this.opts = opts;
+    var ast = this.parse(opts.source);
+    return codegen.generate(ast, opts);
   };
 
   Transformer.prototype.parse = function(source) {
-    this.source = source.trim();
-    this.ast = rocambole.parse(this.source);
+    source = source.trim();
+    var ast = rocambole.parse(source);
+    this.transform(ast);
+    return ast;
   };
 
-  Transformer.prototype.indexScopes = function() {
-    var ast = this.ast;
-
+  Transformer.prototype.transform = function(ast) {
+    var self = this;
     //walk tree and let handlers manipulate specific nodes (by type)
     rocambole.recursive(ast, function(node) {
       var type = node.type;
       if (type in nodeHandlers) {
-        nodeHandlers[type](node);
+        nodeHandlers[type].call(self, node);
       }
     });
 
@@ -112,6 +134,16 @@
         });
       }
     });
+  };
+
+  Transformer.prototype.replaceNode = function(oldNode, newNode) {
+    var parent = oldNode.parent;
+    Object.keys(parent).forEach(function(key) {
+      if (parent[key] === oldNode) {
+        parent[key] = newNode;
+      }
+    });
+    newNode.parent = parent;
   };
 
 

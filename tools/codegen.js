@@ -234,6 +234,9 @@
       var opts = this.opts;
       var parentIsStrict = opts.isStrict;
       opts.isStrict = parentIsStrict || isStrictDirective(node.body.body[0]);
+      if (node.useStrict === false) {
+        opts.isStrict = false;
+      }
       if (opts.isStrict) {
         meta.push('"strict" => true');
       }
