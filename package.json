@@ -1,6 +1,6 @@
 {
   "name": "jstophp",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "JavaScript to PHP source transformation",
   "main": "js2php.js",
   "dependencies": {
