@@ -9,9 +9,15 @@
 
   var fs = require('fs');
   var path = require('path');
-  var argv = require('minimist')(process.argv.slice(2));
+  var yargs = require('yargs');
   var transform = require('./tools/transform.js');
   var child_process = require('child_process');
+
+  var argv = yargs
+    .boolean(['fragment', 'runtime-only', 'test', 'quiet'])
+    .alias('out', 'o')
+    .alias('quiet', 'q')
+    .argv;
 
   var logTo = argv.quiet ? 'none' : 'stdout';
 
@@ -25,7 +31,7 @@
 
 
   function processTransform(argv) {
-    var outfile = argv.o || argv.out;
+    var outfile = argv.out;
     if (logTo === 'stdout' && !outfile) {
       logTo = 'stderr';
     }

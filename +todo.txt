@@ -5,7 +5,6 @@ get/setters
   Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}
 
 build tool:
-  specify --fragment as true/false flag
   debug mode: Func() gets extra param "meta"
     array('source' => 3, 'line' => 4, 'start' => 146, 'end' => 283, 'def' => 'a.b')
     source is an id referencing source file
