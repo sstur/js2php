@@ -37,6 +37,12 @@ Install from GitHub:
     cd js2php
     npm install
 
+Install from npm:
+
+    npm install -g jstophp
+
+When you install from npm using the `-g` flag, you can run it from any directory by simply calling `js2php` rather than calling `node path/to/js2php`. The rest of the examples in this readme will call it this way. 
+
 Compile and run a simple example: 
 
     echo 'var x = "world"; console.log("hi " + x)' | js2php --quiet | php
@@ -44,7 +50,7 @@ Compile and run a simple example:
 or, a more verbose example: 
 
     echo "var a = 1; console.log(a + 1)" > example.js
-    node js2php example.js > example.php
+    js2php example.js > example.php
     php example.php
 
 ### How it works
@@ -53,12 +59,12 @@ We're using the awesome [esprima][8] JavaScript parser with [rocambole][9] to wa
 
 Various constructs get wrapped in helper functions, for instance, property access, method calls and `+` operator. The runtime helpers can be found in `php/helpers` and there are a bunch of classes in `php/classes` for Array, RegExp and such. All this PHP gets packaged into your output file, or you can save it to a standalone runtime and reference that from your output file like so:
 
-    node js2php --runtime-only > runtime.php
-    node js2php --runtime runtime.php example.js > example.php
+    js2php --runtime-only > runtime.php
+    js2php --runtime runtime.php example.js > example.php
 
 You can also specify the output file using `-o` or `--out` and you can compile multiple input files into one output file like so:
 
-    node js2php -o example.php file1.js file2.js
+    js2php -o example.php file1.js file2.js
 
 Have a play with the [online demo][2]. The generated code will look something like this:
 
@@ -76,10 +82,10 @@ call_method(_new($HelloWorld, "Hi"), "go", "world");
 It's not particularly elegant, but it's human-readable and has all the basics we need to implement standards-compliant JS in PHP.
 
 ### Alternatives
-There's a handful of other "compile to PHP" languages I want to mention. [Haxe][11] is probably the most popular and is a solid statically-typed language. I also came across [Pharen][13] (a Lisp implementation), [Mammouth][14] (similar to CoffeeScript) and [Pratphall][15] (TypeScript syntax). There's also another [JS to PHP project][17] from a few years back which took a different approach (it's written in PHP and doesn't really produce readable output) but is a cool project.
+There's a handful of other "compile to PHP" languages I want to mention. [Haxe][11] is probably the most popular and is a solid statically-typed language. I also came across [Pharen][13] (a Lisp implementation), [Mammouth][14] (similar to CoffeeScript) and [Pratphall][15] (TypeScript syntax). There's also another [JS to PHP project][17] from a few years back which is written in PHP but has similar goals as this project. Yet another JS to PHP project I just recently learned about (with the same name as this one) is @endel's [php2js][18] which is similar to this project at the parsing level, but somewhat different beyond that. It translates JS syntax to PHP but doesn't use a runtime and doesn't attempt to implement the actual ECMAScript spec. It's more like writing PHP but in a friendlier syntax, which is a very cool idea in itself!
 
 ### Tests
-Run `npm test` which is the same as `node js2php --test`. Requires PHP 5.3+ or [HHVM][16].
+Run `npm test`. Requires PHP 5.3+ or [HHVM][16].
 
 ### BSD License
 Copyright (c) 2014, sstur@me.com. All rights reserved.
@@ -125,3 +131,4 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 [15]: http://cretz.github.io/pratphall/
 [16]: http://hhvm.com/
 [17]: https://github.com/jakubkulhan/js2php
+[18]: https://github.com/endel/js2php
