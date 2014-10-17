@@ -1,3 +1,4 @@
+process.argv/argc
 static properties can be assigned inline
 opt-in modules at build
 get/setters

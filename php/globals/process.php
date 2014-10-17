@@ -18,6 +18,6 @@ $process->set('binding', new Func(function($this_, $arguments, $name) {
   if (isset($this_->bindings[$name])) {
     return $this_->bindings[$name];
   } else {
-    throw new Ex(Error::create('Binding `$name` not found.'));
+    throw new Ex(Error::create("Binding `$name` not found."));
   }
 }));

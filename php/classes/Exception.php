@@ -13,6 +13,20 @@ class Ex extends Exception {
   }
 
   /**
+   * PHP Errors (or warning/notices) will usually output something to the
+   * console and then return some unexpected value like false. Here we cause it
+   * to throw instead.
+   */
+  static function handleError($level, $message, $file, $line, $context) {
+    if ($level === E_NOTICE) {
+      return false;
+    }
+    $err = Error::create($message);
+    $err->set('level', $level);
+    throw new Ex($err);
+  }
+
+  /**
    * Since we use a custom exception handler we need to render our own stack trace
    * @param Exception $ex
    */
@@ -86,4 +100,5 @@ class Ex extends Exception {
 
 }
 
+set_error_handler(array('Ex', 'handleError'));
 set_exception_handler(array('Ex', 'handleException'));

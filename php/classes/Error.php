@@ -21,9 +21,13 @@ class Error extends Object {
   }
 
   //this is used in class/helper code only
-  static function create($str) {
+  static function create($str, $framesToPop = 0) {
     $error = new self($str);
-    $error->stack = debug_backtrace();
+    $stack = debug_backtrace();
+    while ($framesToPop--) {
+      array_shift($stack);
+    }
+    $error->stack = $stack;
     return $error;
   }
 
