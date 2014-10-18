@@ -27,9 +27,14 @@ $process->define('fs', call_user_func(function() {
     'getInfo' => function($this_, $arguments) use (&$methods, &$helpers) {
       },
     'readFile' => function($this_, $arguments, $path, $enc = null) use (&$methods, &$helpers) {
-        $data = file_get_contents($path);
+        try {
+          $data = file_get_contents($path);
+        } catch(Exception $e) {
+          $helpers['handleException']($e, $path);
+        }
+        //fallback for if set_error_handler didn't do it's thing
         if ($data === false) {
-          throw $helpers['ENOENT']();
+          $helpers['throwError']('ENOENT', $path);
         }
         if ($enc === null) {
           return new Buffer($data, 'binary');
@@ -37,7 +42,25 @@ $process->define('fs', call_user_func(function() {
           return $data;
         }
       },
-    'writeFile' => function($this_, $arguments) use (&$methods, &$helpers) {
+    'writeFile' => function($this_, $arguments, $path, $data, $opts = null) use (&$methods, &$helpers) {
+        $opts = ($opts === null) ? array() : $opts->toArray();
+        //default is to append
+        $opts['append'] = array_key_exists('append', $opts) ? is($opts['append']) : true;
+        //overwrite option will override append
+        if (array_key_exists('overwrite', $opts) && $opts['overwrite'] === true) {
+          $opts['append'] = false;
+        }
+        $flags = $opts['append'] ? FILE_APPEND : 0;
+        $data = ($data instanceof Buffer) ? $data->raw : $data;
+        try {
+          $result = file_put_contents($path, $data, $flags);
+        } catch(Exception $e) {
+          $helpers['handleException']($e, $path);
+        }
+        //fallback for if set_error_handler didn't do it's thing
+        if ($result === false) {
+          $helpers['throwError']('ENOENT', $path);
+        }
       },
     'createReadStream' => function($this_, $arguments) use (&$methods, &$helpers) {
       },
@@ -46,21 +69,32 @@ $process->define('fs', call_user_func(function() {
   );
 
   $helpers = array(
-    'ENOENT' => function() {
-        $message = 'ENOENT';
+    'ERR_MAP' => array(
+      'ENOENT' => "ENOENT, no such file or directory '%s'"
+    ),
+    'throwError' => function($code, $path = null) use (&$methods, &$helpers) {
+        $message = sprintf($helpers['ERR_MAP'][$code], $path);
         $err = Error::create($message, 1);
-        $err->set('code', 'ENOENT');
-        return new Ex($err);
+        $err->set('code', $code);
+        throw new Ex($err);
       },
-    'getFile' => function($this_, $arguments) use (&$methods, &$helpers) {
+    'handleException' => function($e, $path = null) use (&$methods, &$helpers) {
+        $message = $e->getMessage();
+        if (strpos($message, 'No such file or directory') !== false) {
+          $helpers['throwError']('ENOENT', $path);
+        } else {
+          throw $e;
+        }
       },
-    'isFile' => function($this_, $arguments) use (&$methods, &$helpers) {
+    'getFile' => function() use (&$methods, &$helpers) {
       },
-    'getFileOrDir' => function($this_, $arguments) use (&$methods, &$helpers) {
+    'isFile' => function() use (&$methods, &$helpers) {
       },
-    'isDir' => function($this_, $arguments) use (&$methods, &$helpers) {
+    'getFileOrDir' => function() use (&$methods, &$helpers) {
       },
-    'getInfo' => function($this_, $arguments) use (&$methods, &$helpers) {
+    'isDir' => function() use (&$methods, &$helpers) {
+      },
+    'getInfo' => function() use (&$methods, &$helpers) {
       }
   );
 

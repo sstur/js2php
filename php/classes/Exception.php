@@ -1,6 +1,7 @@
 <?php
 class Ex extends Exception {
   public $value = null;
+  const MAX_STR_LEN = 32;
 
   function __construct($value) {
     if ($value instanceof Error) {
@@ -21,7 +22,7 @@ class Ex extends Exception {
     if ($level === E_NOTICE) {
       return false;
     }
-    $err = Error::create($message);
+    $err = Error::create($message, 1);
     $err->set('level', $level);
     throw new Ex($err);
   }
@@ -65,7 +66,7 @@ class Ex extends Exception {
       $list = array();
       foreach ($args as $arg) {
         if (is_string($arg)) {
-          $list[] = "'" . $arg . "'";
+          $list[] = self::stringify($arg);
         } else if (is_array($arg)) {
           $list[] = 'array()';
         } else if (is_null($arg)) {
@@ -98,7 +99,33 @@ class Ex extends Exception {
     return join("\n", $lines);
   }
 
+  static function stringify($str) {
+    $len = strlen($str);
+    if ($len === 0) {
+      return "''";
+    }
+    //replace leading extended characters
+    $str = preg_replace('/^[^\x20-\x7E]+/', '', $str, 1);
+    $trimAt = null;
+    $hasExtendedChars = preg_match('/[^\x20-\x7E]/', $str, $matches, PREG_OFFSET_CAPTURE);
+    if ($hasExtendedChars === 1) {
+      $trimAt = $matches[0][1];
+    }
+    if ($len > self::MAX_STR_LEN) {
+      $trimAt = ($trimAt === null) ? self::MAX_STR_LEN : min($trimAt, self::MAX_STR_LEN);
+    }
+    if ($trimAt !== null) {
+      return "'" . substr($str, 0, $trimAt) . "...'($len)";
+    } else {
+      return "'" . $str . "'";
+    }
+  }
+
 }
 
-set_error_handler(array('Ex', 'handleError'));
-set_exception_handler(array('Ex', 'handleException'));
+if (function_exists('set_error_handler')) {
+  set_error_handler(array('Ex', 'handleError'));
+}
+if (function_exists('set_exception_handler')) {
+  set_exception_handler(array('Ex', 'handleException'));
+}

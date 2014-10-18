@@ -150,6 +150,9 @@ class Object {
 
   /**
    * @param array $props
+   * @param bool|null $writable
+   * @param bool|null $enumerable
+   * @param bool|null $configurable
    */
   function setProps($props, $writable = null, $enumerable = null, $configurable = null) {
     foreach ($props as $key => $value) {
@@ -159,6 +162,9 @@ class Object {
 
   /**
    * @param array $methods
+   * @param bool|null $writable
+   * @param bool|null $enumerable
+   * @param bool|null $configurable
    */
   function setMethods($methods, $writable = null, $enumerable = null, $configurable = null) {
     foreach ($methods as $key => $fn) {
@@ -166,6 +172,19 @@ class Object {
       $func->strict = true;
       $this->setProperty($key, $func, $writable, $enumerable, $configurable);
     }
+  }
+
+  /**
+   * Get a native associative array containing enumerable own properties
+   * @return array
+   */
+  function toArray() {
+    $keys = $this->getOwnKeys(true);
+    $results = array();
+    foreach ($keys as $key) {
+      $results[$key] = $this->get($key);
+    }
+    return $results;
   }
 
   /**
