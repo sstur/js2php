@@ -6,7 +6,6 @@ rsync -av ../js2php dev:~/
 
 Divergence from JavaScript
   get/setters don't have property descriptors
-  cannot implicitly set global from child scope
   doesn't throw on use of undeclared var (ReferenceError: foo is not defined)
   no runtime parsing: eval, new Function()
 

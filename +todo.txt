@@ -1,4 +1,5 @@
 process.argv/argc
+use node-commander instead of yargs
 static properties can be assigned inline
 opt-in modules at build
 get/setters

@@ -9,6 +9,18 @@ testSuite('core', function(assert) {
     }
   }
 
+  testSuite('variables', function() {
+    implicitGlobal = 1;
+    assert('implicitly declared global', global.implicitGlobal === 1);
+    var a = null;
+    var f = function() {
+      a = 2;
+    };
+    f();
+    assert('lexical scope', a === 2);
+    assert('lexical scope does not polute global', global.a === undefined);
+  });
+
   testSuite('object', function() {
     var toString = Object.prototype.toString;
     assert('toString.call(null)', toString.call(null) === '[object Null]');
