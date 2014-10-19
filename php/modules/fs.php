@@ -70,7 +70,8 @@ $process->define('fs', call_user_func(function() {
 
   $helpers = array(
     'ERR_MAP' => array(
-      'ENOENT' => "ENOENT, no such file or directory '%s'"
+      'ENOENT' => "ENOENT, no such file or directory '%s'",
+      'EACCES' => "EACCES, permission denied '%s'"
     ),
     'throwError' => function($code, $path = null) use (&$methods, &$helpers) {
         $message = sprintf($helpers['ERR_MAP'][$code], $path);
@@ -82,6 +83,8 @@ $process->define('fs', call_user_func(function() {
         $message = $e->getMessage();
         if (strpos($message, 'No such file or directory') !== false) {
           $helpers['throwError']('ENOENT', $path);
+        } else if (strpos($message, 'Permission denied') !== false) {
+          $helpers['throwError']('EACCES', $path);
         } else {
           throw $e;
         }
