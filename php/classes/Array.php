@@ -128,6 +128,12 @@ class Arr extends Object {
     return $results;
   }
 
+  static function fromArray($nativeArray) {
+    $arr = new Arr();
+    $arr->init($nativeArray);
+    return $arr;
+  }
+
   /**
    * Creates the global constructor used in user-land
    * @return Func

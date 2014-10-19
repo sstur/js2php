@@ -20,15 +20,32 @@ $process->define('fs', call_user_func(function() {
       },
     'removeDirIfExists' => function($this_, $arguments) use (&$methods, &$helpers) {
       },
-    'getDirContents' => function($this_, $arguments) use (&$methods, &$helpers) {
+    'getDirContents' => function($this_, $arguments, $path) use (&$methods, &$helpers) {
+        $fullpath = $helpers['mapPath']($path);
+        try {
+          $list = scandir($fullpath);
+        } catch(Exception $e) {
+          $helpers['handleException']($e, $path);
+        }
+        //fallback for if set_error_handler didn't do it's thing
+        if ($list === false) {
+          $helpers['throwError']('ENOENT', $path);
+        }
+        $arr = array();
+        foreach ($list as $item) {
+          if ($item === '.' || $item === '..') continue;
+          $arr[] = $item;
+        }
+        return Arr::fromArray($arr);
       },
     'walk' => function($this_, $arguments) use (&$methods, &$helpers) {
       },
     'getInfo' => function($this_, $arguments) use (&$methods, &$helpers) {
       },
     'readFile' => function($this_, $arguments, $path, $enc = null) use (&$methods, &$helpers) {
+        $fullpath = $helpers['mapPath']($path);
         try {
-          $data = file_get_contents($path);
+          $data = file_get_contents($fullpath);
         } catch(Exception $e) {
           $helpers['handleException']($e, $path);
         }
@@ -43,6 +60,7 @@ $process->define('fs', call_user_func(function() {
         }
       },
     'writeFile' => function($this_, $arguments, $path, $data, $opts = null) use (&$methods, &$helpers) {
+        $fullpath = $helpers['mapPath']($path);
         $opts = ($opts === null) ? array() : $opts->toArray();
         //default is to append
         $opts['append'] = array_key_exists('append', $opts) ? is($opts['append']) : true;
@@ -53,7 +71,7 @@ $process->define('fs', call_user_func(function() {
         $flags = $opts['append'] ? FILE_APPEND : 0;
         $data = ($data instanceof Buffer) ? $data->raw : $data;
         try {
-          $result = file_put_contents($path, $data, $flags);
+          $result = file_put_contents($fullpath, $data, $flags);
         } catch(Exception $e) {
           $helpers['handleException']($e, $path);
         }
@@ -69,6 +87,7 @@ $process->define('fs', call_user_func(function() {
   );
 
   $helpers = array(
+    'cwd' => getcwd(),
     'ERR_MAP' => array(
       'ENOENT' => "ENOENT, no such file or directory '%s'",
       'EACCES' => "EACCES, permission denied '%s'"
@@ -88,6 +107,16 @@ $process->define('fs', call_user_func(function() {
         } else {
           throw $e;
         }
+      },
+    'mapPath' => function($path) use (&$methods, &$helpers) {
+        $path = str_replace('\\', '/', $path);
+        $parts = explode('/', $path);
+        $normalized = array();
+        foreach ($parts as $part) {
+          if ($part === '' || $part === '.' || $part === '..') continue;
+          $normalized[] = $part;
+        }
+        return $helpers['cwd'] . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $normalized);
       },
     'getFile' => function() use (&$methods, &$helpers) {
       },
