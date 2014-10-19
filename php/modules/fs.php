@@ -13,9 +13,53 @@ $process->define('fs', call_user_func(function() {
         $fullpath = $helpers['mapPath']($path);
         return $helpers['isDir']($fullpath);
       },
-    'copyFile' => function($this_, $arguments) use (&$methods, &$helpers) {
+    'copyFile' => function($this_, $arguments, $src, $dst) use (&$methods, &$helpers) {
+        $src = $helpers['mapPath']($src);
+        if (!is_file($src)) {
+          $helpers['throwError']('ENOENT', $src);
+        }
+        $dst = $helpers['mapPath']($dst);
+        if (is_dir($dst)) {
+          $dstDir = $dst;
+          $dstName = basename($src);
+        } else {
+          $dstDir = dirname($dst);
+          $dstName = basename($dst);
+          if (!is_dir($dstDir)) {
+            $helpers['throwError']('ENOENT', $dstDir);
+          }
+        }
+        $dst = $dstDir . DIRECTORY_SEPARATOR . $dstName;
+        try {
+          copy($src, $dst);
+        } catch(Exception $e) {
+          //todo: there could be an error wither either src or dst
+          $helpers['handleException']($e, $src, $dst);
+        }
       },
-    'moveFile' => function($this_, $arguments) use (&$methods, &$helpers) {
+    'moveFile' => function($this_, $arguments, $src, $dst) use (&$methods, &$helpers) {
+        $src = $helpers['mapPath']($src);
+        if (!is_file($src)) {
+          $helpers['throwError']('ENOENT', $src);
+        }
+        $dst = $helpers['mapPath']($dst);
+        if (is_dir($dst)) {
+          $dstDir = $dst;
+          $dstName = basename($src);
+        } else {
+          $dstDir = dirname($dst);
+          $dstName = basename($dst);
+          if (!is_dir($dstDir)) {
+            $helpers['throwError']('ENOENT', $dstDir);
+          }
+        }
+        $dst = $dstDir . DIRECTORY_SEPARATOR . $dstName;
+        try {
+          rename($src, $dst);
+        } catch(Exception $e) {
+          //todo: there could be an error wither either src or dst
+          $helpers['handleException']($e, $src, $dst);
+        }
       },
     'deleteFile' => function($this_, $arguments) use (&$methods, &$helpers) {
       },
