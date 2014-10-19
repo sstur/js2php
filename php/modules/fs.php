@@ -1,10 +1,17 @@
 <?php
+/**
+ * todo: for error reporting, subtract cwd from full path
+ */
 $process->define('fs', call_user_func(function() {
 
   $methods = array(
-    'isFile' => function($this_, $arguments) use (&$methods, &$helpers) {
+    'isFile' => function($this_, $arguments, $path) use (&$methods, &$helpers) {
+        $fullpath = $helpers['mapPath']($path);
+        return $helpers['isFile']($fullpath);
       },
-    'isDir' => function($this_, $arguments) use (&$methods, &$helpers) {
+    'isDir' => function($this_, $arguments, $path) use (&$methods, &$helpers) {
+        $fullpath = $helpers['mapPath']($path);
+        return $helpers['isDir']($fullpath);
       },
     'copyFile' => function($this_, $arguments) use (&$methods, &$helpers) {
       },
@@ -39,8 +46,11 @@ $process->define('fs', call_user_func(function() {
         return Arr::fromArray($arr);
       },
     'walk' => function($this_, $arguments) use (&$methods, &$helpers) {
+        throw new Ex(Error::create('Not implemented: fs.walk'));
       },
-    'getInfo' => function($this_, $arguments) use (&$methods, &$helpers) {
+    'getInfo' => function($this_, $arguments, $path, $deep = false) use (&$methods, &$helpers) {
+        $fullpath = $helpers['mapPath']($path);
+        return $helpers['getInfo']($fullpath, $deep);
       },
     'readFile' => function($this_, $arguments, $path, $enc = null) use (&$methods, &$helpers) {
         $fullpath = $helpers['mapPath']($path);
@@ -81,8 +91,10 @@ $process->define('fs', call_user_func(function() {
         }
       },
     'createReadStream' => function($this_, $arguments) use (&$methods, &$helpers) {
+        throw new Ex(Error::create('Not implemented: fs.createReadStream'));
       },
     'createWriteStream' => function($this_, $arguments) use (&$methods, &$helpers) {
+        throw new Ex(Error::create('Not implemented: fs.createWriteStream'));
       }
   );
 
@@ -104,6 +116,8 @@ $process->define('fs', call_user_func(function() {
           $helpers['throwError']('ENOENT', $path);
         } else if (strpos($message, 'Permission denied') !== false) {
           $helpers['throwError']('EACCES', $path);
+        } else if (strpos($message, 'stat failed for') !== false) {
+          $helpers['throwError']('ENOENT', $path);
         } else {
           throw $e;
         }
@@ -118,15 +132,57 @@ $process->define('fs', call_user_func(function() {
         }
         return $helpers['cwd'] . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $normalized);
       },
-    'getFile' => function() use (&$methods, &$helpers) {
+    'isFile' => function($fullpath) use (&$methods, &$helpers) {
+        try {
+          $result = is_file($fullpath);
+        } catch(Exception $e) {
+          $helpers['handleException']($e, $fullpath);
+        }
+        return $result;
       },
-    'isFile' => function() use (&$methods, &$helpers) {
+    'isDir' => function($fullpath) use (&$methods, &$helpers) {
+        try {
+          $result = is_dir($fullpath);
+        } catch(Exception $e) {
+          $helpers['handleException']($e, $fullpath);
+        }
+        return $result;
       },
-    'getFileOrDir' => function() use (&$methods, &$helpers) {
-      },
-    'isDir' => function() use (&$methods, &$helpers) {
-      },
-    'getInfo' => function() use (&$methods, &$helpers) {
+    'getInfo' => function($fullpath, $deep) use (&$methods, &$helpers) {
+        //todo: calculate $path for errors
+        try {
+          $stat = stat($fullpath);
+        } catch(Exception $e) {
+          $helpers['handleException']($e, $fullpath);
+        }
+        //fallback for if set_error_handler didn't do it's thing
+        if ($stat === false) {
+          $helpers['throwError']('ENOENT', $fullpath);
+        }
+        $isDir = is_dir($fullpath);
+        $result = new Object();
+        $result->set('name', basename($fullpath));
+        $result->set('dateCreated', new Date($stat['ctime'] * 1000));
+        $result->set('dateLastAccessed', new Date($stat['atime'] * 1000));
+        $result->set('dateLastModified', new Date($stat['mtime'] * 1000));
+        $result->set('type', $isDir ? 'directory' : 'file');
+        if (!$isDir) {
+          $result->set('size', (float)$stat['size']);
+        } else if ($deep) {
+          $size = 0.0;
+          $children = new Arr();
+          foreach (scandir($fullpath) as $item) {
+            if ($item === '.' || $item === '..') continue;
+            $child = $helpers['getInfo']($fullpath . DIRECTORY_SEPARATOR . $item, $deep);
+            $size += $child->get('size');
+            $children->push($child);
+          }
+          $result->set('children', $children);
+          $result->set('size', $size);
+        } else {
+          $result->set('size', 0.0);
+        }
+        return $result;
       }
   );
 
