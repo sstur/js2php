@@ -2,7 +2,113 @@
 /**
  * todo: for error reporting, subtract cwd from full path
  */
-$process->define('fs', call_user_func(function() {
+$process->define('fs', call_user_func(function() use (&$process) {
+
+  $CHUNK_SIZE = 1024;
+
+  $util = $process->callMethod('binding', 'util');
+
+  $ReadStream = new Func('ReadStream', function($this_, $arguments, $path, $opts) use (&$helpers, &$CHUNK_SIZE) {
+    $fullpath = $helpers['mapPath']($path);
+    $this_->set('path', $fullpath);
+    if (!$opts->hasOwnProperty('chunkSize')) {
+      $opts->set('chunkSize', $CHUNK_SIZE);
+    }
+    $this_->set('opts', $opts);
+    try {
+      $stream = fopen($fullpath, 'rb');
+    } catch(Exception $e) {
+      $helpers['handleException']($e, $fullpath);
+    }
+    //fallback for if set_error_handler didn't do it's thing
+    if ($stream === false) {
+      $helpers['throwError']('ENOENT', $fullpath);
+    }
+    $this_->stream = $stream;
+  });
+
+  $prototype = $ReadStream->get('prototype');
+  $util->callMethod('eventify', $prototype);
+  $prototype->setMethods(array(
+    'readBytes' => function($this_, $arguments, $bytes) {
+        $stream = $this_->stream;
+        if (feof($stream)) {
+          return null;
+        }
+        $data = fread($stream, $bytes);
+        $buffer = new Buffer($data);
+        $bytesRead = $this_->get('bytesRead');
+        if ($bytesRead === null) $bytesRead = 0.0;
+        $bytesRead += $buffer->length;
+        $this_->set('bytesRead', $bytesRead);
+        return $buffer;
+      },
+    'readAll' => function($this_, $arguments) {
+        $chunkSize = $this_->get('opts')->get('chunkSize');
+        $stream = $this_->stream;
+        $data = array();
+        while (!feof($stream)) {
+          $data[] = fread($stream, $chunkSize);
+        }
+        fclose($stream);
+        return new Buffer(join('', $data));
+      },
+    'size' => function($this_, $arguments) {
+        $size = $this_->get('bytesTotal');
+        if ($size === null) {
+          $stat = fstat($this_->stream);
+          $size = (float)$stat['size'];
+          $this_->set('bytesTotal', $size);
+        }
+        return $size;
+      },
+    'read' => function($this_, $arguments) {
+        $chunkSize = $this_->get('opts')->get('chunkSize');
+        $stream = $this_->stream;
+        while (!feof($stream)) {
+          $data = fread($stream, $chunkSize);
+          $this_->callMethod('emit', 'data', new Buffer($data));
+        }
+        fclose($stream);
+        $this_->callMethod('emit', 'end');
+      }
+  ), true, false, true);
+
+
+  $WriteStream = new Func('WriteStream', function($this_, $arguments, $path, $opts) use (&$helpers) {
+    $fullpath = $helpers['mapPath']($path);
+    $this_->set('path', $fullpath);
+    $this_->set('opts', $opts);
+    $mode = $opts->get('append') ? 'ab' : 'wb';
+    try {
+      $stream = fopen($fullpath, $mode);
+    } catch(Exception $e) {
+      $helpers['handleException']($e, $fullpath);
+    }
+    //fallback for if set_error_handler didn't do it's thing
+    if ($stream === false) {
+      $helpers['throwError']('ENOENT', $fullpath);
+    }
+    $this_->stream = $stream;
+  });
+
+  $prototype = $WriteStream->get('prototype');
+  $prototype->setMethods(array(
+    'setEncoding' => function($this_, $arguments, $enc) {
+        $this_->opts->set('encoding', $enc);
+      },
+    'write' => function($this_, $arguments, $data, $enc) use (&$helpers) {
+        if ($this_->finished) return;
+        $data = ($data instanceof Buffer) ? $data->raw : $data;
+        $helpers['writeAll']($this_->stream, $data);
+      },
+    'end' => function($this_, $arguments) {
+        if ($this_->finished) return;
+        $this_->finished = true;
+        fclose($this_->stream);
+      }
+  ), true, false, true);
+
 
   $methods = array(
     'isFile' => function($this_, $arguments, $path) use (&$methods, &$helpers) {
@@ -76,11 +182,11 @@ $process->define('fs', call_user_func(function() {
         try {
           $list = scandir($fullpath);
         } catch(Exception $e) {
-          $helpers['handleException']($e, $path);
+          $helpers['handleException']($e, $fullpath);
         }
         //fallback for if set_error_handler didn't do it's thing
         if ($list === false) {
-          $helpers['throwError']('ENOENT', $path);
+          $helpers['throwError']('ENOENT', $fullpath);
         }
         $arr = array();
         foreach ($list as $item) {
@@ -101,11 +207,11 @@ $process->define('fs', call_user_func(function() {
         try {
           $data = file_get_contents($fullpath);
         } catch(Exception $e) {
-          $helpers['handleException']($e, $path);
+          $helpers['handleException']($e, $fullpath);
         }
         //fallback for if set_error_handler didn't do it's thing
         if ($data === false) {
-          $helpers['throwError']('ENOENT', $path);
+          $helpers['throwError']('ENOENT', $fullpath);
         }
         if ($enc === null) {
           return new Buffer($data, 'binary');
@@ -113,32 +219,42 @@ $process->define('fs', call_user_func(function() {
           return $data;
         }
       },
-    'writeFile' => function($this_, $arguments, $path, $data, $opts = null) use (&$methods, &$helpers) {
+    'writeFile' => function($this_, $arguments, $path, $data, $opts = null) use (&$helpers) {
         $fullpath = $helpers['mapPath']($path);
-        $opts = ($opts === null) ? array() : $opts->toArray();
+        $opts = ($opts instanceof Object) ? $opts : new Object();
         //default is to append
-        $opts['append'] = array_key_exists('append', $opts) ? is($opts['append']) : true;
+        $append = $opts->get('append') !== false;
         //overwrite option will override append
-        if (array_key_exists('overwrite', $opts) && $opts['overwrite'] === true) {
-          $opts['append'] = false;
+        if ($opts->get('overwrite') === true) {
+          $append = false;
         }
-        $flags = $opts['append'] ? FILE_APPEND : 0;
+        $flags = $append ? FILE_APPEND : 0;
         $data = ($data instanceof Buffer) ? $data->raw : $data;
         try {
           $result = file_put_contents($fullpath, $data, $flags);
         } catch(Exception $e) {
-          $helpers['handleException']($e, $path);
+          $helpers['handleException']($e, $fullpath);
         }
         //fallback for if set_error_handler didn't do it's thing
         if ($result === false) {
-          $helpers['throwError']('ENOENT', $path);
+          $helpers['throwError']('ENOENT', $fullpath);
         }
       },
-    'createReadStream' => function($this_, $arguments) use (&$methods, &$helpers) {
-        throw new Ex(Error::create('Not implemented: fs.createReadStream'));
+    //todo: so here we normalize the $opts, but not the $path?
+    'createReadStream' => function($this_, $arguments, $path, $opts = null) use (&$helpers, &$WriteStream) {
+        $opts = ($opts instanceof Object) ? $opts : new Object();
+        //default is to append
+        $append = $opts->get('append') !== false;
+        //overwrite option will override append
+        if ($opts->get('overwrite') === true) {
+          $append = false;
+        }
+        $opts->set('append', $append);
+        return $WriteStream->construct($path, $opts);
       },
-    'createWriteStream' => function($this_, $arguments) use (&$methods, &$helpers) {
-        throw new Ex(Error::create('Not implemented: fs.createWriteStream'));
+    'createWriteStream' => function($this_, $arguments, $path, $opts) use (&$helpers, &$ReadStream) {
+        $opts = ($opts instanceof Object) ? $opts : new Object();
+        return $ReadStream->construct($path, $opts);
       }
   );
 
@@ -148,20 +264,20 @@ $process->define('fs', call_user_func(function() {
       'ENOENT' => "ENOENT, no such file or directory '%s'",
       'EACCES' => "EACCES, permission denied '%s'"
     ),
-    'throwError' => function($code, $path = null) use (&$methods, &$helpers) {
+    'throwError' => function($code, $path = null, $framesToPop = 0) use (&$methods, &$helpers) {
         $message = sprintf($helpers['ERR_MAP'][$code], $path);
-        $err = Error::create($message, 1);
+        $err = Error::create($message, $framesToPop + 1);
         $err->set('code', $code);
         throw new Ex($err);
       },
     'handleException' => function($e, $path = null) use (&$methods, &$helpers) {
         $message = $e->getMessage();
         if (strpos($message, 'No such file or directory') !== false) {
-          $helpers['throwError']('ENOENT', $path);
+          $helpers['throwError']('ENOENT', $path, 1);
         } else if (strpos($message, 'Permission denied') !== false) {
-          $helpers['throwError']('EACCES', $path);
+          $helpers['throwError']('EACCES', $path, 1);
         } else if (strpos($message, 'stat failed for') !== false) {
-          $helpers['throwError']('ENOENT', $path);
+          $helpers['throwError']('ENOENT', $path, 1);
         } else {
           throw $e;
         }
@@ -175,6 +291,16 @@ $process->define('fs', call_user_func(function() {
           $normalized[] = $part;
         }
         return $helpers['cwd'] . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $normalized);
+      },
+    'writeAll' => function($stream, $data, $bytesTotal = null) {
+        if ($bytesTotal === null) {
+          $bytesTotal = strlen($data);
+        }
+        $bytesWritten = 0;
+        //some platforms require multiple calls to fwrite
+        while ($bytesWritten < $bytesTotal) {
+          $bytesWritten += fwrite($stream, substr($data, $bytesWritten));
+        }
       },
     'isFile' => function($fullpath) use (&$methods, &$helpers) {
         try {
@@ -193,7 +319,6 @@ $process->define('fs', call_user_func(function() {
         return $result;
       },
     'getInfo' => function($fullpath, $deep) use (&$methods, &$helpers) {
-        //todo: calculate $path for errors
         try {
           $stat = stat($fullpath);
         } catch(Exception $e) {

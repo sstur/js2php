@@ -17,14 +17,20 @@
     }
   }
 
-  assert.shouldThrow = function(name, fn) {
-    var threw = false;
+  assert.shouldThrow = function(name, fn, message) {
+    var threw = null;
     try {
       fn();
     } catch(e) {
-      threw = true;
+      threw = e;
     }
-    assert(name, threw);
+    assert(name, threw !== null);
+    if (typeof message === 'string') {
+      assert(name, threw.message === message);
+    } else
+    if (message instanceof RegExp) {
+      assert(name, message.test(threw.message));
+    }
   };
 
   exports.testSuite = testSuite;

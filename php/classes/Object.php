@@ -167,10 +167,10 @@ class Object {
    * @param bool|null $configurable
    */
   function setMethods($methods, $writable = null, $enumerable = null, $configurable = null) {
-    foreach ($methods as $key => $fn) {
-      $func = new Func($fn);
+    foreach ($methods as $name => $fn) {
+      $func = new Func($name, $fn);
       $func->strict = true;
-      $this->setProperty($key, $func, $writable, $enumerable, $configurable);
+      $this->setProperty($name, $func, $writable, $enumerable, $configurable);
     }
   }
 
