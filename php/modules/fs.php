@@ -111,15 +111,15 @@ $process->define('fs', call_user_func(function() use (&$process) {
 
 
   $methods = array(
-    'isFile' => function($this_, $arguments, $path) use (&$methods, &$helpers) {
+    'isFile' => function($this_, $arguments, $path) use (&$helpers) {
         $fullpath = $helpers['mapPath']($path);
         return $helpers['isFile']($fullpath);
       },
-    'isDir' => function($this_, $arguments, $path) use (&$methods, &$helpers) {
+    'isDir' => function($this_, $arguments, $path) use (&$helpers) {
         $fullpath = $helpers['mapPath']($path);
         return $helpers['isDir']($fullpath);
       },
-    'copyFile' => function($this_, $arguments, $src, $dst) use (&$methods, &$helpers) {
+    'copyFile' => function($this_, $arguments, $src, $dst) use (&$helpers) {
         $src = $helpers['mapPath']($src);
         if (!is_file($src)) {
           $helpers['throwError']('ENOENT', $src);
@@ -143,7 +143,7 @@ $process->define('fs', call_user_func(function() use (&$process) {
           $helpers['handleException']($e, $src, $dst);
         }
       },
-    'moveFile' => function($this_, $arguments, $src, $dst) use (&$methods, &$helpers) {
+    'moveFile' => function($this_, $arguments, $src, $dst) use (&$helpers) {
         $src = $helpers['mapPath']($src);
         if (!is_file($src)) {
           $helpers['throwError']('ENOENT', $src);
@@ -167,17 +167,67 @@ $process->define('fs', call_user_func(function() use (&$process) {
           $helpers['handleException']($e, $src, $dst);
         }
       },
-    'deleteFile' => function($this_, $arguments) use (&$methods, &$helpers) {
+    'deleteFile' => function($this_, $arguments, $path) use (&$helpers) {
+        $fullpath = $helpers['mapPath']($path);
+        try {
+          $result = unlink($fullpath);
+        } catch(Exception $e) {
+          $helpers['handleException']($e, $fullpath);
+        }
+        //fallback for if set_error_handler didn't do it's thing
+        if ($result === false) {
+          $helpers['throwError']('ENOENT', $fullpath);
+        }
       },
-    'deleteFileIfExists' => function($this_, $arguments) use (&$methods, &$helpers) {
+    'deleteFileIfExists' => function($this_, $arguments, $path) use (&$helpers, &$fs) {
+        try {
+          $fs->callMethod('deleteFile', $path);
+        } catch(Exception $ex) {
+          $e = ($ex instanceof Ex) ? $ex->value : null;
+          if (!($e instanceof Error) || $e->get('code') !== 'ENOENT') {
+            throw $ex;
+          }
+        }
       },
-    'createDir' => function($this_, $arguments) use (&$methods, &$helpers) {
+    'createDir' => function($this_, $arguments, $path, $opts = null) use (&$helpers) {
+        $fullpath = $helpers['mapPath']($path);
+        $opts = ($opts instanceof Object) ? $opts : new Object();
+        $mode = $helpers['normalizeMode']($opts->get('mode'), 0777);
+        $deep = ($opts->get('deep') === true);
+        try {
+          $result = mkdir($fullpath, $mode, $deep);
+        } catch(Exception $e) {
+          $helpers['handleException']($e, $fullpath);
+        }
+        //fallback for if set_error_handler didn't do it's thing
+        if ($result === false) {
+          $helpers['throwError']('ENOENT', $fullpath);
+        }
       },
-    'removeDir' => function($this_, $arguments) use (&$methods, &$helpers) {
+    //todo: deep
+    'removeDir' => function($this_, $arguments, $path) use (&$helpers) {
+        $fullpath = $helpers['mapPath']($path);
+        try {
+          $result = rmdir($fullpath);
+        } catch(Exception $e) {
+          $helpers['handleException']($e, $fullpath);
+        }
+        //fallback for if set_error_handler didn't do it's thing
+        if ($result === false) {
+          $helpers['throwError']('ENOENT', $fullpath);
+        }
       },
-    'removeDirIfExists' => function($this_, $arguments) use (&$methods, &$helpers) {
+    'removeDirIfExists' => function($this_, $arguments, $path) use (&$helpers, &$fs) {
+        try {
+          $fs->callMethod('removeDir', $path);
+        } catch(Exception $ex) {
+          $e = ($ex instanceof Ex) ? $ex->value : null;
+          if (!($e instanceof Error) || $e->get('code') !== 'ENOENT') {
+            throw $ex;
+          }
+        }
       },
-    'getDirContents' => function($this_, $arguments, $path) use (&$methods, &$helpers) {
+    'getDirContents' => function($this_, $arguments, $path) use (&$helpers) {
         $fullpath = $helpers['mapPath']($path);
         try {
           $list = scandir($fullpath);
@@ -195,14 +245,14 @@ $process->define('fs', call_user_func(function() use (&$process) {
         }
         return Arr::fromArray($arr);
       },
-    'walk' => function($this_, $arguments) use (&$methods, &$helpers) {
+    'walk' => function($this_, $arguments) use (&$helpers) {
         throw new Ex(Error::create('Not implemented: fs.walk'));
       },
-    'getInfo' => function($this_, $arguments, $path, $deep = false) use (&$methods, &$helpers) {
+    'getInfo' => function($this_, $arguments, $path, $deep = false) use (&$helpers) {
         $fullpath = $helpers['mapPath']($path);
         return $helpers['getInfo']($fullpath, $deep);
       },
-    'readFile' => function($this_, $arguments, $path, $enc = null) use (&$methods, &$helpers) {
+    'readFile' => function($this_, $arguments, $path, $enc = null) use (&$helpers) {
         $fullpath = $helpers['mapPath']($path);
         try {
           $data = file_get_contents($fullpath);
@@ -261,28 +311,31 @@ $process->define('fs', call_user_func(function() use (&$process) {
   $helpers = array(
     'cwd' => getcwd(),
     'ERR_MAP' => array(
+      'EACCES' => "EACCES, permission denied '%s'",
       'ENOENT' => "ENOENT, no such file or directory '%s'",
-      'EACCES' => "EACCES, permission denied '%s'"
+      'ENOTEMPTY' => "ENOTEMPTY, directory not empty '%s'"
     ),
-    'throwError' => function($code, $path = null, $framesToPop = 0) use (&$methods, &$helpers) {
+    'throwError' => function($code, $path = null, $framesToPop = 0) use (&$helpers) {
         $message = sprintf($helpers['ERR_MAP'][$code], $path);
         $err = Error::create($message, $framesToPop + 1);
         $err->set('code', $code);
         throw new Ex($err);
       },
-    'handleException' => function($e, $path = null) use (&$methods, &$helpers) {
-        $message = $e->getMessage();
+    'handleException' => function($ex, $path = null) use (&$helpers) {
+        $message = $ex->getMessage();
         if (strpos($message, 'No such file or directory') !== false) {
           $helpers['throwError']('ENOENT', $path, 1);
         } else if (strpos($message, 'Permission denied') !== false) {
           $helpers['throwError']('EACCES', $path, 1);
         } else if (strpos($message, 'stat failed for') !== false) {
           $helpers['throwError']('ENOENT', $path, 1);
+        } else if (strpos($message, 'Directory not empty') !== false) {
+          $helpers['throwError']('ENOTEMPTY', $path, 1);
         } else {
-          throw $e;
+          throw $ex;
         }
       },
-    'mapPath' => function($path) use (&$methods, &$helpers) {
+    'mapPath' => function($path) use (&$helpers) {
         $path = str_replace('\\', '/', $path);
         $parts = explode('/', $path);
         $normalized = array();
@@ -302,7 +355,7 @@ $process->define('fs', call_user_func(function() use (&$process) {
           $bytesWritten += fwrite($stream, substr($data, $bytesWritten));
         }
       },
-    'isFile' => function($fullpath) use (&$methods, &$helpers) {
+    'isFile' => function($fullpath) use (&$helpers) {
         try {
           $result = is_file($fullpath);
         } catch(Exception $e) {
@@ -310,7 +363,7 @@ $process->define('fs', call_user_func(function() use (&$process) {
         }
         return $result;
       },
-    'isDir' => function($fullpath) use (&$methods, &$helpers) {
+    'isDir' => function($fullpath) use (&$helpers) {
         try {
           $result = is_dir($fullpath);
         } catch(Exception $e) {
@@ -318,7 +371,7 @@ $process->define('fs', call_user_func(function() use (&$process) {
         }
         return $result;
       },
-    'getInfo' => function($fullpath, $deep) use (&$methods, &$helpers) {
+    'getInfo' => function($fullpath, $deep) use (&$helpers) {
         try {
           $stat = stat($fullpath);
         } catch(Exception $e) {
@@ -352,6 +405,12 @@ $process->define('fs', call_user_func(function() use (&$process) {
           $result->set('size', 0.0);
         }
         return $result;
+      },
+    'normalizeMode' => function($mode, $default) {
+        if (is_float($mode)) $mode = (int)$mode;
+        if (is_string($mode)) $mode = octdec($mode);
+        if (!is_int($mode)) $mode = $default;
+        return $mode;
       }
   );
 
