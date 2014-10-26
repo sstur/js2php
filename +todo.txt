@@ -1,11 +1,15 @@
 process.argv/argc
-use node-commander instead of yargs
-static properties can be assigned inline
 opt-in modules at build
+use node-commander instead of yargs
 json stringify format
 get/setters
   'length' in []
   Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}
+writeAll -> helper function
+new Func(function() {}) should use name where possible
+fs:
+  fs.removeDir('Permission denied') ==> ENOENT or EACCES?
+  readStream encoding
 
 build tool:
   debug mode: Func() gets extra param "meta"
