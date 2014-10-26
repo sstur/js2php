@@ -290,7 +290,7 @@ $process->define('fs', call_user_func(function() use (&$process) {
   );
 
   $helpers = array(
-    'cwd' => getcwd(),
+    'basePath' => getcwd(),
 
     'ERR_MAP' => array(
       'EACCES' => "EACCES, permission denied",
@@ -344,15 +344,15 @@ $process->define('fs', call_user_func(function() use (&$process) {
           if ($part === '' || $part === '.' || $part === '..') continue;
           $normalized[] = $part;
         }
-        return $helpers['cwd'] . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $normalized);
+        return $helpers['basePath'] . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $normalized);
       },
     'reverseMapPath' => function($path) use (&$helpers) {
-        $cwd = $helpers['cwd'];
-        if ($path === $cwd) {
+        $basePath = $helpers['basePath'];
+        if ($path === $basePath) {
           return './';
         }
-        if (strpos($path, $cwd . DIRECTORY_SEPARATOR) === 0) {
-          $path = './' . substr($path, strlen($cwd) + 1);
+        if (strpos($path, $basePath . DIRECTORY_SEPARATOR) === 0) {
+          $path = './' . substr($path, strlen($basePath) + 1);
         }
         return str_replace('\\', '/', $path);
       },

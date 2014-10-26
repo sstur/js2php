@@ -9,6 +9,7 @@ writeAll -> helper function
 new Func(function() {}) should use name where possible
 fs:
   readStream encoding
+  helpers array to BaseObject?
 
 build tool:
   debug mode: Func() gets extra param "meta"
