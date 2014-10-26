@@ -46,12 +46,6 @@ class Buffer extends Object {
     $this->set('length', (float)$len);
   }
 
-  static function initProtoMethods() {
-    $protoObject = new Object();
-    $protoObject->setMethods(Buffer::$protoMethods, true, false, true);
-    Buffer::$protoObject = $protoObject;
-  }
-
   function toJSON($max = null) {
     $raw = $this->raw;
     if ($max !== null && $max < strlen($raw)) {
@@ -71,6 +65,7 @@ class Buffer extends Object {
       $self->init($arguments->args);
       return $self;
     });
+    $Buffer->set('prototype', Buffer::$protoObject);
     $Buffer->setMethods(Buffer::$classMethods, true, false, true);
     return $Buffer;
   }
@@ -179,4 +174,5 @@ Buffer::$protoMethods = array(
     }
 );
 
-Buffer::initProtoMethods();
+Buffer::$protoObject = new Object();
+Buffer::$protoObject->setMethods(Buffer::$protoMethods, true, false, true);
