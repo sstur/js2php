@@ -1,28 +1,26 @@
 <?php
-/**
- * todo: for error reporting, subtract cwd from full path
- */
 $process->define('fs', call_user_func(function() use (&$process) {
 
   $CHUNK_SIZE = 1024;
 
   $util = $process->callMethod('binding', 'util');
 
-  $ReadStream = new Func('ReadStream', function($this_, $arguments, $path, $opts) use (&$helpers, &$CHUNK_SIZE) {
-    $fullpath = $helpers['mapPath']($path);
-    $this_->set('path', $fullpath);
+  $ReadStream = new Func('ReadStream', function($this_, $arguments, $path, $opts = null) use (&$helpers, &$CHUNK_SIZE) {
+    $fullPath = $helpers['mapPath']($path);
+    $this_->set('path', $fullPath);
+    $opts = ($opts instanceof Object) ? $opts : new Object();
+    $this_->set('opts', $opts);
     if (!$opts->hasOwnProperty('chunkSize')) {
       $opts->set('chunkSize', $CHUNK_SIZE);
     }
-    $this_->set('opts', $opts);
     try {
-      $stream = fopen($fullpath, 'rb');
+      $stream = fopen($fullPath, 'rb');
     } catch(Exception $e) {
-      $helpers['handleException']($e, $fullpath);
+      $helpers['handleException']($e, $fullPath);
     }
     //fallback for if set_error_handler didn't do it's thing
     if ($stream === false) {
-      $helpers['throwError']('ENOENT', $fullpath);
+      $helpers['throwError']('EIO', $fullPath);
     }
     $this_->stream = $stream;
   });
@@ -75,21 +73,30 @@ $process->define('fs', call_user_func(function() use (&$process) {
   ), true, false, true);
 
 
-  $WriteStream = new Func('WriteStream', function($this_, $arguments, $path, $opts) use (&$helpers) {
-    $fullpath = $helpers['mapPath']($path);
-    $this_->set('path', $fullpath);
+  $WriteStream = new Func('WriteStream', function($this_, $arguments, $path, $opts = null) use (&$helpers) {
+    $fullPath = $helpers['mapPath']($path);
+    $this_->set('path', $fullPath);
+    $opts = ($opts instanceof Object) ? $opts : new Object();
     $this_->set('opts', $opts);
-    $mode = $opts->get('append') ? 'ab' : 'wb';
+    //default is to append
+    $append = $opts->get('append') !== false;
+    //overwrite option will override append
+    if ($opts->get('overwrite') === true) {
+      $append = false;
+    }
+    $opts->set('append', $append);
+    $mode = $append ? 'ab' : 'wb';
     try {
-      $stream = fopen($fullpath, $mode);
+      $stream = fopen($fullPath, $mode);
     } catch(Exception $e) {
-      $helpers['handleException']($e, $fullpath);
+      $helpers['handleException']($e, $fullPath);
     }
     //fallback for if set_error_handler didn't do it's thing
     if ($stream === false) {
-      $helpers['throwError']('ENOENT', $fullpath);
+      $helpers['throwError']('EIO', $fullPath);
     }
     $this_->stream = $stream;
+    $this_->finished = false;
   });
 
   $prototype = $WriteStream->get('prototype');
@@ -97,7 +104,7 @@ $process->define('fs', call_user_func(function() use (&$process) {
     'setEncoding' => function($this_, $arguments, $enc) {
         $this_->opts->set('encoding', $enc);
       },
-    'write' => function($this_, $arguments, $data, $enc) use (&$helpers) {
+    'write' => function($this_, $arguments, $data, $enc = null) use (&$helpers) {
         if ($this_->finished) return;
         $data = ($data instanceof Buffer) ? $data->raw : $data;
         $helpers['writeAll']($this_->stream, $data);
@@ -112,12 +119,12 @@ $process->define('fs', call_user_func(function() use (&$process) {
 
   $methods = array(
     'isFile' => function($this_, $arguments, $path) use (&$helpers) {
-        $fullpath = $helpers['mapPath']($path);
-        return $helpers['isFile']($fullpath);
+        $fullPath = $helpers['mapPath']($path);
+        return $helpers['isFile']($fullPath);
       },
     'isDir' => function($this_, $arguments, $path) use (&$helpers) {
-        $fullpath = $helpers['mapPath']($path);
-        return $helpers['isDir']($fullpath);
+        $fullPath = $helpers['mapPath']($path);
+        return $helpers['isDir']($fullPath);
       },
     'copyFile' => function($this_, $arguments, $src, $dst) use (&$helpers) {
         $src = $helpers['mapPath']($src);
@@ -132,15 +139,18 @@ $process->define('fs', call_user_func(function() use (&$process) {
           $dstDir = dirname($dst);
           $dstName = basename($dst);
           if (!is_dir($dstDir)) {
-            $helpers['throwError']('ENOENT', $dstDir);
+            $helpers['throwError']('ENOTDIR', $dstDir);
           }
         }
         $dst = $dstDir . DIRECTORY_SEPARATOR . $dstName;
         try {
-          copy($src, $dst);
+          $result = copy($src, $dst);
         } catch(Exception $e) {
-          //todo: there could be an error wither either src or dst
           $helpers['handleException']($e, $src, $dst);
+        }
+        //fallback for if set_error_handler didn't do it's thing
+        if ($result === false) {
+          $helpers['throwError']('EIO', array($src, $dst));
         }
       },
     'moveFile' => function($this_, $arguments, $src, $dst) use (&$helpers) {
@@ -161,82 +171,62 @@ $process->define('fs', call_user_func(function() use (&$process) {
         }
         $dst = $dstDir . DIRECTORY_SEPARATOR . $dstName;
         try {
-          rename($src, $dst);
+          $result = rename($src, $dst);
         } catch(Exception $e) {
-          //todo: there could be an error wither either src or dst
           $helpers['handleException']($e, $src, $dst);
-        }
-      },
-    'deleteFile' => function($this_, $arguments, $path) use (&$helpers) {
-        $fullpath = $helpers['mapPath']($path);
-        try {
-          $result = unlink($fullpath);
-        } catch(Exception $e) {
-          $helpers['handleException']($e, $fullpath);
         }
         //fallback for if set_error_handler didn't do it's thing
         if ($result === false) {
-          $helpers['throwError']('ENOENT', $fullpath);
+          $helpers['throwError']('EIO', array($src, $dst));
         }
+      },
+    'deleteFile' => function($this_, $arguments, $path) use (&$helpers) {
+        $fullPath = $helpers['mapPath']($path);
+        $helpers['deleteFile']($fullPath);
       },
     'deleteFileIfExists' => function($this_, $arguments, $path) use (&$helpers, &$fs) {
-        try {
-          $fs->callMethod('deleteFile', $path);
-        } catch(Exception $ex) {
-          $e = ($ex instanceof Ex) ? $ex->value : null;
-          if (!($e instanceof Error) || $e->get('code') !== 'ENOENT') {
-            throw $ex;
-          }
+        $fullPath = $helpers['mapPath']($path);
+        if (!is_file($fullPath)) {
+          return;
         }
+        $helpers['deleteFile']($fullPath);
       },
     'createDir' => function($this_, $arguments, $path, $opts = null) use (&$helpers) {
-        $fullpath = $helpers['mapPath']($path);
+        $fullPath = $helpers['mapPath']($path);
         $opts = ($opts instanceof Object) ? $opts : new Object();
         $mode = $helpers['normalizeMode']($opts->get('mode'), 0777);
         $deep = ($opts->get('deep') === true);
         try {
-          $result = mkdir($fullpath, $mode, $deep);
+          $result = mkdir($fullPath, $mode, $deep);
         } catch(Exception $e) {
-          $helpers['handleException']($e, $fullpath);
+          $helpers['handleException']($e, $fullPath);
         }
         //fallback for if set_error_handler didn't do it's thing
         if ($result === false) {
-          $helpers['throwError']('ENOENT', $fullpath);
+          $helpers['throwError']('EIO', $fullPath);
         }
       },
-    //todo: deep
-    'removeDir' => function($this_, $arguments, $path) use (&$helpers) {
-        $fullpath = $helpers['mapPath']($path);
-        try {
-          $result = rmdir($fullpath);
-        } catch(Exception $e) {
-          $helpers['handleException']($e, $fullpath);
-        }
-        //fallback for if set_error_handler didn't do it's thing
-        if ($result === false) {
-          $helpers['throwError']('ENOENT', $fullpath);
-        }
+    'removeDir' => function($this_, $arguments, $path, $deep = false) use (&$helpers) {
+        $fullPath = $helpers['mapPath']($path);
+        $helpers['removeDir']($fullPath, $deep);
       },
-    'removeDirIfExists' => function($this_, $arguments, $path) use (&$helpers, &$fs) {
-        try {
-          $fs->callMethod('removeDir', $path);
-        } catch(Exception $ex) {
-          $e = ($ex instanceof Ex) ? $ex->value : null;
-          if (!($e instanceof Error) || $e->get('code') !== 'ENOENT') {
-            throw $ex;
-          }
+    'removeDirIfExists' => function($this_, $arguments, $path, $deep = false) use (&$helpers, &$fs) {
+        $fullPath = $helpers['mapPath']($path);
+        if (!is_dir($fullPath)) {
+          return;
         }
+        $helpers['removeDir']($fullPath, $deep);
       },
     'getDirContents' => function($this_, $arguments, $path) use (&$helpers) {
-        $fullpath = $helpers['mapPath']($path);
+        $fullPath = $helpers['mapPath']($path);
         try {
-          $list = scandir($fullpath);
+          $list = scandir($fullPath);
         } catch(Exception $e) {
-          $helpers['handleException']($e, $fullpath);
+          $helpers['handleException']($e, $fullPath);
         }
         //fallback for if set_error_handler didn't do it's thing
         if ($list === false) {
-          $helpers['throwError']('ENOENT', $fullpath);
+          $helpers['throwError']('EIO', $fullPath);
         }
         $arr = array();
         foreach ($list as $item) {
@@ -245,23 +235,20 @@ $process->define('fs', call_user_func(function() use (&$process) {
         }
         return Arr::fromArray($arr);
       },
-    'walk' => function($this_, $arguments) use (&$helpers) {
-        throw new Ex(Error::create('Not implemented: fs.walk'));
-      },
     'getInfo' => function($this_, $arguments, $path, $deep = false) use (&$helpers) {
-        $fullpath = $helpers['mapPath']($path);
-        return $helpers['getInfo']($fullpath, $deep);
+        $fullPath = $helpers['mapPath']($path);
+        return $helpers['getInfo']($fullPath, $deep);
       },
     'readFile' => function($this_, $arguments, $path, $enc = null) use (&$helpers) {
-        $fullpath = $helpers['mapPath']($path);
+        $fullPath = $helpers['mapPath']($path);
         try {
-          $data = file_get_contents($fullpath);
+          $data = file_get_contents($fullPath);
         } catch(Exception $e) {
-          $helpers['handleException']($e, $fullpath);
+          $helpers['handleException']($e, $fullPath);
         }
         //fallback for if set_error_handler didn't do it's thing
         if ($data === false) {
-          $helpers['throwError']('ENOENT', $fullpath);
+          $helpers['throwError']('EIO', $fullPath);
         }
         if ($enc === null) {
           return new Buffer($data, 'binary');
@@ -270,7 +257,7 @@ $process->define('fs', call_user_func(function() use (&$process) {
         }
       },
     'writeFile' => function($this_, $arguments, $path, $data, $opts = null) use (&$helpers) {
-        $fullpath = $helpers['mapPath']($path);
+        $fullPath = $helpers['mapPath']($path);
         $opts = ($opts instanceof Object) ? $opts : new Object();
         //default is to append
         $append = $opts->get('append') !== false;
@@ -281,56 +268,58 @@ $process->define('fs', call_user_func(function() use (&$process) {
         $flags = $append ? FILE_APPEND : 0;
         $data = ($data instanceof Buffer) ? $data->raw : $data;
         try {
-          $result = file_put_contents($fullpath, $data, $flags);
+          $result = file_put_contents($fullPath, $data, $flags);
         } catch(Exception $e) {
-          $helpers['handleException']($e, $fullpath);
+          $helpers['handleException']($e, $fullPath);
         }
         //fallback for if set_error_handler didn't do it's thing
         if ($result === false) {
-          $helpers['throwError']('ENOENT', $fullpath);
+          $helpers['throwError']('EIO', $fullPath);
         }
       },
-    //todo: so here we normalize the $opts, but not the $path?
-    'createReadStream' => function($this_, $arguments, $path, $opts = null) use (&$helpers, &$WriteStream) {
-        $opts = ($opts instanceof Object) ? $opts : new Object();
-        //default is to append
-        $append = $opts->get('append') !== false;
-        //overwrite option will override append
-        if ($opts->get('overwrite') === true) {
-          $append = false;
-        }
-        $opts->set('append', $append);
-        return $WriteStream->construct($path, $opts);
-      },
-    'createWriteStream' => function($this_, $arguments, $path, $opts) use (&$helpers, &$ReadStream) {
-        $opts = ($opts instanceof Object) ? $opts : new Object();
+    'createReadStream' => function($this_, $arguments, $path, $opts = null) use (&$helpers, &$ReadStream) {
         return $ReadStream->construct($path, $opts);
+      },
+    'createWriteStream' => function($this_, $arguments, $path, $opts = null) use (&$helpers, &$WriteStream) {
+        return $WriteStream->construct($path, $opts);
       }
   );
 
   $helpers = array(
     'cwd' => getcwd(),
+
     'ERR_MAP' => array(
-      'EACCES' => "EACCES, permission denied '%s'",
-      'ENOENT' => "ENOENT, no such file or directory '%s'",
-      'ENOTEMPTY' => "ENOTEMPTY, directory not empty '%s'"
+      'EACCES' => "EACCES, permission denied",
+      'EBADF' => "EBADF, Bad file descriptor", //todo
+      'EEXIST' => "EEXIST, file already exists", //todo (mkdir existing)
+      'EIO' => "EIO, Input/output error", //unknown or other
+      'ENOENT' => "ENOENT, no such file or directory",
+      'ENOTDIR' => "ENOTDIR, not a directory", //todo (rmdir file)
+      'ENOTEMPTY' => "ENOTEMPTY, directory not empty",
+      'EPERM' => "EPERM, operation not permitted", //todo (unlink dir)
+      'EISDIR' => "EISDIR, read", //todo (createReadStream dir)
     ),
-    'throwError' => function($code, $path = null, $framesToPop = 0) use (&$helpers) {
-        $message = sprintf($helpers['ERR_MAP'][$code], $path);
+    'throwError' => function($code, $paths = array(), $framesToPop = 0) use (&$helpers) {
+        $message = $helpers['ERR_MAP'][$code];
+        $paths = is_array($paths) ? $paths : array($paths);
+        foreach ($paths as $path) {
+          $message .= " '" . $helpers['reverseMapPath']($path) . "'";
+        }
         $err = Error::create($message, $framesToPop + 1);
         $err->set('code', $code);
         throw new Ex($err);
       },
-    'handleException' => function($ex, $path = null) use (&$helpers) {
+    'handleException' => function($ex, $paths = array()) use (&$helpers) {
         $message = $ex->getMessage();
+        $paths = is_array($paths) ? $paths : array($paths);
         if (strpos($message, 'No such file or directory') !== false) {
-          $helpers['throwError']('ENOENT', $path, 1);
+          $helpers['throwError']('ENOENT', $paths, 1);
         } else if (strpos($message, 'Permission denied') !== false) {
-          $helpers['throwError']('EACCES', $path, 1);
+          $helpers['throwError']('EACCES', $paths, 1);
         } else if (strpos($message, 'stat failed for') !== false) {
-          $helpers['throwError']('ENOENT', $path, 1);
+          $helpers['throwError']('ENOENT', $paths, 1);
         } else if (strpos($message, 'Directory not empty') !== false) {
-          $helpers['throwError']('ENOTEMPTY', $path, 1);
+          $helpers['throwError']('ENOTEMPTY', $paths, 1);
         } else {
           throw $ex;
         }
@@ -345,6 +334,16 @@ $process->define('fs', call_user_func(function() use (&$process) {
         }
         return $helpers['cwd'] . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $normalized);
       },
+    'reverseMapPath' => function($path) use (&$helpers) {
+        $cwd = $helpers['cwd'];
+        if ($path === $cwd) {
+          return './';
+        }
+        if (strpos($path, $cwd . DIRECTORY_SEPARATOR) === 0) {
+          $path = './' . substr($path, strlen($cwd) + 1);
+        }
+        return str_replace('\\', '/', $path);
+      },
     'writeAll' => function($stream, $data, $bytesTotal = null) {
         if ($bytesTotal === null) {
           $bytesTotal = strlen($data);
@@ -355,35 +354,35 @@ $process->define('fs', call_user_func(function() use (&$process) {
           $bytesWritten += fwrite($stream, substr($data, $bytesWritten));
         }
       },
-    'isFile' => function($fullpath) use (&$helpers) {
+    'isFile' => function($fullPath) use (&$helpers) {
         try {
-          $result = is_file($fullpath);
+          $result = is_file($fullPath);
         } catch(Exception $e) {
-          $helpers['handleException']($e, $fullpath);
+          $helpers['handleException']($e, $fullPath);
         }
         return $result;
       },
-    'isDir' => function($fullpath) use (&$helpers) {
+    'isDir' => function($fullPath) use (&$helpers) {
         try {
-          $result = is_dir($fullpath);
+          $result = is_dir($fullPath);
         } catch(Exception $e) {
-          $helpers['handleException']($e, $fullpath);
+          $helpers['handleException']($e, $fullPath);
         }
         return $result;
       },
-    'getInfo' => function($fullpath, $deep) use (&$helpers) {
+    'getInfo' => function($fullPath, $deep) use (&$helpers) {
         try {
-          $stat = stat($fullpath);
+          $stat = stat($fullPath);
         } catch(Exception $e) {
-          $helpers['handleException']($e, $fullpath);
+          $helpers['handleException']($e, $fullPath);
         }
         //fallback for if set_error_handler didn't do it's thing
         if ($stat === false) {
-          $helpers['throwError']('ENOENT', $fullpath);
+          $helpers['throwError']('EIO', $fullPath);
         }
-        $isDir = is_dir($fullpath);
+        $isDir = is_dir($fullPath);
         $result = new Object();
-        $result->set('name', basename($fullpath));
+        $result->set('name', basename($fullPath));
         $result->set('dateCreated', new Date($stat['ctime'] * 1000));
         $result->set('dateLastAccessed', new Date($stat['atime'] * 1000));
         $result->set('dateLastModified', new Date($stat['mtime'] * 1000));
@@ -393,9 +392,9 @@ $process->define('fs', call_user_func(function() use (&$process) {
         } else if ($deep) {
           $size = 0.0;
           $children = new Arr();
-          foreach (scandir($fullpath) as $item) {
+          foreach (scandir($fullPath) as $item) {
             if ($item === '.' || $item === '..') continue;
-            $child = $helpers['getInfo']($fullpath . DIRECTORY_SEPARATOR . $item, $deep);
+            $child = $helpers['getInfo']($fullPath . DIRECTORY_SEPARATOR . $item, $deep);
             $size += $child->get('size');
             $children->push($child);
           }
@@ -405,6 +404,50 @@ $process->define('fs', call_user_func(function() use (&$process) {
           $result->set('size', 0.0);
         }
         return $result;
+      },
+    'deleteFile' => function($fullPath) use (&$helpers) {
+        try {
+          $result = unlink($fullPath);
+        } catch(Exception $e) {
+          $helpers['handleException']($e, $fullPath);
+        }
+        //fallback for if set_error_handler didn't do it's thing
+        if ($result === false) {
+          $helpers['throwError']('EIO', $fullPath);
+        }
+      },
+    'removeDir' => function($fullPath, $deep = false) use (&$helpers) {
+        if ($deep === true) {
+          try {
+            $list = scandir($fullPath);
+          } catch(Exception $e) {
+            $helpers['handleException']($e, $fullPath);
+          }
+          //fallback for if set_error_handler didn't do it's thing
+          if ($list === false) {
+            $helpers['throwError']('EIO', $fullPath);
+          }
+          foreach ($list as $name) {
+            if ($name === '.' || $name === '..') {
+              continue;
+            }
+            $itemPath = $fullPath . DIRECTORY_SEPARATOR . $name;
+            if (is_dir($itemPath)) {
+              $helpers['removeDir']($itemPath, true);
+            } else {
+              $helpers['deleteFile']($itemPath);
+            }
+          }
+        }
+        try {
+          $result = rmdir($fullPath);
+        } catch(Exception $e) {
+          $helpers['handleException']($e, $fullPath);
+        }
+        //fallback for if set_error_handler didn't do it's thing
+        if ($result === false) {
+          $helpers['throwError']('EIO', $fullPath);
+        }
       },
     'normalizeMode' => function($mode, $default) {
         if (is_float($mode)) $mode = (int)$mode;
