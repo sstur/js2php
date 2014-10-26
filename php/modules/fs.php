@@ -241,6 +241,10 @@ $process->define('fs', call_user_func(function() use (&$process) {
       },
     'readFile' => function($this_, $arguments, $path, $enc = null) use (&$helpers) {
         $fullPath = $helpers['mapPath']($path);
+        //file_get_contents returns an empty string for a directory
+        if (is_dir($fullPath)) {
+          $helpers['throwError']('EISDIR', $fullPath);
+        }
         try {
           $data = file_get_contents($fullPath);
         } catch(Exception $e) {
@@ -290,14 +294,14 @@ $process->define('fs', call_user_func(function() use (&$process) {
 
     'ERR_MAP' => array(
       'EACCES' => "EACCES, permission denied",
-      'EBADF' => "EBADF, Bad file descriptor", //todo
+      'EBADF' => "EBADF, bad file descriptor", //todo
       'EEXIST' => "EEXIST, file already exists", //todo (mkdir existing)
-      'EIO' => "EIO, Input/output error", //unknown or other
+      'EIO' => "EIO, input/output error", //unknown or other
       'ENOENT' => "ENOENT, no such file or directory",
       'ENOTDIR' => "ENOTDIR, not a directory", //todo (rmdir file)
       'ENOTEMPTY' => "ENOTEMPTY, directory not empty",
       'EPERM' => "EPERM, operation not permitted", //todo (unlink dir)
-      'EISDIR' => "EISDIR, read", //todo (createReadStream dir)
+      'EISDIR' => "EISDIR, is a directory",
     ),
     'throwError' => function($code, $paths = array(), $framesToPop = 0) use (&$helpers) {
         $message = $helpers['ERR_MAP'][$code];
@@ -326,6 +330,8 @@ $process->define('fs', call_user_func(function() use (&$process) {
           $helpers['throwError']('ENOENT', $paths, 1);
         } else if (strpos($message, 'Directory not empty') !== false) {
           $helpers['throwError']('ENOTEMPTY', $paths, 1);
+        } else if (strpos($message, 'Is a directory') !== false) {
+          $helpers['throwError']('EISDIR', $paths, 1);
         } else {
           throw $ex;
         }

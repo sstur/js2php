@@ -8,7 +8,6 @@ get/setters
 writeAll -> helper function
 new Func(function() {}) should use name where possible
 fs:
-  fs.removeDir('Permission denied') ==> ENOENT or EACCES?
   readStream encoding
 
 build tool:
