@@ -312,6 +312,12 @@ $process->define('fs', call_user_func(function() use (&$process) {
     'handleException' => function($ex, $paths = array()) use (&$helpers) {
         $message = $ex->getMessage();
         $paths = is_array($paths) ? $paths : array($paths);
+        //get the error message with the path(s) removed. this prevents words
+        // in the path from effecting our parsing below.
+        foreach ($paths as $path) {
+          $message = str_replace($path, '', $message);
+        }
+        $message = trim(array_slice(explode(':', $message), -1)[0]);
         if (strpos($message, 'No such file or directory') !== false) {
           $helpers['throwError']('ENOENT', $paths, 1);
         } else if (strpos($message, 'Permission denied') !== false) {
