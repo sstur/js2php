@@ -74,7 +74,14 @@ class Ex extends Exception {
         } else if (is_bool($arg)) {
           $list[] = ($arg) ? 'true' : 'false';
         } else if (is_object($arg)) {
-          $list[] = get_class($arg);
+          $class = get_class($arg);
+          if ($arg instanceof Object) {
+            $constructor = $arg->get('constructor');
+            if ($constructor instanceof Func && $constructor->name) {
+              $class .= '[' . $constructor->name . ']';
+            }
+          }
+          $list[] = $class;
         } else if (is_resource($arg)) {
           $list[] = get_resource_type($arg);
         } else {
