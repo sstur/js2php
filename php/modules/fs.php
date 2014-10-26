@@ -107,7 +107,7 @@ $process->define('fs', call_user_func(function() use (&$process) {
     'write' => function($this_, $arguments, $data, $enc = null) use (&$helpers) {
         if ($this_->finished) return;
         $data = ($data instanceof Buffer) ? $data->raw : $data;
-        $helpers['writeAll']($this_->stream, $data);
+        write_all($this_->stream, $data);
       },
     'end' => function($this_, $arguments) {
         if ($this_->finished) return;
@@ -343,16 +343,6 @@ $process->define('fs', call_user_func(function() use (&$process) {
           $path = './' . substr($path, strlen($cwd) + 1);
         }
         return str_replace('\\', '/', $path);
-      },
-    'writeAll' => function($stream, $data, $bytesTotal = null) {
-        if ($bytesTotal === null) {
-          $bytesTotal = strlen($data);
-        }
-        $bytesWritten = 0;
-        //some platforms require multiple calls to fwrite
-        while ($bytesWritten < $bytesTotal) {
-          $bytesWritten += fwrite($stream, substr($data, $bytesWritten));
-        }
       },
     'isFile' => function($fullPath) use (&$helpers) {
         try {

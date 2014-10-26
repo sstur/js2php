@@ -236,3 +236,19 @@ function call_method($obj, $name) {
   $args = array_slice(func_get_args(), 2);
   return $fn->apply($obj, $args);
 }
+
+/**
+ * @param resource $stream
+ * @param string $data
+ * @param int|float|null $bytesTotal
+ */
+function write_all($stream, $data, $bytesTotal = null) {
+  if ($bytesTotal === null) {
+    $bytesTotal = strlen($data);
+  }
+  $bytesWritten = fwrite($stream, $data);
+  //some platforms require multiple calls to fwrite
+  while ($bytesWritten < $bytesTotal) {
+    $bytesWritten += fwrite($stream, substr($data, $bytesWritten));
+  }
+}
