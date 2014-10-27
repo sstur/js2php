@@ -462,6 +462,8 @@
     },
 
     truthyWrap: function(node) {
+      //node can be null, for instance: `for (;;) {}`
+      if (!node) return '';
       var op = node.operator;
       var type = node.type;
       if (type === 'LogicalExpression') {
