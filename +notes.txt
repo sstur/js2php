@@ -9,6 +9,9 @@ Divergence from JavaScript
   doesn't throw on use of undeclared var (ReferenceError: foo is not defined)
   no runtime parsing: eval, new Function()
 
+Not Completely Implemented
+  `string[1]` works but not `string['1']`
+
 Compiling:
   {a: 1} -> new Object('a', 1)
   [1, 2] -> new Arr(1, 2)

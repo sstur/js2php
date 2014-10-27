@@ -26,10 +26,14 @@ test:
   for (i in array) {}
   array set returns value
   parse `for (;;) {}`
+  support `string[1]`
 
 Optimizations:
   `x = !a || b;` => `$x = (is($or_ = not($a)) ? $or_ : $b);` #redundant
   `a + 'b'` => `to_string($a) . "b"`
+
+Performance:
+  Array::checkInt
 
 String.prototype
   concat, match, search

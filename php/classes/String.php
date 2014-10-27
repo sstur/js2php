@@ -24,6 +24,16 @@ class Str extends Object {
     return $len;
   }
 
+  //allow subscript access to characters: `string[1]`
+  function get($key) {
+    if (is_float($key)) {
+      if ((float)(int)$key === $key && $key >= 0) {
+        return $this->callMethod('charAt', $key);
+      }
+    }
+    return parent::get($key);
+  }
+
   /**
    * Creates the global constructor used in user-land
    * @return Func
