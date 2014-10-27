@@ -27,3 +27,9 @@ $process->set('binding', new Func(function($this_, $arguments, $name) {
   }
   throw new Ex(Error::create("Binding `$name` not found."));
 }));
+
+//command line arguments
+$process->argv = isset(GlobalObject::$OLD_GLOBALS['argv']) ? GlobalObject::$OLD_GLOBALS['argv'] : array();
+//first argument is path to script
+$process->argv = array_slice($process->argv, 1);
+$process->set('argv', Arr::fromArray($process->argv));
