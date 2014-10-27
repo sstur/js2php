@@ -1,5 +1,5 @@
 <?php
-$process->define('request', call_user_func(function() {
+$process->define('request', function() {
   $SERVER = isset($_SERVER) ? $_SERVER : array();
   $headers = null;
   $methods = array(
@@ -32,9 +32,9 @@ $process->define('request', call_user_func(function() {
   $request = new Object();
   $request->setMethods($methods, true, false, true);
   return $request;
-}));
+});
 
-$process->define('response', call_user_func(function() {
+$process->define('response', function() {
   $methods = array(
     'writeHead' => function($this_, $arguments, $statusCode, $statusReason, $headers) {
         http_response_code($statusCode);
@@ -55,4 +55,4 @@ $process->define('response', call_user_func(function() {
   $response = new Object();
   $response->setMethods($methods, true, false, true);
   return $response;
-}));
+});

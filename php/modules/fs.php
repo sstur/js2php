@@ -1,9 +1,7 @@
 <?php
-$process->define('fs', call_user_func(function() use (&$process) {
+$process->define('fs', function() {
 
   $CHUNK_SIZE = 1024;
-
-  $util = $process->callMethod('binding', 'util');
 
   $ReadStream = new Func('ReadStream', function($this_, $arguments, $path, $opts = null) use (&$helpers, &$CHUNK_SIZE) {
     $fullPath = $helpers['mapPath']($path);
@@ -25,8 +23,9 @@ $process->define('fs', call_user_func(function() use (&$process) {
     $this_->stream = $stream;
   });
 
+  /* @var Object $prototype */
   $prototype = $ReadStream->get('prototype');
-  $util->callMethod('eventify', $prototype);
+  Util::eventify($prototype);
   $prototype->setMethods(array(
     'readBytes' => function($this_, $arguments, $bytes) {
         $stream = $this_->stream;
@@ -462,4 +461,4 @@ $process->define('fs', call_user_func(function() use (&$process) {
   $fs = new Object();
   $fs->setMethods($methods, true, false, true);
   return $fs;
-}));
+});
