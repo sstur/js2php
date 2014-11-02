@@ -92,5 +92,7 @@ $JSON = call_user_func(function() {
 
   $JSON = new Object();
   $JSON->setMethods($methods, true, false, true);
+  // expose for use elsewhere in php-land
+  $JSON->fromNative = $decode;
   return $JSON;
 });
