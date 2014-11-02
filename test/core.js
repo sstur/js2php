@@ -46,11 +46,11 @@ testSuite('core', function(assert) {
   testSuite('for..in', function() {
     var nothing;
     var a = [];
-    var b = {a: null, b: nothing, c: 0, d: false, e: '1'};
+    var b = {'': false, a: null, b: nothing, c: 0, d: false, e: '1'};
     for (var key in b) {
       a.push(key);
     }
-    assert('should iterate keys', a.join('') === 'abcde');
+    assert('should iterate keys', a.join(',') === ',a,b,c,d,e');
     var c = Object.create(b);
     assert('should inherit', c.c === 0);
     c.f = null;
@@ -58,7 +58,7 @@ testSuite('core', function(assert) {
     for (var k in c) {
       a.push(k);
     }
-    assert('should iterate all keys', a.sort().join('') === 'abcdef');
+    assert('should iterate all keys', a.sort().join(',') === ',a,b,c,d,e,f');
     var d = Object.create(null);
     //todo: Object.getPrototypeOf
     assert('should allow null proto', Object.keys(d).length === 0);

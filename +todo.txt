@@ -9,6 +9,7 @@ new Func(function() {}) should use name where possible
 fs:
   readStream encoding
   helpers array to BaseObject?
+specify ->toJSON for boxed primitives
 
 build tool:
   debug mode: Func() gets extra param "meta"
