@@ -16,7 +16,7 @@ class Object {
   static $global = null;
 
   function __construct() {
-    $this->data = new StdClass();
+    $this->data = new ArrayObject(array(), ArrayObject::ARRAY_AS_PROPS);
     $this->proto = self::$protoObject;
     $args = func_get_args();
     if (count($args) > 0) {
@@ -37,13 +37,14 @@ class Object {
   }
 
   function get($key) {
+    $key = (string)$key;
     if (method_exists($this, 'get_' . $key)) {
       return $this->{'get_' . $key}();
     }
     $obj = $this;
     while ($obj !== Object::$null) {
       $data = $obj->data;
-      if (property_exists($data, $key)) {
+      if (array_key_exists($key, $data)) {
         return $data->{$key}->value;
       }
       $obj = $obj->proto;
@@ -52,11 +53,12 @@ class Object {
   }
 
   function set($key, $value) {
+    $key = (string)$key;
     if (method_exists($this, 'set_' . $key)) {
       return $this->{'set_' . $key}($value);
     }
     $data = $this->data;
-    if (property_exists($data, $key)) {
+    if (array_key_exists($key, $data)) {
       $property = $data->{$key};
       if ($property->writable) {
         $property->value = $value;
@@ -68,8 +70,9 @@ class Object {
   }
 
   function remove($key) {
+    $key = (string)$key;
     $data = $this->data;
-    if (property_exists($data, $key)) {
+    if (array_key_exists($key, $data)) {
       if (!$data->{$key}->configurable) {
         return false;
       }
@@ -80,14 +83,14 @@ class Object {
 
   //determine if the given property exists (don't walk proto)
   function hasOwnProperty($key) {
-    $key = to_string($key);
-    return property_exists($this->data, $key);
+    $key = (string)$key;
+    return array_key_exists($key, $this->data);
   }
 
   //determine if the given property exists (walk proto)
   function hasProperty($key) {
-    $key = to_string($key);
-    if (property_exists($this->data, $key)) {
+    $key = (string)$key;
+    if (array_key_exists($key, $this->data)) {
       return true;
     }
     $proto = $this->proto;
@@ -135,8 +138,9 @@ class Object {
    * @return mixed
    */
   function setProperty($key, $value, $writable = null, $enumerable = null, $configurable = null) {
+    $key = (string)$key;
     $data = $this->data;
-    if (property_exists($data, $key)) {
+    if (array_key_exists($key, $data)) {
       $prop = $data->{$key};
       $prop->value = $value;
       if ($writable !== null) $prop->writable = $writable;
@@ -323,7 +327,8 @@ Object::$classMethods = array(
 
 Object::$protoMethods = array(
   'hasOwnProperty' => function($this_, $arguments, $key) {
-      return property_exists($this_->data, $key);
+      $key = (string)$key;
+      return array_key_exists($key, $this_->data);
     },
   'toString' => function($this_) {
       if ($this_ === null) {

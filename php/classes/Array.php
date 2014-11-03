@@ -48,9 +48,9 @@ class Arr extends Object {
     $len = $this->length;
     for ($pos = 1; $pos < $len; $pos ++) {
       $newPos = $pos - 1;
-      if (property_exists($data, $pos)) {
+      if (array_key_exists($pos, $data)) {
         $data->{$newPos} = $data->{$pos};
-      } else if (property_exists($data, $newPos)) {
+      } else if (array_key_exists($newPos, $data)) {
         unset($data->{$newPos});
       }
     }
@@ -68,10 +68,10 @@ class Arr extends Object {
     $pos = $len;
     while ($pos--) {
       $newPos = $pos + $num;
-      if (property_exists($data, $pos)) {
+      if (array_key_exists($pos, $data)) {
         $data->{$newPos} = $data->{$pos};
         unset($data->{$pos});
-      } else if (property_exists($data, $newPos)) {
+      } else if (array_key_exists($newPos, $data)) {
         unset($data->{$newPos});
       }
     }

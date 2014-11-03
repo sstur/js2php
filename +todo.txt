@@ -28,6 +28,7 @@ test:
   array set returns value
   parse `for (;;) {}`
   support `string[1]`
+  date constructed with no args
 
 Optimizations:
   `x = !a || b;` => `$x = (is($or_ = not($a)) ? $or_ : $b);` #redundant
