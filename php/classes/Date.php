@@ -45,7 +45,7 @@ class Date extends Object {
   function _initFromParts($arr, $tz = null) {
     //allow 0 - 6 parts; default to 0
     for ($i = 0; $i <= 6; $i++) {
-      $arr[$i] = ($arr[$i] === null) ? 0 : $arr[$i];
+      $arr[$i] = isset($arr[$i]) ? $arr[$i] : 0;
     }
     $date = self::create($tz);
     $date->setDate($arr[0], $arr[1] + 1, $arr[2]);
