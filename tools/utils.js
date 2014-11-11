@@ -18,16 +18,47 @@
     '\\': '\\\\'
   };
 
-  function pad(s) {
-    return (s.length < 2) ? '0' + s : s;
+  function toHex(code, prefix) {
+    var hex = code.toString(16).toUpperCase();
+    if (hex.length === 1) {
+      hex = '0' + hex;
+    }
+    if (prefix) {
+      hex = prefix + hex;
+    }
+    return hex;
+  }
+
+  function toOctet(codePoint, shift, prefix) {
+    return toHex(((codePoint >> shift) & 0x3F) | 0x80, prefix);
+  }
+
+  //encode unicode character to a set of escaped octets like \xC2\xA9
+  function encodeChar(ch, prefix) {
+    var code = ch.charCodeAt(0);
+    if ((code & 0xFFFFFF80) == 0) { // 1-byte sequence
+      return toHex(code, prefix);
+    }
+    var result = '';
+    if ((code & 0xFFFFF800) == 0) { // 2-byte sequence
+      result = toHex(((code >> 6) & 0x1F) | 0xC0, prefix);
+    }
+    else if ((code & 0xFFFF0000) == 0) { // 3-byte sequence
+      result = toHex(((code >> 12) & 0x0F) | 0xE0, prefix);
+      result += toOctet(code, 6, prefix);
+    }
+    else if ((code & 0xFFE00000) == 0) { // 4-byte sequence
+      result = toHex(((code >> 18) & 0x07) | 0xF0, prefix);
+      result += toOctet(code, 12, prefix);
+      result += toOctet(code, 6, prefix);
+    }
+    result += toHex((code & 0x3F) | 0x80, prefix);
+    return result;
   }
 
   function encodeString(string) {
-    string = string.replace(/[\\"\$\x00-\x1F]/g, function(ch) {
-      return (ch in meta) ? meta[ch] : '\\x' + pad(ch.charCodeAt(0).toString(16).toUpperCase());
-    });
-    string = string.replace(/[\x7F-\xFF\u0100-\uFFFF]/g, function(ch) {
-      return encodeURI(ch).split('%').join('\\x');
+    string = string.replace(/[\\"\$\x00-\x1F\u007F-\uFFFF]/g, function(ch) {
+      return (ch in meta) ? meta[ch] : encodeChar(ch, '\\x');
     });
     return '"' + string + '"';
   }
@@ -40,17 +71,10 @@
     if (!suffix && name.slice(-1) === '_') {
       suffix = '_';
     }
-    return '$' + name.replace(/[^a-z0-9_]/ig, encodeVarChar) + suffix;
-  }
-
-  function encodeVarChar(ch) {
-    var code = ch.charCodeAt(0);
-    if (code < 128) {
-      var hex = code.toString(16);
-      hex = hex.length === 1 ? '0' + hex : hex;
-      return '«' + hex + '»';
-    }
-    return encodeURI(ch).replace(/%(..)/g, '«$1»').toLowerCase();
+    name = name.replace(/[^a-z0-9_]/ig, function(ch) {
+      return '«' + encodeChar(ch).toLowerCase() + '»';
+    });
+    return '$' + name + suffix;
   }
 
   function getParentScope(node) {
