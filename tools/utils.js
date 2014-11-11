@@ -1,5 +1,6 @@
 /*global module, exports*/
 (function() {
+  var hasOwnProperty = Object.prototype.hasOwnProperty;
 
   //these constructs contain variable scope (technically, there's catch scope and ES6 let)
   var SCOPE_TYPES = {"FunctionDeclaration": 1, "FunctionExpression": 1, "Program": 1};
@@ -65,7 +66,7 @@
 
   function encodeVarName(name, suffix) {
     suffix = suffix || '';
-    if (!suffix && SUPER_GLOBALS[name]) {
+    if (!suffix && hasOwnProperty.call(SUPER_GLOBALS, name)) {
       suffix = '_';
     }
     if (!suffix && name.slice(-1) === '_') {

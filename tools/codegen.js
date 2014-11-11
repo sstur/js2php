@@ -3,6 +3,7 @@
   var utils = require('./utils');
 
   var toString = Object.prototype.toString;
+  var hasOwnProperty = Object.prototype.hasOwnProperty;
 
   //these operators expect numbers
   var UNARY_NUM_OPS = {
@@ -322,7 +323,7 @@
           return 'set(' + this.generate(node.left.object) + ', ' + this.encodeProp(node.left) + ', ' + this.generate(node.right) + ', "' + node.operator + '")';
         }
       }
-      if (node.left.name in GLOBALS) {
+      if (hasOwnProperty.call(GLOBALS, node.left.name)) {
         var scope = utils.getParentScope(node);
         if (scope.type === 'Program') {
           node.left.appendSuffix = '_';
