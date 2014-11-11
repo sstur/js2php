@@ -5,11 +5,11 @@
   //these constructs contain variable scope (technically, there's catch scope and ES6 let)
   var SCOPE_TYPES = {"FunctionDeclaration": 1, "FunctionExpression": 1, "Program": 1};
 
-  //these constructs contain variable scope (technically, there's catch scope and ES6 let)
+  //these have special meaning in PHP so we escape variables with these names
   var SUPER_GLOBALS = {"GLOBALS": 1, "_SERVER": 1, "_GET": 1, "_POST": 1, "_FILES": 1, "_COOKIE": 1, "_SESSION": 1, "_REQUEST": 1, "_ENV": 1};
 
   // table of character substitutions
-  var meta = {
+  var ESC_CHARS = {
     '\t': '\\t',
     '\n': '\\n',
     '\f': '\\f',
@@ -59,7 +59,7 @@
 
   function encodeString(string) {
     string = string.replace(/[\\"\$\x00-\x1F\u007F-\uFFFF]/g, function(ch) {
-      return (ch in meta) ? meta[ch] : encodeChar(ch, '\\x');
+      return (ch in ESC_CHARS) ? ESC_CHARS[ch] : encodeChar(ch, '\\x');
     });
     return '"' + string + '"';
   }
