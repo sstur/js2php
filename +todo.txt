@@ -1,6 +1,7 @@
 opt-in modules at build
 use node-commander instead of yargs
-json stringify format
+json parse reviver
+object data to use array instead of ArrayObject
 get/setters
   'length' in []
   Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}
@@ -10,6 +11,12 @@ fs:
   readStream encoding
   helpers array to BaseObject?
 specify ->toJSON for boxed primitives
+update readme for retina
+
+Bugs:
+  undefined == null
+  division by zero should not throw (+/- Infinity)
+  `0 / 0` should not throw (NaN)
 
 build tool:
   debug mode: Func() gets extra param "meta"
@@ -23,14 +30,22 @@ build tool:
 test:
   encodeURI/decodeURI, escape/unescape
   // decodeURI('%E2%86%97%D4%B6') === '↗Զ'
+  JSON.parse('{"":1}')
   function scope stuff including named function expression
   for (i in array) {}
   array set returns value
+  new Boolean().valueOf() === false
+  new Number().valueOf() === 0
   parse `for (;;) {}`
   support `string[1]`
   date constructed with no args
+  Don't encode toString as $toString_
+  Unicode in strings
+    including surrogate pairs: "\uD835\uDFD8"
+    including mis-matched surrogate pairs: 0xD800-0xDBFF not followed by 0xDC00–0xDFFF
 
 Optimizations:
+  return (a === a1 && b === b1) //don't use ternary
   `x = !a || b;` => `$x = (is($or_ = not($a)) ? $or_ : $b);` #redundant
   `a + 'b'` => `to_string($a) . "b"`
 

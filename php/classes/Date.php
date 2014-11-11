@@ -43,10 +43,8 @@ class Date extends Object {
   }
 
   function _initFromParts($arr, $tz = null) {
-    //allow 0 - 6 parts; default to 0
-    for ($i = 0; $i <= 6; $i++) {
-      $arr[$i] = isset($arr[$i]) ? $arr[$i] : 0;
-    }
+    //allow 0 - 7 parts; default value for each part is 0
+    $arr = array_pad($arr, 7, 0);
     $date = self::create($tz);
     $date->setDate($arr[0], $arr[1] + 1, $arr[2]);
     $date->setTime($arr[3], $arr[4], $arr[5]);
@@ -57,9 +55,10 @@ class Date extends Object {
   function toJSON() {
     $date = self::fromValue($this->value, 'UTC');
     $str = $date->format('Y-m-d\TH:i:s');
-    $ms = '00' . ($this->value % 1000);
-    $ms = substr($ms, -3);
-    return $str . '.' . $ms . 'Z';
+    $ms = $this->value % 1000;
+    if ($ms < 0) $ms = 1000 + $ms;
+    if ($ms < 0) $ms = 0;
+    return $str . '.' . substr('00' . $ms, -3) . 'Z';
   }
 
   static function create($tz = null) {

@@ -20,7 +20,7 @@ class Bln extends Object {
    * @return Func
    */
   static function getGlobalConstructor() {
-    $Boolean = new Func(function($this_, $arguments, $value) {
+    $Boolean = new Func(function($this_, $arguments, $value = false) {
       if ($this_ instanceof Bln) {
         $this_->value = $value ? true : false;
         return $this_;

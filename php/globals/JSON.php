@@ -20,6 +20,9 @@ $JSON = call_user_func(function() {
     } else {
       $result = new Object();
       foreach ($value as $key => $item) {
+        if ($key === '_empty_') {
+          $key = '';
+        }
         $result->set($key, $decode($item));
       }
     }
@@ -45,6 +48,9 @@ $JSON = call_user_func(function() {
         $value = $valueOf->call($value);
       }
     }
+    if ($opts->replacer instanceof Func) {
+      $value = $opts->replacer->call($parent, $key, $value, $opts->level + 1);
+    }
     if ($value === null) {
       return $encodeNull ? 'null' : $value;
     }
@@ -68,9 +74,6 @@ $JSON = call_user_func(function() {
       $opts->gap .= $opts->indent;
     }
     $result = null;
-    if ($opts->replacer instanceof Func) {
-      $value = $opts->replacer->call($parent, $key, $value, $opts->level);
-    }
     if ($value instanceof Arr) {
       $parts = array();
       $len = $value->length;
@@ -86,10 +89,11 @@ $JSON = call_user_func(function() {
     }
     if ($result === null) {
       $parts = array();
+      $sep = ($opts->gap === null) ? ':' : ': ';
       foreach ($value->getOwnKeys(true) as $key) {
         $item = $value->get($key);
         if ($item !== null) {
-          $parts[] = $escape($key) . ':' . $encode($value, $key, $item, $opts);
+          $parts[] = $escape($key) . $sep . $encode($value, $key, $item, $opts);
         }
       }
       if ($opts->gap === null) {
@@ -105,21 +109,31 @@ $JSON = call_user_func(function() {
   };
 
   $methods = array(
-    'parse' => function($this_, $arguments, $string) use(&$decode) {
+    'parse' => function($this_, $arguments, $string, $reviver = null) use(&$decode) {
+        $string = '{"_":' . $string . '}';
         $value = json_decode($string);
-        return $decode($value);
+        if ($value === null) {
+          throw new Ex(SyntaxError::create('Unexpected end of input'));
+        }
+        return $decode($value->_);
       },
     'stringify' => function($this_, $arguments, $value, $replacer = null, $space = null) use (&$encode) {
-        if (is_int_or_float($space)) {
-          $space = str_repeat(' ', $space);
-        }
         $opts = new stdClass();
+        $opts->indent = null;
+        $opts->gap = null;
+        if (is_int_or_float($space)) {
+          $space = floor($space);
+          if ($space > 0) {
+            $space = str_repeat(' ', $space);
+          }
+        }
         if (is_string($space)) {
-          $opts->indent = $space;
-          $opts->gap = '';
-        } else {
-          $opts->indent = null;
-          $opts->gap = null;
+          $length = strlen($space);
+          if ($length > 10) $space = substr($space, 0, 10);
+          if ($length > 0) {
+            $opts->indent = $space;
+            $opts->gap = '';
+          }
         }
         $opts->replacer = ($replacer instanceof Func) ? $replacer : null;
         $opts->level = -1.0;

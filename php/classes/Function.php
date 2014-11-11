@@ -108,6 +108,11 @@ class Func extends Object {
     return $value;
   }
 
+  //functions are treated as undefined in JSON.stringify
+  function toJSON() {
+    return null;
+  }
+
   /**
    * Creates the global constructor used in user-land
    * @return Func
