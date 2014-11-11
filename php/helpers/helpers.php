@@ -8,7 +8,7 @@
  * @return bool
  */
 function is($x) {
-  return $x !== false && $x !== 0 && $x !== '' && $x !== null && $x !== Object::$null && $x === $x /* NaN check */;
+  return $x !== false && $x !== 0.0 && $x !== '' && $x !== null && $x !== Object::$null && $x === $x /* NaN check */;
 }
 
 /**
@@ -17,7 +17,7 @@ function is($x) {
  * @return bool
  */
 function not($x) {
-  return $x === false || $x === 0 || $x === '' || $x === null || $x === Object::$null || $x !== $x /* NaN check */;
+  return $x === false || $x === 0.0 || $x === '' || $x === null || $x === Object::$null || $x !== $x /* NaN check */;
 }
 
 /**
