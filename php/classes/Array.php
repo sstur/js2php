@@ -139,13 +139,13 @@ class Arr extends Object {
    * @return Func
    */
   static function getGlobalConstructor() {
-    $Array = new Func(function($this_, $arguments, $value = null) {
+    $Array = new Func(function($value = null) {
       $arr = new Arr();
-      $len = $arguments->length;
+      $len = func_num_args();
       if ($len === 1 && is_int_or_float($value)) {
         $arr->length = (int)$value;
       } else if ($len > 0) {
-        $arr->init($arguments->args);
+        $arr->init(func_get_args());
       }
       return $arr;
     });
@@ -156,59 +156,64 @@ class Arr extends Object {
 }
 
 Arr::$classMethods = array(
-  'isArray' => function($this_, $arguments, $arr) {
+  'isArray' => function($arr) {
       return ($arr instanceof Arr);
     }
 );
 
 // splice, reverse, filter, some, every, map, reduce, reduceRight
 Arr::$protoMethods = array(
-  'push' => function($this_, $arguments, $value) {
+  'push' => function($value) {
       //for this we have a low-level method
-      $length = call_user_func_array(array($this_, 'push'), $arguments->args);
+      $length = call_user_func_array(array($this->context, 'push'), func_get_args());
       return (float)$length;
     },
-  'pop' => function($this_) {
-      $i = $this_->length - 1;
-      $result = $this_->get($i);
-      $this_->remove($i);
-      $this_->length = $i;
+  'pop' => function() {
+      $self = $this->context;
+      $i = $self->length - 1;
+      $result = $self->get($i);
+      $self->remove($i);
+      $self->length = $i;
       return $result;
     },
-  'unshift' => function($this_, $arguments, $value) {
+  'unshift' => function($value) {
       //for this we have a low-level method
-      $length = call_user_func_array(array($this_, 'unshift'), $arguments->args);
+      $length = call_user_func_array(array($this->context, 'unshift'), func_get_args());
       return (float)$length;
     },
-  'shift' => function($this_) {
+  'shift' => function() {
       //for this we have a low-level method
-      return $this_->shift();
+      return $this->context->shift();
     },
-  'join' => function($this_, $arguments, $str = ',') {
+  'join' => function($str = ',') {
       $results = array();
-      $len = $this_->length;
+      $self = $this->context;
+      $len = $self->length;
       for ($i = 0; $i < $len; $i++) {
-        $value = $this_->get($i);
+        $value = $self->get($i);
         $results[] = ($value === null || $value === Object::$null) ? '' : to_string($value);
       }
       return join(to_string($str), $results);
     },
-  'indexOf' => function($this_, $arguments, $value) {
-      $len = $this_->length;
+  'indexOf' => function($value) {
+      $self = $this->context;
+      $len = $self->length;
       for ($i = 0; $i < $len; $i++) {
-        if ($this_->get($i) === $value) return (float)$i;
+        if ($self->get($i) === $value) return (float)$i;
       }
       return -1.0;
     },
-  'lastIndexOf' => function($this_, $arguments, $value) {
-      $i = $this_->length;
+  'lastIndexOf' => function($value) {
+      $self = $this->context;
+      $i = $self->length;
       while ($i--) {
-        if ($this_->get($i) === $value) return (float)$i;
+        if ($self->get($i) === $value) return (float)$i;
       }
       return -1.0;
     },
-  'slice' => function($this_, $arguments, $start = 0, $end = null) {
-      $len = $this_->length;
+  'slice' => function($start = 0, $end = null) {
+      $self = $this->context;
+      $len = $self->length;
       if ($len === 0) {
         return new Arr();
       }
@@ -232,48 +237,50 @@ Arr::$protoMethods = array(
       }
       $result = new Arr();
       for ($i = $start; $i < $end; $i++) {
-        $value = $this_->get($i);
+        $value = $self->get($i);
         $result->set($i, $value);
       }
       return $result;
     },
-  'forEach' => function($this_, $arguments, $fn, $context = null) {
-      $len = $this_->length;
+  'forEach' => function($fn, $context = null) {
+      $self = $this->context;
+      $len = $self->length;
       for ($i = 0; $i < $len; $i++) {
-        if ($this_->hasOwnProperty($i)) {
-          $fn->call($context, $this_->get($i), (float)$i, $this_);
+        if ($self->hasOwnProperty($i)) {
+          $fn->call($context, $self->get($i), (float)$i, $self);
         }
       }
     },
-  'sort' => function($this_, $arguments, $fn = null) {
+  'sort' => function($fn = null) {
+      $self = $this->context;
       if ($fn instanceof Func) {
-        $results = $this_->toArray();
+        $results = $self->toArray();
         $comparator = function($a, $b) use (&$fn) {
           return $fn->call(null, $a, $b);
         };
         uasort($results, $comparator);
       } else {
         $results = array();
-        $len = $this_->length;
+        $len = $self->length;
         for ($i = 0; $i < $len; $i++) {
-          $results[$i] = to_string($this_->get($i));
+          $results[$i] = to_string($self->get($i));
         }
         asort($results, SORT_STRING);
       }
       $i = 0;
       $temp = new StdClass();
       foreach ($results as $index => $str) {
-        $temp->{$i} = $this_->data->{$index};
+        $temp->{$i} = $self->data->{$index};
         $i += 1;
       }
       foreach ($temp as $i => $prop) {
-        $this_->data->{$i} = $prop;
+        $self->data->{$i} = $prop;
       }
-      return $this_;
+      return $self;
     },
-  'concat' => function($this_, $arguments) {
-      $items = $this_->toArray();
-      foreach ($arguments->args as $item) {
+  'concat' => function() {
+      $items = $this->context->toArray();
+      foreach (func_get_args() as $item) {
         if ($item instanceof Arr) {
           foreach ($item->toArray() as $subitem) {
             $items[] = $subitem;
@@ -286,11 +293,11 @@ Arr::$protoMethods = array(
       $arr->init($items);
       return $arr;
     },
-  'toString' => function($this_) {
-      return $this_->callMethod('join');
+  'toString' => function() {
+      return $this->context->callMethod('join');
     },
-  'toLocaleString' => function($this_) {
-      return $this_->callMethod('join');
+  'toLocaleString' => function() {
+      return $this->context->callMethod('join');
     }
 );
 

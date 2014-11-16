@@ -224,10 +224,8 @@ class Object {
    * @return Func
    */
   static function getGlobalConstructor() {
-    $Object = new Func(function($this_, $arguments, $value = null) {
-      if ($arguments->length === 0) {
-        return new Object();
-      } else if ($value === null || $value === Object::$null) {
+    $Object = new Func(function($value = null) {
+      if ($value === null || $value === Object::$null) {
         return new Object();
       } else {
         return objectify($value);
@@ -267,7 +265,7 @@ class Property {
 
 Object::$classMethods = array(
   //todo: getPrototypeOf, seal, freeze, preventExtensions, isSealed, isFrozen, isExtensible
-  'create' => function($this_, $arguments, $proto) {
+  'create' => function($proto) {
       if (!($proto instanceof Object) && $proto !== Object::$null) {
         throw new Ex(Error::create('Object prototype may only be an Object or null'));
       }
@@ -275,7 +273,7 @@ Object::$classMethods = array(
       $obj->proto = $proto;
       return $obj;
     },
-  'keys' => function($this_, $arguments, $obj) {
+  'keys' => function($obj) {
       if (!($obj instanceof Object)) {
         throw new Ex(Error::create('Object.keys called on non-object'));
       }
@@ -283,7 +281,7 @@ Object::$classMethods = array(
       $results->init($obj->getOwnKeys(true));
       return $results;
     },
-  'getOwnPropertyNames' => function($this_, $arguments, $obj) {
+  'getOwnPropertyNames' => function($obj) {
       if (!($obj instanceof Object)) {
         throw new Ex(Error::create('Object.getOwnPropertyNames called on non-object'));
       }
@@ -291,14 +289,14 @@ Object::$classMethods = array(
       $results->init($obj->getOwnKeys(false));
       return $results;
     },
-  'getOwnPropertyDescriptor' => function($this_, $arguments, $obj, $key) {
+  'getOwnPropertyDescriptor' => function($obj, $key) {
       if (!($obj instanceof Object)) {
         throw new Ex(Error::create('Object.getOwnPropertyDescriptor called on non-object'));
       }
       $result = $obj->get($key);
       return ($result) ? $result->getDescriptor() : null;
     },
-  'defineProperty' => function($this_, $arguments, $obj, $key, $desc) {
+  'defineProperty' => function($obj, $key, $desc) {
       //todo: ensure configurable
       if (!($obj instanceof Object)) {
         throw new Ex(Error::create('Object.defineProperty called on non-object'));
@@ -312,7 +310,7 @@ Object::$classMethods = array(
       if ($configurable === null) $configurable = true;
       $obj->data->{$key} = new Property($value, $writable, $enumerable, $configurable);
     },
-  'defineProperties' => function($this_, $arguments, $obj, $items) {
+  'defineProperties' => function($obj, $items) {
       if (!($obj instanceof Object)) {
         throw new Ex(Error::create('Object.defineProperties called on non-object'));
       }
@@ -326,23 +324,24 @@ Object::$classMethods = array(
 );
 
 Object::$protoMethods = array(
-  'hasOwnProperty' => function($this_, $arguments, $key) {
+  'hasOwnProperty' => function($key) {
       $key = (string)$key;
-      return array_key_exists($key, $this_->data);
+      return array_key_exists($key, $this->context->data);
     },
-  'toString' => function($this_) {
-      if ($this_ === null) {
+  'toString' => function() {
+      $self = $this->context;
+      if ($self === null) {
         $className = 'Undefined';
-      } else if ($this_ === Object::$null) {
+      } else if ($self === Object::$null) {
         $className = 'Null';
       } else {
-        $obj = objectify($this_);
+        $obj = objectify($self);
         $className = $obj->className;
       }
       return '[object ' . $className . ']';
     },
-  'valueOf' => function($this_) {
-      return $this_;
+  'valueOf' => function() {
+      return $this->context;
     }
 );
 

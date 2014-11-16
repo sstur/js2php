@@ -3,11 +3,12 @@ $process->define('fs', function() {
 
   $CHUNK_SIZE = 1024;
 
-  $ReadStream = new Func('ReadStream', function($this_, $arguments, $path, $opts = null) use (&$helpers, &$CHUNK_SIZE) {
+  $ReadStream = new Func('ReadStream', function($path, $opts = null) use (&$helpers, &$CHUNK_SIZE) {
+    $self = $this->context;
     $fullPath = $helpers['mapPath']($path);
-    $this_->set('path', $fullPath);
+    $self->set('path', $fullPath);
     $opts = ($opts instanceof Object) ? $opts : new Object();
-    $this_->set('opts', $opts);
+    $self->set('opts', $opts);
     if (!$opts->hasOwnProperty('chunkSize')) {
       $opts->set('chunkSize', $CHUNK_SIZE);
     }
@@ -20,29 +21,31 @@ $process->define('fs', function() {
     if ($stream === false) {
       $helpers['throwError']('EIO', $fullPath);
     }
-    $this_->stream = $stream;
+    $self->stream = $stream;
   });
 
   /* @var Object $prototype */
   $prototype = $ReadStream->get('prototype');
   Util::eventify($prototype);
   $prototype->setMethods(array(
-    'readBytes' => function($this_, $arguments, $bytes) {
-        $stream = $this_->stream;
+    'readBytes' => function($bytes) {
+        $self = $this->context;
+        $stream = $self->stream;
         if (feof($stream)) {
           return null;
         }
         $data = fread($stream, $bytes);
         $buffer = new Buffer($data);
-        $bytesRead = $this_->get('bytesRead');
+        $bytesRead = $self->get('bytesRead');
         if ($bytesRead === null) $bytesRead = 0.0;
         $bytesRead += $buffer->length;
-        $this_->set('bytesRead', $bytesRead);
+        $self->set('bytesRead', $bytesRead);
         return $buffer;
       },
-    'readAll' => function($this_, $arguments) {
-        $chunkSize = $this_->get('opts')->get('chunkSize');
-        $stream = $this_->stream;
+    'readAll' => function() {
+        $self = $this->context;
+        $chunkSize = $self->get('opts')->get('chunkSize');
+        $stream = $self->stream;
         $data = array();
         while (!feof($stream)) {
           $data[] = fread($stream, $chunkSize);
@@ -50,33 +53,36 @@ $process->define('fs', function() {
         fclose($stream);
         return new Buffer(join('', $data));
       },
-    'size' => function($this_, $arguments) {
-        $size = $this_->get('bytesTotal');
+    'size' => function() {
+        $self = $this->context;
+        $size = $self->get('bytesTotal');
         if ($size === null) {
-          $stat = fstat($this_->stream);
+          $stat = fstat($self->stream);
           $size = (float)$stat['size'];
-          $this_->set('bytesTotal', $size);
+          $self->set('bytesTotal', $size);
         }
         return $size;
       },
-    'read' => function($this_, $arguments) {
-        $chunkSize = $this_->get('opts')->get('chunkSize');
-        $stream = $this_->stream;
+    'read' => function() {
+        $self = $this->context;
+        $chunkSize = $self->get('opts')->get('chunkSize');
+        $stream = $self->stream;
         while (!feof($stream)) {
           $data = fread($stream, $chunkSize);
-          $this_->callMethod('emit', 'data', new Buffer($data));
+          $self->callMethod('emit', 'data', new Buffer($data));
         }
         fclose($stream);
-        $this_->callMethod('emit', 'end');
+        $self->callMethod('emit', 'end');
       }
   ), true, false, true);
 
 
-  $WriteStream = new Func('WriteStream', function($this_, $arguments, $path, $opts = null) use (&$helpers) {
+  $WriteStream = new Func('WriteStream', function($path, $opts = null) use (&$helpers) {
+    $self = $this->context;
     $fullPath = $helpers['mapPath']($path);
-    $this_->set('path', $fullPath);
+    $self->set('path', $fullPath);
     $opts = ($opts instanceof Object) ? $opts : new Object();
-    $this_->set('opts', $opts);
+    $self->set('opts', $opts);
     //default is to append
     $append = $opts->get('append') !== false;
     //overwrite option will override append
@@ -94,38 +100,40 @@ $process->define('fs', function() {
     if ($stream === false) {
       $helpers['throwError']('EIO', $fullPath);
     }
-    $this_->stream = $stream;
-    $this_->finished = false;
+    $self->stream = $stream;
+    $self->finished = false;
   });
 
   $prototype = $WriteStream->get('prototype');
   $prototype->setMethods(array(
-    'setEncoding' => function($this_, $arguments, $enc) {
-        $this_->opts->set('encoding', $enc);
+    'setEncoding' => function($enc) {
+        $this->context->opts->set('encoding', $enc);
       },
-    'write' => function($this_, $arguments, $data, $enc = null) use (&$helpers) {
-        if ($this_->finished) return;
+    'write' => function($data, $enc = null) use (&$helpers) {
+        $self = $this->context;
+        if ($self->finished) return;
         $data = ($data instanceof Buffer) ? $data->raw : $data;
-        write_all($this_->stream, $data);
+        write_all($self->stream, $data);
       },
-    'end' => function($this_, $arguments) {
-        if ($this_->finished) return;
-        $this_->finished = true;
-        fclose($this_->stream);
+    'end' => function() {
+        $self = $this->context;
+        if ($self->finished) return;
+        $self->finished = true;
+        fclose($self->stream);
       }
   ), true, false, true);
 
 
   $methods = array(
-    'isFile' => function($this_, $arguments, $path) use (&$helpers) {
+    'isFile' => function($path) use (&$helpers) {
         $fullPath = $helpers['mapPath']($path);
         return $helpers['isFile']($fullPath);
       },
-    'isDir' => function($this_, $arguments, $path) use (&$helpers) {
+    'isDir' => function($path) use (&$helpers) {
         $fullPath = $helpers['mapPath']($path);
         return $helpers['isDir']($fullPath);
       },
-    'copyFile' => function($this_, $arguments, $src, $dst) use (&$helpers) {
+    'copyFile' => function($src, $dst) use (&$helpers) {
         $src = $helpers['mapPath']($src);
         if (!is_file($src)) {
           $helpers['throwError']('ENOENT', $src);
@@ -152,7 +160,7 @@ $process->define('fs', function() {
           $helpers['throwError']('EIO', array($src, $dst));
         }
       },
-    'moveFile' => function($this_, $arguments, $src, $dst) use (&$helpers) {
+    'moveFile' => function($src, $dst) use (&$helpers) {
         $src = $helpers['mapPath']($src);
         if (!is_file($src)) {
           $helpers['throwError']('ENOENT', $src);
@@ -179,18 +187,18 @@ $process->define('fs', function() {
           $helpers['throwError']('EIO', array($src, $dst));
         }
       },
-    'deleteFile' => function($this_, $arguments, $path) use (&$helpers) {
+    'deleteFile' => function($path) use (&$helpers) {
         $fullPath = $helpers['mapPath']($path);
         $helpers['deleteFile']($fullPath);
       },
-    'deleteFileIfExists' => function($this_, $arguments, $path) use (&$helpers, &$fs) {
+    'deleteFileIfExists' => function($path) use (&$helpers, &$fs) {
         $fullPath = $helpers['mapPath']($path);
         if (!is_file($fullPath)) {
           return;
         }
         $helpers['deleteFile']($fullPath);
       },
-    'createDir' => function($this_, $arguments, $path, $opts = null) use (&$helpers) {
+    'createDir' => function($path, $opts = null) use (&$helpers) {
         $fullPath = $helpers['mapPath']($path);
         $opts = ($opts instanceof Object) ? $opts : new Object();
         $mode = $helpers['normalizeMode']($opts->get('mode'), 0777);
@@ -205,18 +213,18 @@ $process->define('fs', function() {
           $helpers['throwError']('EIO', $fullPath);
         }
       },
-    'removeDir' => function($this_, $arguments, $path, $deep = false) use (&$helpers) {
+    'removeDir' => function($path, $deep = false) use (&$helpers) {
         $fullPath = $helpers['mapPath']($path);
         $helpers['removeDir']($fullPath, $deep);
       },
-    'removeDirIfExists' => function($this_, $arguments, $path, $deep = false) use (&$helpers, &$fs) {
+    'removeDirIfExists' => function($path, $deep = false) use (&$helpers, &$fs) {
         $fullPath = $helpers['mapPath']($path);
         if (!is_dir($fullPath)) {
           return;
         }
         $helpers['removeDir']($fullPath, $deep);
       },
-    'getDirContents' => function($this_, $arguments, $path) use (&$helpers) {
+    'getDirContents' => function($path) use (&$helpers) {
         $fullPath = $helpers['mapPath']($path);
         try {
           $list = scandir($fullPath);
@@ -234,11 +242,11 @@ $process->define('fs', function() {
         }
         return Arr::fromArray($arr);
       },
-    'getInfo' => function($this_, $arguments, $path, $deep = false) use (&$helpers) {
+    'getInfo' => function($path, $deep = false) use (&$helpers) {
         $fullPath = $helpers['mapPath']($path);
         return $helpers['getInfo']($fullPath, $deep);
       },
-    'readFile' => function($this_, $arguments, $path, $enc = null) use (&$helpers) {
+    'readFile' => function($path, $enc = null) use (&$helpers) {
         $fullPath = $helpers['mapPath']($path);
         //file_get_contents returns an empty string for a directory
         if (is_dir($fullPath)) {
@@ -259,7 +267,7 @@ $process->define('fs', function() {
           return $data;
         }
       },
-    'writeFile' => function($this_, $arguments, $path, $data, $opts = null) use (&$helpers) {
+    'writeFile' => function($path, $data, $opts = null) use (&$helpers) {
         $fullPath = $helpers['mapPath']($path);
         $opts = ($opts instanceof Object) ? $opts : new Object();
         //default is to append
@@ -280,10 +288,10 @@ $process->define('fs', function() {
           $helpers['throwError']('EIO', $fullPath);
         }
       },
-    'createReadStream' => function($this_, $arguments, $path, $opts = null) use (&$helpers, &$ReadStream) {
+    'createReadStream' => function($path, $opts = null) use (&$helpers, &$ReadStream) {
         return $ReadStream->construct($path, $opts);
       },
-    'createWriteStream' => function($this_, $arguments, $path, $opts = null) use (&$helpers, &$WriteStream) {
+    'createWriteStream' => function($path, $opts = null) use (&$helpers, &$WriteStream) {
         return $WriteStream->construct($path, $opts);
       }
   );

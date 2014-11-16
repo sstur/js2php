@@ -20,10 +20,11 @@ class Number extends Object {
    * @return Func
    */
   static function getGlobalConstructor() {
-    $Number = new Func(function($this_, $arguments, $value = 0) {
-      if ($this_ instanceof Number) {
-        $this_->value = to_number($value);
-        return $this_;
+    $Number = new Func(function($value = 0) {
+      $self = Func::getContext();
+      if ($self instanceof Number) {
+        $self->value = to_number($value);
+        return $self;
       } else {
         return to_number($value);
       }
@@ -44,11 +45,11 @@ class Number extends Object {
 }
 
 Number::$classMethods = array(
-  'isFinite' => function($this_, $arguments, $value) {
+  'isFinite' => function($value) {
       $value = to_number($value);
       return !($value === INF || $value === -INF || is_nan($value));
     },
-  'parseInt' => function($this_, $arguments, $value, $radix = null) {
+  'parseInt' => function($value, $radix = null) {
       $value = to_string($value);
       $value = preg_replace('/^[\\t\\x0B\\f \\xA0\\r\\n]+/', '', $value);
       $sign = ($value[0] === '-') ? -1 : 1;
@@ -96,7 +97,7 @@ Number::$classMethods = array(
       }
       return NAN;
     },
-  'parseFloat' => function($this_, $arguments, $value) {
+  'parseFloat' => function($value) {
       $value = to_string($value);
       $value = preg_replace('/^[\\t\\x0B\\f \\xA0\\r\\n]+/', '', $value);
       $sign = ($value[0] === '-') ? -1 : 1;
@@ -109,18 +110,18 @@ Number::$classMethods = array(
       }
       return NAN;
     },
-  'isNaN' => function($global, $arguments, $value) {
+  'isNaN' => function($value) {
       return is_nan(to_number($value));
     }
 );
 
 Number::$protoMethods = array(
-  'valueOf' => function($this_) {
-      return $this_->value;
+  'valueOf' => function() {
+      return $this->context->value;
     },
-  'toString' => function($this_, $arguments, $radix = null) {
+  'toString' => function($radix = null) {
       //todo: radix
-      return to_string($this_->value);
+      return to_string($this->context->value);
     }
 );
 

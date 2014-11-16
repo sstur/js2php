@@ -177,18 +177,22 @@ Test::suite(
     $fn->set('name', 'x');
     Test::assert('Function name is immutable', $fn->get('name') === 'foo');
     Test::assert('Function should run', $fn->call() === 'bar');
-    $fn = new Func('foo', function($this_, $arguments) use (&$fn) {
+    $fn = new Func('foo', function() use (&$fn) {
+      $self = $this->context;
+      $arguments = $this->get_arguments();
       Test::assert('arguments.callee', $arguments->get('callee') === $fn);
       Test::assert('arguments is object', $arguments instanceof Object);
       Test::assert('arguments is not array', !($arguments instanceof Arr));
       Test::assert('arguments has length', $arguments->get('length') === 0.0);
-      Test::assert('this is global', $this_ === Object::$global);
+      Test::assert('this is global', $self === Object::$global);
     });
     $fn->call();
-    $fn = new Func('foo', function($this_, $arguments) use ($fn, $Array) {
+    $fn = new Func('foo', function() use ($fn, $Array) {
+      $self = $this->context;
+      $arguments = $this->get_arguments();
       Test::assert('arguments length', $arguments->get('length') === 1.0);
       Test::assert('arguments -> args', join(',', $arguments->args) === 'foo');
-      Test::assert('this is global', $this_ === $Array);
+      Test::assert('this is global', $self === $Array);
     });
     $fn->call($Array, 'foo');
   }
@@ -197,11 +201,11 @@ Test::suite(
 Test::suite(
   'Object.create',
   function() use ($Object) {
-    $Animal = new Func(function($this_) {});
-    $Animal->get('prototype')->set('speak', new Func(function($this_) {
+    $Animal = new Func(function() {});
+    $Animal->get('prototype')->set('speak', new Func(function() {
       return 'hi';
     }));
-    $Dog = new Func(function($this_) {});
+    $Dog = new Func(function() {});
     $Dog->set('prototype', $Object->callMethod('create', $Animal->get('prototype')));
     $dog = $Dog->construct();
     Test::assert('has method', $dog->get('speak') instanceof Func);
@@ -209,9 +213,9 @@ Test::suite(
     Test::assert('proto inherit', _instanceof($dog, $Dog));
     Test::assert('proto inherit parent', _instanceof($dog, $Animal));
     Test::assert('proto inherit top', _instanceof($dog, $Object));
-    $Thing = new Func(function($this_) {});
+    $Thing = new Func(function() {});
     Test::assert('proto not instance foreign', !_instanceof($dog, $Thing));
-    $Dog->get('prototype')->set('speak', new Func(function($this_) {
+    $Dog->get('prototype')->set('speak', new Func(function() {
       return 'woof';
     }));
     Test::assert('method override', $dog->callMethod('speak') === 'woof');

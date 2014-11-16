@@ -3,11 +3,26 @@ class Func extends Object {
   public $name = "";
   public $className = "Function";
 
+  /* @var callable */
   public $fn = null;
+  /* @var null|array */
   public $meta = null;
-  public $strict = null;
-  public $bound = null;
+  /* @var boolean */
+  public $strict = false;
+
+  /* @var null|int */
+  public $callStackPosition = null;
+  /* @var null|array */
+  public $args = null;
+  /* @var null|array */
   public $boundArgs = null;
+  /* @var null|int */
+  public $context = null;
+  /* @var mixed */
+  public $boundContext = null;
+  /* @var null|Args */
+  public $arguments = null;
+
   /**
    * Instantiate is an optional method that can be specified if calling `new` on
    * this function should instantiate a different `this` than `new Object()`
@@ -18,7 +33,9 @@ class Func extends Object {
   static $protoObject = null;
   static $classMethods = null;
   static $protoMethods = null;
+
   static $callStack = array();
+  static $callStackLength = 0;
 
   function __construct() {
     parent::__construct();
@@ -27,14 +44,13 @@ class Func extends Object {
     if (gettype($args[0]) === 'string') {
       $this->name = array_shift($args);
     }
-    $this->fn = array_shift($args);
+    $fn = array_shift($args);
+    $this->fn = $fn->bindTo($this);
     $this->meta = isset($args[0]) ? $args[0] : array();
     $this->strict = isset($this->meta['strict']);
     $prototype = new Object();
     $prototype->setProperty('constructor', $this, true, false, true);
     $this->setProperty('prototype', $prototype, true, false, true);
-    $this->setProperty('arguments', Object::$null, true, false, true);
-    $this->setProperty('caller', Object::$null, true, false, true);
   }
 
   function construct() {
@@ -54,12 +70,13 @@ class Func extends Object {
   }
 
   function apply($context, $args) {
-    if ($this->bound !== null) {
-      $context = $this->bound;
+    if ($this->boundContext !== null) {
+      $context = $this->boundContext;
       if ($this->boundArgs) {
         $args = array_merge($this->boundArgs, $args);
       }
     }
+    $this->args = $args;
     if (!$this->strict) {
       if ($context === null || $context === Object::$null) {
         $context = Object::$global;
@@ -68,19 +85,18 @@ class Func extends Object {
         $context = objectify($context);
       }
     }
-    $stackSize = count(self::$callStack);
-    $caller = $stackSize > 0 ? self::$callStack[$stackSize - 1] : null;
-    $arguments = Args::create($args, $this, $caller);
-    array_unshift($args, $arguments);
-    array_unshift($args, $context);
-    //add ourself to the call stack, attach caller and arguments, execute, then undo it all
-    self::$callStack[] = $this;
-    $this->set('caller', $caller);
-    $this->set('arguments', $arguments);
+    $oldStackPosition = $this->callStackPosition;
+    $oldArguments = $this->$arguments;
+    $oldContext = $this->context;
+    $this->context = $context;
+    $this->callStackPosition = self::$callStackLength;
+    //add ourself to the call stack, execute, then remove
+    self::$callStack[self::$callStackLength++] = $this;
     $result = call_user_func_array($this->fn, $args);
-    $this->set('arguments', Object::$null);
-    $this->set('caller', Object::$null);
-    array_pop(self::$callStack);
+    self::$callStack[--self::$callStackLength] = null;
+    $this->callStackPosition = $oldStackPosition;
+    $this->$arguments = $oldArguments;
+    $this->context = $oldContext;
     return $result;
   }
 
@@ -92,14 +108,38 @@ class Func extends Object {
     return $value;
   }
 
+  function get_arguments() {
+    $arguments = $this->arguments;
+    if ($arguments === null && $this->callStackPosition !== null) {
+      $arguments = $this->arguments = Args::create($this);
+    }
+    return $arguments;
+  }
+
+  function set_arguments($value) {
+    return $value;
+  }
+
+  function get_caller() {
+    $stackPosition = $this->callStackPosition;
+    if ($stackPosition !== null && $stackPosition > 0) {
+      return self::$callStack[$stackPosition - 1];
+    } else {
+      return null;
+    }
+  }
+
+  function set_caller($value) {
+    return $value;
+  }
+
   function get_length() {
-    $r = new ReflectionObject($this->fn);
-    $m = $r->getMethod('__invoke');
-    $arity = $m->getNumberOfParameters();
-    $arity = ($arity <= 2) ? 0 : $arity - 2;
+    $reflection = new ReflectionObject($this->fn);
+    $method = $reflection->getMethod('__invoke');
+    $arity = $method->getNumberOfParameters();
     if ($this->boundArgs) {
-      $bound = count($this->boundArgs);
-      $arity = ($bound >= $arity) ? 0 : $arity - $bound;
+      $boundArgsLength = count($this->boundArgs);
+      $arity = ($boundArgsLength >= $arity) ? 0 : $arity - $boundArgsLength;
     }
     return (float)$arity;
   }
@@ -113,12 +153,24 @@ class Func extends Object {
     return null;
   }
 
+  //a static getter for $this->context
+  static function getContext() {
+    $func = self::$callStack[self::$callStackLength - 1];
+    return $func->context;
+  }
+
+  //a static getter for $this->get_arguments()
+  static function getArguments() {
+    $func = self::$callStack[self::$callStackLength - 1];
+    return $func->get_arguments();
+  }
+
   /**
    * Creates the global constructor used in user-land
    * @return Func
    */
   static function getGlobalConstructor() {
-    $Function = new Func(function($this_, $arguments, $fn) {
+    $Function = new Func(function($fn) {
       throw new Ex(Error::create('Cannot construct function at runtime.'));
     });
     $Function->set('prototype', Func::$protoObject);
@@ -128,10 +180,9 @@ class Func extends Object {
 }
 
 class Args extends Object {
-  public $args = null;
-  public $length = null;
+  public $length = 0;
+  /* @var Func */
   public $callee = null;
-  public $caller = null;
 
   static $protoObject = null;
   static $classMethods = null;
@@ -146,19 +197,36 @@ class Args extends Object {
     return $results;
   }
 
-  static function create($args, $callee, $caller = null) {
+  function get_callee() {
+    return $this->callee;
+  }
+
+  function set_callee($value) {
+    return $value;
+  }
+
+  function get_caller() {
+    return $this->callee->get_caller();
+  }
+
+  function set_caller($value) {
+    return $value;
+  }
+
+  function get_length() {
+    return (float)$this->length;
+  }
+
+  function set_length($value) {
+    return $value;
+  }
+
+  static function create($callee) {
     $self = new Args();
-    $self->args = $args;
-    $len = count($args);
-    $self->length = $len;
-    $self->callee = $callee;
-    $self->caller = $caller;
-    foreach ($args as $i => $arg) {
+    foreach ($callee->args as $i => $arg) {
       $self->set($i, $arg);
+      $self->length += 1;
     }
-    $self->set('length', (float)$len);
-    $self->setProperty('callee', $callee, true, false, true);
-    $self->setProperty('caller', $caller, true, false, true);
     return $self;
   }
 }
@@ -166,21 +234,21 @@ class Args extends Object {
 Func::$classMethods = array();
 
 Func::$protoMethods = array(
-  'bind' => function($this_, $arguments, $context) {
-      $fn = new Func($this_->name, $this_->fn, $this_->meta);
-      $fn->bound = $context;
-      $args = func_get_args();
-      if (count($args) > 3) {
-        $fn->boundArgs = array_slice($args, 3);
+  'bind' => function($context) {
+      $self = $this->context;
+      $fn = new Func($self->name, $self->fn, $self->meta);
+      $fn->boundContext = $context;
+      $args = array_slice(func_get_args(), 1);
+      if (!empty($args)) {
+        $fn->boundArgs = $args;
       }
       return $fn;
     },
-  'call' => function($this_, $arguments) {
-      $args = $arguments->args;
-      $context = array_shift($args);
-      return $this_->apply($context, $args);
+  'call' => function() {
+      $args = func_get_args();
+      return $this->context->apply($args[0], array_slice($args, 1));
     },
-  'apply' => function($this_, $arguments, $context, $args = null) {
+  'apply' => function($context, $args = null) {
       if ($args === null) {
         $args = array();
       } else
@@ -189,18 +257,18 @@ Func::$protoMethods = array(
       } else {
         throw new Ex(Error::create('Function.prototype.apply: Arguments list has wrong type'));
       }
-      return $this_->apply($context, $args);
+      return $this->context->apply($context, $args);
     },
-  'toString' => function($this_) {
+  'toString' => function() {
       $source = array_key_exists('source_', $GLOBALS) ? $GLOBALS['source_'] : null;
       if ($source) {
-        $meta = $this_->meta;
+        $meta = $this->context->meta;
         if (isset($meta['id']) && isset($source[$meta['id']])) {
           $source = $source[$meta['id']];
           return substr($source, $meta['start'], $meta['end'] - $meta['start'] + 1);
         }
       }
-      return 'function ' . $this_->name . '() { [native code] }';
+      return 'function ' . $this->context->name . '() { [native code] }';
     }
 );
 

@@ -60,9 +60,9 @@ class Buffer extends Object {
    * @return Func
    */
   static function getGlobalConstructor() {
-    $Buffer = new Func('Buffer', function($this_, $arguments) {
+    $Buffer = new Func('Buffer', function() {
       $self = new Buffer();
-      $self->init($arguments->args);
+      $self->init(func_get_args());
       return $self;
     });
     $Buffer->set('prototype', Buffer::$protoObject);
@@ -72,37 +72,40 @@ class Buffer extends Object {
 }
 
 Buffer::$classMethods = array(
-  'isBuffer' => function($this_, $arguments, $obj) {
+  'isBuffer' => function($obj) {
       global $Buffer;
       return _instanceof($obj, $Buffer);
     },
-  'byteLength' => function($this_, $arguments, $string, $enc = null) {
+  'byteLength' => function($string, $enc = null) {
       $b = new Buffer($string, $enc);
       return $b->length;
     }
 );
 
 Buffer::$protoMethods = array(
-  'get' => function($this_, $arguments, $index) {
+  'get' => function($index) {
+      $self = $this->context;
       $i = (int)$index;
-      if ($i < 0 || $i >= $this_->length) {
+      if ($i < 0 || $i >= $self->length) {
         throw new Ex(Error::create('offset is out of bounds'));
       }
-      return (float)ord($this_->raw[$i]);
+      return (float)ord($self->raw[$i]);
     },
-  'set' => function($this_, $arguments, $index, $byte) {
+  'set' => function($index, $byte) {
+      $self = $this->context;
       $i = (int)$index;
-      if ($i < 0 || $i >= $this_->length) {
+      if ($i < 0 || $i >= $self->length) {
         throw new Ex(Error::create('offset is out of bounds'));
       }
-      $old = $this_->raw;
-      $this_->raw = substr($old, 0, $i) . chr($byte) . substr($old, $i + 1);
-      return $this_->raw;
+      $old = $self->raw;
+      $self->raw = substr($old, 0, $i) . chr($byte) . substr($old, $i + 1);
+      return $self->raw;
     },
   //todo bounds check
-  'write' => function($this_, $arguments, $data, $enc = null, $start = null, $len = null) {
+  'write' => function($data, $enc = null, $start = null, $len = null) {
+      $self = $this->context;
       //allow second argument (enc) to be omitted
-      if ($arguments->length > 1 && !is_string($enc)) {
+      if (func_num_args() > 1 && !is_string($enc)) {
         $len = $start;
         $start = $enc;
         $enc = null;
@@ -116,16 +119,17 @@ Buffer::$protoMethods = array(
         $newLen = $data->length;
       }
       $start = (int)$start;
-      $old = $this_->raw;
-      $oldLen = $this_->length;
+      $old = $self->raw;
+      $oldLen = $self->length;
       if ($start + $newLen > strlen($old)) {
         $newLen = $oldLen - $start;
       }
       $pre = ($start === 0) ? '' : substr($old, 0, $start);
-      $this_->raw = $pre . $new . substr($old, $start + $newLen);
+      $self->raw = $pre . $new . substr($old, $start + $newLen);
     },
-  'slice' => function($this_, $arguments, $start, $end = null) {
-      $len = $this_->length;
+  'slice' => function($start, $end = null) {
+      $self = $this->context;
+      $len = $self->length;
       if ($len === 0) {
         return new Buffer(0);
       }
@@ -147,12 +151,12 @@ Buffer::$protoMethods = array(
       if ($end > $len) {
         $end = $len;
       }
-      $new = substr($this_->raw, $start, $end - $start);
+      $new = substr($self->raw, $start, $end - $start);
       return new Buffer($new, 'binary');
     },
-  'toString' => function($this_, $arguments, $enc = 'utf8', $start = null, $end = null) {
-      $raw = $this_->raw;
-      if ($arguments->length > 1) {
+  'toString' => function($enc = 'utf8', $start = null, $end = null) {
+      $raw = $this->context->raw;
+      if (func_num_args() > 1) {
         $raw = substr($raw, $start, $end - $start + 1);
       }
       if ($enc === 'hex') {
@@ -163,14 +167,14 @@ Buffer::$protoMethods = array(
       }
       return $raw;
     },
-  'toJSON' => function($this_, $arguments) {
-      return $this_->toJSON();
+  'toJSON' => function() {
+      return $this->context->toJSON();
     },
-  'inspect' => function($this_, $arguments) {
-      return $this_->toJSON(Buffer::$SHOW_MAX);
+  'inspect' => function() {
+      return $this->context->toJSON(Buffer::$SHOW_MAX);
     },
-  'clone' => function($this_, $arguments) {
-      return new Buffer($this_->raw, 'binary');
+  'clone' => function() {
+      return new Buffer($this->context->raw, 'binary');
     }
 );
 

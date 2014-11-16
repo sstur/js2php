@@ -39,10 +39,11 @@ class Str extends Object {
    * @return Func
    */
   static function getGlobalConstructor() {
-    $String = new Func(function($this_, $arguments, $value = '') {
-      if ($this_ instanceof Str) {
-        $this_->value = to_string($value);
-        return $this_;
+    $String = new Func(function($value = '') {
+      $self = Func::getContext();
+      if ($self instanceof Str) {
+        $self->value = to_string($value);
+        return $self;
       } else {
         return to_string($value);
       }
@@ -57,18 +58,18 @@ class Str extends Object {
 }
 
 Str::$classMethods = array(
-  'fromCharCode' => function($this_, $arguments, $code) {
+  'fromCharCode' => function($code) {
       return chr($code);
     }
 );
 
 Str::$protoMethods = array(
-  'charAt' => function($this_, $arguments, $i) {
-      $ch = mb_substr($this_->value, $i, 1);
+  'charAt' => function($i) {
+      $ch = mb_substr($this->context->value, $i, 1);
       return ($ch === false) ? '' : $ch;
     },
-  'charCodeAt' => function($this_, $arguments, $i) {
-      $ch = mb_substr($this_->value, $i, 1);
+  'charCodeAt' => function($i) {
+      $ch = mb_substr($this->context->value, $i, 1);
       if ($ch === false) return NAN;
       $len = strlen($ch);
       if ($len === 1) {
@@ -79,23 +80,24 @@ Str::$protoMethods = array(
       }
       return (float)$code;
     },
-  'indexOf' => function($this_, $arguments, $search, $offset = 0) {
-      $index = mb_strpos($this_->value, $search, $offset);
+  'indexOf' => function($search, $offset = 0) {
+      $index = mb_strpos($this->context->value, $search, $offset);
       return ($index === false) ? -1.0 : (float)$index;
     },
-  'lastIndexOf' => function($this_, $arguments, $search, $offset = null) {
-      $str = $this_->value;
+  'lastIndexOf' => function($search, $offset = null) {
+      $self = $this->context;
+      $str = $self->value;
       if ($offset !== null) {
         $offset = to_number($offset);
-        if ($offset > 0 && $offset < $this_->length) {
+        if ($offset > 0 && $offset < $self->length) {
           $str = mb_substr($str, 0, $offset + 1);
         }
       }
       $index = mb_strrpos($str, $search);
       return ($index === false) ? -1.0 : (float)$index;
     },
-  'split' => function($this_, $arguments, $delim) {
-      $str = $this_->value;
+  'split' => function($delim) {
+      $str = $this->context->value;
       if ($delim instanceof RegExp) {
         //$arr = mb_split($delim->source, $str);
         $arr = preg_split($delim->toString(true), $str);
@@ -115,8 +117,9 @@ Str::$protoMethods = array(
       $result->init($arr);
       return $result;
     },
-  'substr' => function($this_, $arguments, $start, $num = null) {
-      $len = $this_->length;
+  'substr' => function($start, $num = null) {
+      $self = $this->context;
+      $len = $self->length;
       if ($len === 0) {
         return '';
       }
@@ -129,15 +132,16 @@ Str::$protoMethods = array(
         return '';
       }
       if ($num === null) {
-        return mb_substr($this_->value, $start);
+        return mb_substr($self->value, $start);
       } else {
-        return mb_substr($this_->value, $start, $num);
+        return mb_substr($self->value, $start, $num);
       }
     },
-  'substring' => function($this_, $arguments, $start, $end = null) {
-      $len = $this_->length;
+  'substring' => function($start, $end = null) {
+      $self = $this->context;
+      $len = $self->length;
       //if second param is absent
-      if ($arguments->length === 1) {
+      if (func_num_args() === 1) {
         $end = $len;
       }
       $start = (int)$start;
@@ -152,10 +156,11 @@ Str::$protoMethods = array(
       if ($end < $start) {
         list($start, $end) = array($end, $start);
       }
-      return mb_substr($this_->value, $start, $end - $start);
+      return mb_substr($self->value, $start, $end - $start);
     },
-  'slice' => function($this_, $arguments, $start, $end = null) {
-      $len = $this_->length;
+  'slice' => function($start, $end = null) {
+      $self = $this->context;
+      $len = $self->length;
       if ($len === 0) {
         return '';
       }
@@ -177,15 +182,15 @@ Str::$protoMethods = array(
       if ($end > $len) {
         $end = $len;
       }
-      return mb_substr($this_->value, $start, $end - $start);
+      return mb_substr($self->value, $start, $end - $start);
     },
-  'trim' => function($this_, $arguments) {
+  'trim' => function() {
       //todo: unicode [\u1680​\u180e\u2000​\u2001\u2002​\u2003\u2004​\u2005\u2006​\u2007\u2008​\u2009\u200a​\u2028\u2029​​\u202f\u205f​\u3000]
       //note: trim doesn't work here because \xA0 is a multibyte character in utf8
-      return preg_replace('/^[\s\x0B\xA0]+|[\s\x0B\​xA0]+$/u', '', $this_->value);
+      return preg_replace('/^[\s\x0B\xA0]+|[\s\x0B\​xA0]+$/u', '', $this->context->value);
     },
-  'replace' => function($this_, $arguments, $search, $replace) {
-      $str = $this_->value;
+  'replace' => function($search, $replace) {
+      $str = $this->context->value;
       $isRegEx = ($search instanceof RegExp);
       $limit = ($isRegEx && $search->globalFlag) ? -1 : 1;
       $search = $isRegEx ? $search->toString(true) : to_string($search);
@@ -241,26 +246,26 @@ Str::$protoMethods = array(
         return $first . $replace . implode($search, $parts);
       }
     },
-  'toLowerCase' => function($this_, $arguments) {
-      return mb_strtolower($this_->value);
+  'toLowerCase' => function() {
+      return mb_strtolower($this->context->value);
     },
-  'toLocaleLowerCase' => function($this_, $arguments) {
-      return mb_strtolower($this_->value);
+  'toLocaleLowerCase' => function() {
+      return mb_strtolower($this->context->value);
     },
-  'toUpperCase' => function($this_, $arguments) {
-      return mb_strtoupper($this_->value);
+  'toUpperCase' => function() {
+      return mb_strtoupper($this->context->value);
     },
-  'toLocaleUpperCase' => function($this_, $arguments) {
-      return mb_strtoupper($this_->value);
+  'toLocaleUpperCase' => function() {
+      return mb_strtoupper($this->context->value);
     },
-  'localeCompare' => function($this_, $arguments, $compareTo) {
-      return (float)strcmp($this_->value, to_string($compareTo));
+  'localeCompare' => function($compareTo) {
+      return (float)strcmp($this->context->value, to_string($compareTo));
     },
-  'valueOf' => function($this_) {
-      return $this_->value;
+  'valueOf' => function() {
+      return $this->context->value;
     },
-  'toString' => function($this_) {
-      return $this_->value;
+  'toString' => function() {
+      return $this->context->value;
     }
 );
 

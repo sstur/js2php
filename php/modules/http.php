@@ -36,7 +36,7 @@ $process->define('request', function() {
 
 $process->define('response', function() {
   $methods = array(
-    'writeHead' => function($this_, $arguments, $statusCode, $statusReason, $headers) {
+    'writeHead' => function($statusCode, $statusReason, $headers) {
         http_response_code($statusCode);
         $keys = $headers->getOwnKeys(true);
         foreach ($keys as $key) {
@@ -44,7 +44,7 @@ $process->define('response', function() {
           header($key . ": " . $value);
         }
       },
-    'write' => function($this_, $arguments, $data) {
+    'write' => function($data) {
         $data = ($data instanceof Buffer) ? $data->raw : to_string($data);
         echo $data;
       },

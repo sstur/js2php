@@ -20,10 +20,11 @@ class Bln extends Object {
    * @return Func
    */
   static function getGlobalConstructor() {
-    $Boolean = new Func(function($this_, $arguments, $value = false) {
-      if ($this_ instanceof Bln) {
-        $this_->value = $value ? true : false;
-        return $this_;
+    $Boolean = new Func(function($value = false) {
+      $self = Func::getContext();
+      if ($self instanceof Bln) {
+        $self->value = $value ? true : false;
+        return $self;
       } else {
         return $value ? true : false;
       }
@@ -40,11 +41,11 @@ class Bln extends Object {
 Bln::$classMethods = array();
 
 Bln::$protoMethods = array(
-  'valueOf' => function($this_) {
-      return $this_->value;
+  'valueOf' => function() {
+      return $this->context->value;
     },
-  'toString' => function($this_) {
-      return to_string($this_->value);
+  'toString' => function() {
+      return to_string($this->context->value);
     }
 );
 

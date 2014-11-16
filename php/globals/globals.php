@@ -21,7 +21,7 @@ $Buffer = Buffer::getGlobalConstructor();
 
 $escape = call_user_func(function() {
   $list = array('%2A' => '*', '%2B' => '+', '%2F' => '/', '%40' => '@');
-  return new Func(function($global, $arguments, $str) use (&$list) {
+  return new Func(function($str) use (&$list) {
     $result = rawurlencode($str);
     foreach ($list as $pct => $ch) {
       $result = str_replace($pct, $ch, $result);
@@ -30,14 +30,14 @@ $escape = call_user_func(function() {
   });
 });
 
-$unescape = new Func(function($global, $arguments, $str) {
+$unescape = new Func(function($str) {
   $str = str_replace('+', '%2B', $str);
   return urldecode($str);
 });
 
 $encodeURI = call_user_func(function() {
   $list = array('%21' => '!', '%27' => '\'', '%28' => '(', '%29' => ')', '%2A' => '*', '%7E' => '~');
-  return new Func(function($global, $arguments, $str) use (&$list) {
+  return new Func(function($str) use (&$list) {
     $result = rawurlencode($str);
     foreach ($list as $pct => $ch) {
       $result = str_replace($pct, $ch, $result);
@@ -46,14 +46,14 @@ $encodeURI = call_user_func(function() {
   });
 });
 
-$decodeURI = new Func(function($global, $arguments, $str) {
+$decodeURI = new Func(function($str) {
   $str = str_replace('+', '%2B', $str);
   return urldecode($str);
 });
 
 $encodeURIComponent = call_user_func(function() {
   $list = array('%21' => '!', '%23' => '#', '%24' => '$', '%26' => '&', '%27' => '\'', '%28' => '(', '%29' => ')', '%2A' => '*', '%2B' => '+', '%2C' => ',', '%2F' => '/', '%3A' => ':', '%3B' => ';', '%3D' => '=', '%3F' => '?', '%40' => '@', '%7E' => '~');
-  return new Func(function($global, $arguments, $str) use (&$list) {
+  return new Func(function($str) use (&$list) {
     $result = rawurlencode($str);
     foreach ($list as $pct => $ch) {
       $result = str_replace($pct, $ch, $result);
@@ -62,7 +62,7 @@ $encodeURIComponent = call_user_func(function() {
   });
 });
 
-$decodeURIComponent = new Func(function($global, $arguments, $str) {
+$decodeURIComponent = new Func(function($str) {
   $str = str_replace('+', '%2B', $str);
   return urldecode($str);
 });

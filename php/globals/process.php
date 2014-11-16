@@ -11,18 +11,19 @@ $process->define = function($name, $fn) use (&$process) {
 // the type of interface between web server and PHP
 $process->set('sapi_name', php_sapi_name());
 
-$process->set('exit', new Func(function($this_, $arguments, $code = 0) {
+$process->set('exit', new Func(function($code = 0) {
   $code = intval($code);
   exit($code);
 }));
 
-$process->set('binding', new Func(function($this_, $arguments, $name) {
-  if (isset($this_->modules[$name])) {
-    return $this_->modules[$name];
+$process->set('binding', new Func(function($name) {
+  $self = $this->context;
+  if (isset($self->modules[$name])) {
+    return $self->modules[$name];
   }
-  if (isset($this_->definitions[$name])) {
-    $module = $this_->definitions[$name]();
-    $this_->modules[$name] = $module;
+  if (isset($self->definitions[$name])) {
+    $module = $self->definitions[$name]();
+    $self->modules[$name] = $module;
     return $module;
   }
   throw new Ex(Error::create("Binding `$name` not found."));

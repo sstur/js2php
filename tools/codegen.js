@@ -68,8 +68,15 @@
       var scopeIndex = node.scopeIndex || Object.create(null);
       var results = [];
       opts.indentLevel += 1;
-      if (node.type === 'Program' && scopeIndex.thisFound) {
-        results.push(this.indent() + '$this_ = $global;\n');
+      if (scopeIndex.thisFound) {
+        if (node.type === 'Program') {
+          results.push(this.indent() + '$this_ = $global;\n');
+        } else {
+          results.push(this.indent() + '$this_ = $this->context;\n');
+        }
+      }
+      if (scopeIndex.argumentsFound && node.type !== 'Program') {
+        results.push(this.indent() + '$arguments = $this->get_arguments();\n');
       }
       if (node.vars && opts.initVars) {
         var declarations = [];

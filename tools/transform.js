@@ -180,11 +180,14 @@
         }
       });
     });
+    var firstVar = scope.variables[0];
+    var argumentsFound = firstVar && firstVar.name === arguments;
     var scopeIndex = {
       defined: defined,
       referenced: referenced,
       unresolved: unresolved,
-      thisFound: scope.thisFound
+      thisFound: scope.thisFound,
+      argumentsFound: argumentsFound
     };
     setHidden(scope.block, 'scopeIndex', scopeIndex);
     return scopeIndex;

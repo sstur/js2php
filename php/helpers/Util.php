@@ -12,11 +12,12 @@ class Util {
 
 }
 
-Util::$on = new Func(function($this_, $arguments, $name, $listener) {
-  $events = $this_->get('_events');
+Util::$on = new Func(function($name, $listener) {
+  $self = $this->context;
+  $events = $self->get('_events');
   if ($events === null) {
     $events = new Object();
-    $this_->set('_events', $events);
+    $self->set('_events', $events);
   }
   $listeners = $events->get($name);
   if ($listeners === null) {
@@ -26,8 +27,9 @@ Util::$on = new Func(function($this_, $arguments, $name, $listener) {
   $listeners->push($listener);
 });
 
-Util::$emit = new Func(function($this_, $arguments, $name) {
-  $events = $this_->get('_events');
+Util::$emit = new Func(function($name) {
+  $self = $this->context;
+  $events = $self->get('_events');
   if ($events === null) {
     return;
   }
@@ -35,8 +37,8 @@ Util::$emit = new Func(function($this_, $arguments, $name) {
   if ($listeners === null) {
     return;
   }
-  $args = array_slice($arguments->args, 1);
+  $args = array_slice(func_get_args(), 1);
   for ($i = 0; $i < $listeners->length; $i++) {
-    $listeners->get($i)->apply($this_, $args);
+    $listeners->get($i)->apply($self, $args);
   }
 });

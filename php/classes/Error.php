@@ -36,7 +36,7 @@ class Error extends Object {
    * @return Func
    */
   static function getGlobalConstructor() {
-    $Error = new Func(function($this_, $arguments, $str = null) {
+    $Error = new Func(function($str = null) {
       $error = new self($str);
       $error->stack = debug_backtrace();
       return $error;
@@ -66,8 +66,8 @@ class TypeError extends Error {
 Error::$classMethods = array();
 
 Error::$protoMethods = array(
-  'toString' => function($this_) {
-      return $this_->get('message');
+  'toString' => function() {
+      return $this->context->get('message');
     }
 );
 

@@ -104,9 +104,9 @@ class RegExp extends Object {
    * @return Func
    */
   static function getGlobalConstructor() {
-    $RegExp = new Func(function($this_, $arguments) {
+    $RegExp = new Func(function() {
       $reg = new RegExp();
-      $reg->init($arguments->args);
+      $reg->init(func_get_args());
       return $reg;
     });
     $RegExp->set('prototype', RegExp::$protoObject);
@@ -118,25 +118,26 @@ class RegExp extends Object {
 RegExp::$classMethods = array();
 
 RegExp::$protoMethods = array(
-  'exec' => function($this_, $arguments, $str) {
+  'exec' => function($str) {
+      $self = $this->context;
       $str = to_string($str);
-      $result = preg_match($this_->toString(true), $str, $matches);
+      $result = preg_match($self->toString(true), $str, $matches);
       if ($result === false) {
         return Object::$null;
       }
-      $this_->set('lastIndex', (float)($result + strlen($matches[0])));
+      $self->set('lastIndex', (float)($result + strlen($matches[0])));
       $arr = new Arr();
       $arr->init($matches);
       $arr->set('index', (float)$result);
       $arr->set('input', $str);
       return $arr;
     },
-  'test' => function($this_, $arguments, $str) {
-      $result = preg_match($this_->toString(true), to_string($str));
+  'test' => function($str) {
+      $result = preg_match($this->context->toString(true), to_string($str));
       return ($result !== false);
     },
-  'toString' => function($this_) {
-      return $this_->toString(false);
+  'toString' => function() {
+      return $this->context->toString(false);
     }
 );
 

@@ -85,7 +85,7 @@ It's not particularly elegant, but it's human-readable and has all the basics we
 There's a handful of other "compile to PHP" languages I want to mention. [Haxe][11] is probably the most popular and is a solid statically-typed language. I also came across [Pharen][13] (a Lisp implementation), [Mammouth][14] (similar to CoffeeScript) and [Pratphall][15] (TypeScript syntax). There's also another [JS to PHP project][17] from a few years back which is written in PHP but has similar goals as this project. Yet another JS to PHP project I just recently learned about (with the same name as this one) is @endel's [js2php][18] which is similar to this project at the parsing level, but somewhat different beyond that. It translates JS syntax to PHP but doesn't use a runtime and doesn't attempt to implement the actual ECMAScript spec. It's more like writing PHP but in a friendlier syntax, which is a very cool idea in itself!
 
 ### Tests
-Run `npm test`. Requires PHP 5.3+ or [HHVM][16].
+Run `npm test`. Requires PHP 5.4+ or [HHVM][16].
 
 ### BSD License
 Copyright (c) 2014, sstur@me.com. All rights reserved.

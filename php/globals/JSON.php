@@ -109,7 +109,7 @@ $JSON = call_user_func(function() {
   };
 
   $methods = array(
-    'parse' => function($this_, $arguments, $string, $reviver = null) use(&$decode) {
+    'parse' => function($string, $reviver = null) use(&$decode) {
         $string = '{"_":' . $string . '}';
         $value = json_decode($string);
         if ($value === null) {
@@ -117,7 +117,7 @@ $JSON = call_user_func(function() {
         }
         return $decode($value->_);
       },
-    'stringify' => function($this_, $arguments, $value, $replacer = null, $space = null) use (&$encode) {
+    'stringify' => function($value, $replacer = null, $space = null) use (&$encode) {
         $opts = new stdClass();
         $opts->indent = null;
         $opts->gap = null;

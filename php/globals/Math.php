@@ -3,33 +3,33 @@ $Math = call_user_func(function() {
   $randMax = mt_getrandmax();
 
   $methods = array(
-    'random' => function($this_) use (&$randMax) {
+    'random' => function() use (&$randMax) {
         return (float)(mt_rand() / ($randMax + 1));
       },
 
-    'round' => function($this_, $arguments, $num) {
+    'round' => function($num) {
         $num = to_number($num);
         return is_nan($num) ? NAN : (float)round($num);
       },
 
-    'ceil' => function($this_, $arguments, $num) {
+    'ceil' => function($num) {
         $num = to_number($num);
         return is_nan($num) ? NAN : (float)ceil($num);
       },
 
-    'floor' => function($this_, $arguments, $num) {
+    'floor' => function($num) {
         $num = to_number($num);
         return is_nan($num) ? NAN : (float)floor($num);
       },
 
-    'abs' => function($this_, $arguments, $num) {
+    'abs' => function($num) {
         $num = to_number($num);
         return is_nan($num) ? NAN : (float)abs($num);
       },
 
-    'max' => function($this_, $arguments) {
+    'max' => function() {
         $max = -INF;
-        foreach ($arguments->args as $num) {
+        foreach (func_get_args() as $num) {
           $num = to_number($num);
           if (is_nan($num)) return NAN;
           if ($num > $max) $max = $num;
@@ -37,9 +37,9 @@ $Math = call_user_func(function() {
         return (float)$max;
       },
 
-    'min' => function($this_, $arguments) {
+    'min' => function() {
         $min = INF;
-        foreach ($arguments->args as $num) {
+        foreach (func_get_args() as $num) {
           $num = to_number($num);
           if (is_nan($num)) return NAN;
           if ($num < $min) $min = $num;
@@ -47,7 +47,7 @@ $Math = call_user_func(function() {
         return (float)$min;
       },
 
-    'pow' => function($this_, $arguments, $num, $exp) {
+    'pow' => function($num, $exp) {
         $num = to_number($num);
         $exp = to_number($exp);
         if (is_nan($num) || is_nan($exp)) {
@@ -56,42 +56,42 @@ $Math = call_user_func(function() {
         return (float)pow($num, $exp);
       },
 
-    'log' => function($this_, $arguments, $num) {
+    'log' => function($num) {
         $num = to_number($num);
         return is_nan($num) ? NAN : (float)log($num);
       },
 
-    'exp' => function($this_, $arguments, $num) {
+    'exp' => function($num) {
         $num = to_number($num);
         return is_nan($num) ? NAN : (float)exp($num);
       },
 
-    'sqrt' => function($this_, $arguments, $num) {
+    'sqrt' => function($num) {
         $num = to_number($num);
         return is_nan($num) ? NAN : (float)sqrt($num);
       },
 
-    'sin' => function($this_, $arguments, $num) {
+    'sin' => function($num) {
         $num = to_number($num);
         return is_nan($num) ? NAN : (float)sin($num);
       },
 
-    'cos' => function($this_, $arguments, $num) {
+    'cos' => function($num) {
         $num = to_number($num);
         return is_nan($num) ? NAN : (float)cos($num);
       },
 
-    'tan' => function($this_, $arguments, $num) {
+    'tan' => function($num) {
         $num = to_number($num);
         return is_nan($num) ? NAN : (float)tan($num);
       },
 
-    'atan' => function($this_, $arguments, $num) {
+    'atan' => function($num) {
         $num = to_number($num);
         return is_nan($num) ? NAN : (float)atan($num);
       },
 
-    'atan2' => function($this_, $arguments, $y, $x) {
+    'atan2' => function($y, $x) {
         $y = to_number($y);
         $x = to_number($x);
         if (is_nan($y) || is_nan($x)) {

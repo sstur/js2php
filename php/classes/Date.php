@@ -92,9 +92,9 @@ class Date extends Object {
    * @return Func
    */
   static function getGlobalConstructor() {
-    $Date = new Func(function($this_, $arguments) {
+    $Date = new Func(function() {
       $date = new Date();
-      $date->init($arguments->args);
+      $date->init(func_get_args());
       return $date;
     });
     $Date->set('prototype', Date::$protoObject);
@@ -104,35 +104,35 @@ class Date extends Object {
 }
 
 Date::$classMethods = array(
-  'now' => function($this_) {
+  'now' => function() {
       return Date::now();
     },
-  'parse' => function($this_, $arguments, $str) {
+  'parse' => function($str) {
       $date = new Date($str);
       return $date->value;
     },
-  'UTC' => function($this_, $arguments) {
+  'UTC' => function() {
       $date = new Date();
-      $date->_initFromParts($arguments->args, 'UTC');
+      $date->_initFromParts(func_get_args(), 'UTC');
       return $date->value;
     }
 );
 
 Date::$protoMethods = array(
-  'valueOf' => function($this_) {
-      return $this_->value;
+  'valueOf' => function() {
+      return $this->context->value;
     },
-  'toJSON' => function($this_) {
+  'toJSON' => function() {
       //2014-08-09T12:00:00.000Z
-      return $this_->toJSON();
+      return $this->context->toJSON();
     },
-  'toUTCString' => function($this_) {
+  'toUTCString' => function() {
       //todo
     },
   //todo: toISOString
-  'toString' => function($this_) {
+  'toString' => function() {
       //Sat Aug 09 2014 12:00:00 GMT+0000 (UTC)
-      return str_replace('~', 'GMT', $this_->date->format('D M d Y H:i:s ~O (T)'));
+      return str_replace('~', 'GMT', $this->context->date->format('D M d Y H:i:s ~O (T)'));
     }
 );
 
