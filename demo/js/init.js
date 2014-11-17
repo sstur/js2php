@@ -2,6 +2,10 @@
 (function() {
 
   var debug = location.search.match(/debug/) ? true : false;
+  var example = location.search.match(/example/) ? true : false;
+  if (example) {
+    document.documentElement.classList.add('example');
+  }
   var useWebWorker = !debug;
   if (!useWebWorker) {
     document.write('<script src="js/transformer.js"></script>');
@@ -23,7 +27,7 @@
       tabSize: 2,
       indentWithTabs: false,
       theme: 'solarized light',
-      lineNumbers: true,
+      lineNumbers: !example,
       readOnly: false
     });
 

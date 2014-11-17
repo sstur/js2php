@@ -9,6 +9,9 @@ body {
   width: 1220px;
   margin: 0 auto;
 }
+.example body {
+  width: 728px;
+}
 body:before,
 body:after {
   content: "";
@@ -73,6 +76,9 @@ a:focus {
   border-radius: 3px;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
+}
+.example .code {
+  width: 354px;
 }
 .code:last-child {
   margin-right: 0;
@@ -147,6 +153,10 @@ a:focus {
   background-color: #f8f5ec;
   color: #657b83;
   text-shadow: none;
+}
+
+.example .cm-s-solarized.CodeMirror {
+  height: 112px;
 }
 
 .CodeMirror-lines {
