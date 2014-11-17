@@ -6143,6 +6143,7 @@ exports.moonwalk = function moonwalk(ast, fn){
   var utils = _dereq_('./utils');
 
   var toString = Object.prototype.toString;
+  var hasOwnProperty = Object.prototype.hasOwnProperty;
 
   //these operators expect numbers
   var UNARY_NUM_OPS = {
@@ -6204,11 +6205,19 @@ exports.moonwalk = function moonwalk(ast, fn){
     // assumes the `{}` have already been written
     Body: function(node) {
       var opts = this.opts;
-      var scopeIndex = node.scopeIndex || Object.create(null);
+      var scopeNode = (node.type === 'BlockStatement') ? node.parent : node;
+      var scopeIndex = scopeNode.scopeIndex || Object.create(null);
       var results = [];
       opts.indentLevel += 1;
-      if (node.type === 'Program' && scopeIndex.thisFound) {
-        results.push(this.indent() + '$this_ = $global;\n');
+      if (scopeIndex.thisFound) {
+        if (node.type === 'Program') {
+          results.push(this.indent() + '$this_ = $global;\n');
+        } else {
+          results.push(this.indent() + '$this_ = Func::getContext();\n');
+        }
+      }
+      if (scopeIndex.argumentsFound && node.type !== 'Program') {
+        results.push(this.indent() + '$arguments = Func::getArguments();\n');
       }
       if (node.vars && opts.initVars) {
         var declarations = [];
@@ -6387,8 +6396,6 @@ exports.moonwalk = function moonwalk(ast, fn){
       var params = node.params.map(function(param) {
         return encodeVar(param) + ' = null';
       });
-      params.unshift('$arguments');
-      params.unshift('$this_');
       var scopeIndex = node.scopeIndex || Object.create(null);
       var functionName = node.id ? node.id.name : '';
       if (scopeIndex.unresolved[functionName]) {
@@ -6400,7 +6407,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       var useClause = unresolvedRefs.length ? 'use (&' + unresolvedRefs.join(', &') + ') ' : '';
       results.push('function(' + params.join(', ') + ') ' + useClause + '{\n');
       if (scopeIndex.referenced[functionName]) {
-        results.push(this.indent(1) + encodeVarName(functionName) + ' = $arguments->callee;\n');
+        results.push(this.indent(1) + encodeVarName(functionName) + ' = Func::getCurrent();\n');
       }
       results.push(this.Body(node.body));
       results.push(this.indent() + '}');
@@ -6462,7 +6469,7 @@ exports.moonwalk = function moonwalk(ast, fn){
           return 'set(' + this.generate(node.left.object) + ', ' + this.encodeProp(node.left) + ', ' + this.generate(node.right) + ', "' + node.operator + '")';
         }
       }
-      if (node.left.name in GLOBALS) {
+      if (hasOwnProperty.call(GLOBALS, node.left.name)) {
         var scope = utils.getParentScope(node);
         if (scope.type === 'Program') {
           node.left.appendSuffix = '_';
@@ -6602,6 +6609,8 @@ exports.moonwalk = function moonwalk(ast, fn){
     },
 
     truthyWrap: function(node) {
+      //node can be null, for instance: `for (;;) {}`
+      if (!node) return '';
       var op = node.operator;
       var type = node.type;
       if (type === 'LogicalExpression') {
@@ -6990,11 +6999,14 @@ exports.moonwalk = function moonwalk(ast, fn){
         }
       });
     });
+    var firstVar = scope.variables[0];
+    var argumentsFound = firstVar && firstVar.name === 'arguments' && firstVar.references.length;
     var scopeIndex = {
       defined: defined,
       referenced: referenced,
       unresolved: unresolved,
-      thisFound: scope.thisFound
+      thisFound: scope.thisFound,
+      argumentsFound: !!argumentsFound
     };
     setHidden(scope.block, 'scopeIndex', scopeIndex);
     return scopeIndex;
@@ -7044,15 +7056,16 @@ exports.moonwalk = function moonwalk(ast, fn){
 },{"./codegen":5,"./utils":7,"escope":1,"fs":8,"path":10,"rocambole":4,"util":13}],7:[function(_dereq_,module,exports){
 /*global module, exports*/
 (function() {
+  var hasOwnProperty = Object.prototype.hasOwnProperty;
 
   //these constructs contain variable scope (technically, there's catch scope and ES6 let)
   var SCOPE_TYPES = {"FunctionDeclaration": 1, "FunctionExpression": 1, "Program": 1};
 
-  //these constructs contain variable scope (technically, there's catch scope and ES6 let)
+  //these have special meaning in PHP so we escape variables with these names
   var SUPER_GLOBALS = {"GLOBALS": 1, "_SERVER": 1, "_GET": 1, "_POST": 1, "_FILES": 1, "_COOKIE": 1, "_SESSION": 1, "_REQUEST": 1, "_ENV": 1};
 
   // table of character substitutions
-  var meta = {
+  var ESC_CHARS = {
     '\t': '\\t',
     '\n': '\\n',
     '\f': '\\f',
@@ -7062,39 +7075,63 @@ exports.moonwalk = function moonwalk(ast, fn){
     '\\': '\\\\'
   };
 
-  function pad(s) {
-    return (s.length < 2) ? '0' + s : s;
+  function toHex(code, prefix) {
+    var hex = code.toString(16).toUpperCase();
+    if (hex.length === 1) {
+      hex = '0' + hex;
+    }
+    if (prefix) {
+      hex = prefix + hex;
+    }
+    return hex;
+  }
+
+  function toOctet(codePoint, shift, prefix) {
+    return toHex(((codePoint >> shift) & 0x3F) | 0x80, prefix);
+  }
+
+  //encode unicode character to a set of escaped octets like \xC2\xA9
+  function encodeChar(ch, prefix) {
+    var code = ch.charCodeAt(0);
+    if ((code & 0xFFFFFF80) == 0) { // 1-byte sequence
+      return toHex(code, prefix);
+    }
+    var result = '';
+    if ((code & 0xFFFFF800) == 0) { // 2-byte sequence
+      result = toHex(((code >> 6) & 0x1F) | 0xC0, prefix);
+    }
+    else if ((code & 0xFFFF0000) == 0) { // 3-byte sequence
+      result = toHex(((code >> 12) & 0x0F) | 0xE0, prefix);
+      result += toOctet(code, 6, prefix);
+    }
+    else if ((code & 0xFFE00000) == 0) { // 4-byte sequence
+      result = toHex(((code >> 18) & 0x07) | 0xF0, prefix);
+      result += toOctet(code, 12, prefix);
+      result += toOctet(code, 6, prefix);
+    }
+    result += toHex((code & 0x3F) | 0x80, prefix);
+    return result;
   }
 
   function encodeString(string) {
-    string = string.replace(/[\\"\$\x00-\x1F]/g, function(ch) {
-      return (ch in meta) ? meta[ch] : '\\x' + pad(ch.charCodeAt(0).toString(16).toUpperCase());
-    });
-    string = string.replace(/[\x7F-\xFF\u0100-\uFFFF]/g, function(ch) {
-      return encodeURI(ch).split('%').join('\\x');
+    string = string.replace(/[\\"\$\x00-\x1F\u007F-\uFFFF]/g, function(ch) {
+      return (ch in ESC_CHARS) ? ESC_CHARS[ch] : encodeChar(ch, '\\x');
     });
     return '"' + string + '"';
   }
 
   function encodeVarName(name, suffix) {
     suffix = suffix || '';
-    if (!suffix && SUPER_GLOBALS[name]) {
+    if (!suffix && hasOwnProperty.call(SUPER_GLOBALS, name)) {
       suffix = '_';
     }
     if (!suffix && name.slice(-1) === '_') {
       suffix = '_';
     }
-    return '$' + name.replace(/[^a-z0-9_]/ig, encodeVarChar) + suffix;
-  }
-
-  function encodeVarChar(ch) {
-    var code = ch.charCodeAt(0);
-    if (code < 128) {
-      var hex = code.toString(16);
-      hex = hex.length === 1 ? '0' + hex : hex;
-      return '«' + hex + '»';
-    }
-    return encodeURI(ch).replace(/%(..)/g, '«$1»').toLowerCase();
+    name = name.replace(/[^a-z0-9_]/ig, function(ch) {
+      return '«' + encodeChar(ch).toLowerCase() + '»';
+    });
+    return '$' + name + suffix;
   }
 
   function getParentScope(node) {
