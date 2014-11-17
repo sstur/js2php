@@ -11,7 +11,6 @@ fs:
   readStream encoding
   helpers array to BaseObject?
 specify ->toJSON for boxed primitives
-update readme for retina
 
 Bugs:
   undefined == null
