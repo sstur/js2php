@@ -212,8 +212,8 @@ class Object {
    * @throws Ex
    */
   function __call($name, $args) {
-    if (isset($this->$name)) {
-      return call_user_func_array($this->$name, $args);
+    if (isset($this->{$name})) {
+      return call_user_func_array($this->{$name}, $args);
     } else {
       throw new Ex(Error::create('Internal method `' . $name . '` not found on ' . gettype($this)));
     }
@@ -317,7 +317,7 @@ Object::$classMethods = array(
       $methods = Object::$classMethods;
       foreach ($items->data as $key => $prop) {
         if ($prop->enumerable) {
-          $methods['defineProperty'](null, null, $obj, $key, $prop->value);
+          $methods['defineProperty']($obj, $key, $prop->value);
         }
       }
     }
@@ -325,11 +325,12 @@ Object::$classMethods = array(
 
 Object::$protoMethods = array(
   'hasOwnProperty' => function($key) {
+      $self = Func::getContext();
       $key = (string)$key;
-      return array_key_exists($key, $this->context->data);
+      return array_key_exists($key, $self->data);
     },
   'toString' => function() {
-      $self = $this->context;
+      $self = Func::getContext();
       if ($self === null) {
         $className = 'Undefined';
       } else if ($self === Object::$null) {
@@ -341,7 +342,7 @@ Object::$protoMethods = array(
       return '[object ' . $className . ']';
     },
   'valueOf' => function() {
-      return $this->context;
+      return Func::getContext();
     }
 );
 

@@ -44,8 +44,7 @@ class Func extends Object {
     if (gettype($args[0]) === 'string') {
       $this->name = array_shift($args);
     }
-    $fn = array_shift($args);
-    $this->fn = $fn->bindTo($this);
+    $this->fn = array_shift($args);
     $this->meta = isset($args[0]) ? $args[0] : array();
     $this->strict = isset($this->meta['strict']);
     $prototype = new Object();
@@ -65,8 +64,7 @@ class Func extends Object {
   }
 
   function call($context = null) {
-    $args = array_slice(func_get_args(), 1);
-    return $this->apply($context, $args);
+    return $this->apply($context, array_slice(func_get_args(), 1));
   }
 
   function apply($context, $args) {
@@ -86,7 +84,7 @@ class Func extends Object {
       }
     }
     $oldStackPosition = $this->callStackPosition;
-    $oldArguments = $this->$arguments;
+    $oldArguments = $this->arguments;
     $oldContext = $this->context;
     $this->context = $context;
     $this->callStackPosition = self::$callStackLength;
@@ -95,7 +93,7 @@ class Func extends Object {
     $result = call_user_func_array($this->fn, $args);
     self::$callStack[--self::$callStackLength] = null;
     $this->callStackPosition = $oldStackPosition;
-    $this->$arguments = $oldArguments;
+    $this->arguments = $oldArguments;
     $this->context = $oldContext;
     return $result;
   }
@@ -153,13 +151,18 @@ class Func extends Object {
     return null;
   }
 
-  //a static getter for $this->context
+  //get the function that is currently running (top of the call stack)
+  static function getCurrent() {
+    return self::$callStack[self::$callStackLength - 1];
+  }
+
+  //get the `this` context for the currently running function
   static function getContext() {
     $func = self::$callStack[self::$callStackLength - 1];
     return $func->context;
   }
 
-  //a static getter for $this->get_arguments()
+  //get the `arguments` object for the currently running function
   static function getArguments() {
     $func = self::$callStack[self::$callStackLength - 1];
     return $func->get_arguments();
@@ -180,6 +183,9 @@ class Func extends Object {
 }
 
 class Args extends Object {
+  /* @var array */
+  public $args = null;
+  /* @var int */
   public $length = 0;
   /* @var Func */
   public $callee = null;
@@ -189,12 +195,7 @@ class Args extends Object {
   static $protoMethods = null;
 
   function toArray() {
-    $results = array();
-    $len = $this->length;
-    for ($i = 0; $i < $len; $i++) {
-      $results[] = $this->get($i);
-    }
-    return $results;
+    return array_slice($this->args, 0);
   }
 
   function get_callee() {
@@ -227,6 +228,8 @@ class Args extends Object {
       $self->set($i, $arg);
       $self->length += 1;
     }
+    $self->args = $callee->args;
+    $self->callee = $callee;
     return $self;
   }
 }
@@ -235,7 +238,7 @@ Func::$classMethods = array();
 
 Func::$protoMethods = array(
   'bind' => function($context) {
-      $self = $this->context;
+      $self = Func::getContext();
       $fn = new Func($self->name, $self->fn, $self->meta);
       $fn->boundContext = $context;
       $args = array_slice(func_get_args(), 1);
@@ -245,10 +248,12 @@ Func::$protoMethods = array(
       return $fn;
     },
   'call' => function() {
+      $self = Func::getContext();
       $args = func_get_args();
-      return $this->context->apply($args[0], array_slice($args, 1));
+      return $self->apply($args[0], array_slice($args, 1));
     },
   'apply' => function($context, $args = null) {
+      $self = Func::getContext();
       if ($args === null) {
         $args = array();
       } else
@@ -257,18 +262,19 @@ Func::$protoMethods = array(
       } else {
         throw new Ex(Error::create('Function.prototype.apply: Arguments list has wrong type'));
       }
-      return $this->context->apply($context, $args);
+      return $self->apply($context, $args);
     },
   'toString' => function() {
+      $self = Func::getContext();
       $source = array_key_exists('source_', $GLOBALS) ? $GLOBALS['source_'] : null;
       if ($source) {
-        $meta = $this->context->meta;
+        $meta = $self->meta;
         if (isset($meta['id']) && isset($source[$meta['id']])) {
           $source = $source[$meta['id']];
           return substr($source, $meta['start'], $meta['end'] - $meta['start'] + 1);
         }
       }
-      return 'function ' . $this->context->name . '() { [native code] }';
+      return 'function ' . $self->name . '() { [native code] }';
     }
 );
 

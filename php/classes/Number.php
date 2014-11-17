@@ -117,11 +117,13 @@ Number::$classMethods = array(
 
 Number::$protoMethods = array(
   'valueOf' => function() {
-      return $this->context->value;
+      $self = Func::getContext();
+      return $self->value;
     },
   'toString' => function($radix = null) {
+      $self = Func::getContext();
       //todo: radix
-      return to_string($this->context->value);
+      return to_string($self->value);
     }
 );
 

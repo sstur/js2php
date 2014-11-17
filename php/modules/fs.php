@@ -4,7 +4,7 @@ $process->define('fs', function() {
   $CHUNK_SIZE = 1024;
 
   $ReadStream = new Func('ReadStream', function($path, $opts = null) use (&$helpers, &$CHUNK_SIZE) {
-    $self = $this->context;
+    $self = Func::getContext();
     $fullPath = $helpers['mapPath']($path);
     $self->set('path', $fullPath);
     $opts = ($opts instanceof Object) ? $opts : new Object();
@@ -29,7 +29,7 @@ $process->define('fs', function() {
   Util::eventify($prototype);
   $prototype->setMethods(array(
     'readBytes' => function($bytes) {
-        $self = $this->context;
+        $self = Func::getContext();
         $stream = $self->stream;
         if (feof($stream)) {
           return null;
@@ -43,7 +43,7 @@ $process->define('fs', function() {
         return $buffer;
       },
     'readAll' => function() {
-        $self = $this->context;
+        $self = Func::getContext();
         $chunkSize = $self->get('opts')->get('chunkSize');
         $stream = $self->stream;
         $data = array();
@@ -54,7 +54,7 @@ $process->define('fs', function() {
         return new Buffer(join('', $data));
       },
     'size' => function() {
-        $self = $this->context;
+        $self = Func::getContext();
         $size = $self->get('bytesTotal');
         if ($size === null) {
           $stat = fstat($self->stream);
@@ -64,7 +64,7 @@ $process->define('fs', function() {
         return $size;
       },
     'read' => function() {
-        $self = $this->context;
+        $self = Func::getContext();
         $chunkSize = $self->get('opts')->get('chunkSize');
         $stream = $self->stream;
         while (!feof($stream)) {
@@ -78,7 +78,7 @@ $process->define('fs', function() {
 
 
   $WriteStream = new Func('WriteStream', function($path, $opts = null) use (&$helpers) {
-    $self = $this->context;
+    $self = Func::getContext();
     $fullPath = $helpers['mapPath']($path);
     $self->set('path', $fullPath);
     $opts = ($opts instanceof Object) ? $opts : new Object();
@@ -107,16 +107,17 @@ $process->define('fs', function() {
   $prototype = $WriteStream->get('prototype');
   $prototype->setMethods(array(
     'setEncoding' => function($enc) {
-        $this->context->opts->set('encoding', $enc);
+        $self = Func::getContext();
+        $self->opts->set('encoding', $enc);
       },
     'write' => function($data, $enc = null) use (&$helpers) {
-        $self = $this->context;
+        $self = Func::getContext();
         if ($self->finished) return;
         $data = ($data instanceof Buffer) ? $data->raw : $data;
         write_all($self->stream, $data);
       },
     'end' => function() {
-        $self = $this->context;
+        $self = Func::getContext();
         if ($self->finished) return;
         $self->finished = true;
         fclose($self->stream);

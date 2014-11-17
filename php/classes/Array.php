@@ -164,12 +164,13 @@ Arr::$classMethods = array(
 // splice, reverse, filter, some, every, map, reduce, reduceRight
 Arr::$protoMethods = array(
   'push' => function($value) {
+      $self = Func::getContext();
       //for this we have a low-level method
-      $length = call_user_func_array(array($this->context, 'push'), func_get_args());
+      $length = call_user_func_array(array($self, 'push'), func_get_args());
       return (float)$length;
     },
   'pop' => function() {
-      $self = $this->context;
+      $self = Func::getContext();
       $i = $self->length - 1;
       $result = $self->get($i);
       $self->remove($i);
@@ -177,17 +178,19 @@ Arr::$protoMethods = array(
       return $result;
     },
   'unshift' => function($value) {
+      $self = Func::getContext();
       //for this we have a low-level method
-      $length = call_user_func_array(array($this->context, 'unshift'), func_get_args());
+      $length = call_user_func_array(array($self, 'unshift'), func_get_args());
       return (float)$length;
     },
   'shift' => function() {
+      $self = Func::getContext();
       //for this we have a low-level method
-      return $this->context->shift();
+      return $self->shift();
     },
   'join' => function($str = ',') {
       $results = array();
-      $self = $this->context;
+      $self = Func::getContext();
       $len = $self->length;
       for ($i = 0; $i < $len; $i++) {
         $value = $self->get($i);
@@ -196,7 +199,7 @@ Arr::$protoMethods = array(
       return join(to_string($str), $results);
     },
   'indexOf' => function($value) {
-      $self = $this->context;
+      $self = Func::getContext();
       $len = $self->length;
       for ($i = 0; $i < $len; $i++) {
         if ($self->get($i) === $value) return (float)$i;
@@ -204,7 +207,7 @@ Arr::$protoMethods = array(
       return -1.0;
     },
   'lastIndexOf' => function($value) {
-      $self = $this->context;
+      $self = Func::getContext();
       $i = $self->length;
       while ($i--) {
         if ($self->get($i) === $value) return (float)$i;
@@ -212,7 +215,7 @@ Arr::$protoMethods = array(
       return -1.0;
     },
   'slice' => function($start = 0, $end = null) {
-      $self = $this->context;
+      $self = Func::getContext();
       $len = $self->length;
       if ($len === 0) {
         return new Arr();
@@ -243,7 +246,7 @@ Arr::$protoMethods = array(
       return $result;
     },
   'forEach' => function($fn, $context = null) {
-      $self = $this->context;
+      $self = Func::getContext();
       $len = $self->length;
       for ($i = 0; $i < $len; $i++) {
         if ($self->hasOwnProperty($i)) {
@@ -252,7 +255,7 @@ Arr::$protoMethods = array(
       }
     },
   'sort' => function($fn = null) {
-      $self = $this->context;
+      $self = Func::getContext();
       if ($fn instanceof Func) {
         $results = $self->toArray();
         $comparator = function($a, $b) use (&$fn) {
@@ -279,7 +282,8 @@ Arr::$protoMethods = array(
       return $self;
     },
   'concat' => function() {
-      $items = $this->context->toArray();
+      $self = Func::getContext();
+      $items = $self->toArray();
       foreach (func_get_args() as $item) {
         if ($item instanceof Arr) {
           foreach ($item->toArray() as $subitem) {
@@ -294,10 +298,12 @@ Arr::$protoMethods = array(
       return $arr;
     },
   'toString' => function() {
-      return $this->context->callMethod('join');
+      $self = Func::getContext();
+      return $self->callMethod('join');
     },
   'toLocaleString' => function() {
-      return $this->context->callMethod('join');
+      $self = Func::getContext();
+      return $self->callMethod('join');
     }
 );
 

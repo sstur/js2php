@@ -65,18 +65,19 @@
     // assumes the `{}` have already been written
     Body: function(node) {
       var opts = this.opts;
-      var scopeIndex = node.scopeIndex || Object.create(null);
+      var scopeNode = (node.type === 'BlockStatement') ? node.parent : node;
+      var scopeIndex = scopeNode.scopeIndex || Object.create(null);
       var results = [];
       opts.indentLevel += 1;
       if (scopeIndex.thisFound) {
         if (node.type === 'Program') {
           results.push(this.indent() + '$this_ = $global;\n');
         } else {
-          results.push(this.indent() + '$this_ = $this->context;\n');
+          results.push(this.indent() + '$this_ = Func::getContext();\n');
         }
       }
       if (scopeIndex.argumentsFound && node.type !== 'Program') {
-        results.push(this.indent() + '$arguments = $this->get_arguments();\n');
+        results.push(this.indent() + '$arguments = Func::getArguments();\n');
       }
       if (node.vars && opts.initVars) {
         var declarations = [];
@@ -255,8 +256,6 @@
       var params = node.params.map(function(param) {
         return encodeVar(param) + ' = null';
       });
-      params.unshift('$arguments');
-      params.unshift('$this_');
       var scopeIndex = node.scopeIndex || Object.create(null);
       var functionName = node.id ? node.id.name : '';
       if (scopeIndex.unresolved[functionName]) {
@@ -268,7 +267,7 @@
       var useClause = unresolvedRefs.length ? 'use (&' + unresolvedRefs.join(', &') + ') ' : '';
       results.push('function(' + params.join(', ') + ') ' + useClause + '{\n');
       if (scopeIndex.referenced[functionName]) {
-        results.push(this.indent(1) + encodeVarName(functionName) + ' = $arguments->callee;\n');
+        results.push(this.indent(1) + encodeVarName(functionName) + ' = Func::getCurrent();\n');
       }
       results.push(this.Body(node.body));
       results.push(this.indent() + '}');

@@ -120,19 +120,22 @@ Date::$classMethods = array(
 
 Date::$protoMethods = array(
   'valueOf' => function() {
-      return $this->context->value;
+      $self = Func::getContext();
+      return $self->value;
     },
   'toJSON' => function() {
+      $self = Func::getContext();
       //2014-08-09T12:00:00.000Z
-      return $this->context->toJSON();
+      return $self->toJSON();
     },
   'toUTCString' => function() {
       //todo
     },
   //todo: toISOString
   'toString' => function() {
+      $self = Func::getContext();
       //Sat Aug 09 2014 12:00:00 GMT+0000 (UTC)
-      return str_replace('~', 'GMT', $this->context->date->format('D M d Y H:i:s ~O (T)'));
+      return str_replace('~', 'GMT', $self->date->format('D M d Y H:i:s ~O (T)'));
     }
 );
 

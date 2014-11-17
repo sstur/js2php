@@ -17,7 +17,7 @@ $process->set('exit', new Func(function($code = 0) {
 }));
 
 $process->set('binding', new Func(function($name) {
-  $self = $this->context;
+  $self = Func::getContext();
   if (isset($self->modules[$name])) {
     return $self->modules[$name];
   }

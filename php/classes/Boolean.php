@@ -42,10 +42,12 @@ Bln::$classMethods = array();
 
 Bln::$protoMethods = array(
   'valueOf' => function() {
-      return $this->context->value;
+      $self = Func::getContext();
+      return $self->value;
     },
   'toString' => function() {
-      return to_string($this->context->value);
+      $self = Func::getContext();
+      return to_string($self->value);
     }
 );
 

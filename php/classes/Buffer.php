@@ -84,7 +84,7 @@ Buffer::$classMethods = array(
 
 Buffer::$protoMethods = array(
   'get' => function($index) {
-      $self = $this->context;
+      $self = Func::getContext();
       $i = (int)$index;
       if ($i < 0 || $i >= $self->length) {
         throw new Ex(Error::create('offset is out of bounds'));
@@ -92,7 +92,7 @@ Buffer::$protoMethods = array(
       return (float)ord($self->raw[$i]);
     },
   'set' => function($index, $byte) {
-      $self = $this->context;
+      $self = Func::getContext();
       $i = (int)$index;
       if ($i < 0 || $i >= $self->length) {
         throw new Ex(Error::create('offset is out of bounds'));
@@ -103,7 +103,7 @@ Buffer::$protoMethods = array(
     },
   //todo bounds check
   'write' => function($data, $enc = null, $start = null, $len = null) {
-      $self = $this->context;
+      $self = Func::getContext();
       //allow second argument (enc) to be omitted
       if (func_num_args() > 1 && !is_string($enc)) {
         $len = $start;
@@ -128,7 +128,7 @@ Buffer::$protoMethods = array(
       $self->raw = $pre . $new . substr($old, $start + $newLen);
     },
   'slice' => function($start, $end = null) {
-      $self = $this->context;
+      $self = Func::getContext();
       $len = $self->length;
       if ($len === 0) {
         return new Buffer(0);
@@ -155,7 +155,8 @@ Buffer::$protoMethods = array(
       return new Buffer($new, 'binary');
     },
   'toString' => function($enc = 'utf8', $start = null, $end = null) {
-      $raw = $this->context->raw;
+      $self = Func::getContext();
+      $raw = $self->raw;
       if (func_num_args() > 1) {
         $raw = substr($raw, $start, $end - $start + 1);
       }
@@ -168,13 +169,16 @@ Buffer::$protoMethods = array(
       return $raw;
     },
   'toJSON' => function() {
-      return $this->context->toJSON();
+      $self = Func::getContext();
+      return $self->toJSON();
     },
   'inspect' => function() {
-      return $this->context->toJSON(Buffer::$SHOW_MAX);
+      $self = Func::getContext();
+      return $self->toJSON(Buffer::$SHOW_MAX);
     },
   'clone' => function() {
-      return new Buffer($this->context->raw, 'binary');
+      $self = Func::getContext();
+      return new Buffer($self->raw, 'binary');
     }
 );
 

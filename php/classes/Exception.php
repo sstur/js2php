@@ -58,11 +58,6 @@ class Ex extends Exception {
     $lines = array();
     foreach ($stack as $frame) {
       $args = isset($frame['args']) ? $frame['args'] : array();
-      $wrapper = null;
-      if (isset($args[1]) && $args[1] instanceof Args) {
-        $wrapper = $args[1]->callee;
-        $args = $args[1]->args;
-      }
       $list = array();
       foreach ($args as $arg) {
         if (is_string($arg)) {
@@ -89,9 +84,13 @@ class Ex extends Exception {
         }
       }
       $function = $frame['function'];
+      /* todo: use Func::$callStack to resolve anonymous functions */
+      //if ($function === '{closure}') {
+      //  $name = $wrapper ? $wrapper->name : '';
+      //  $function = $name ? $name : '<anonymous>';
+      //}
       if ($function === '{closure}') {
-        $name = $wrapper ? $wrapper->name : '';
-        $function = $name ? $name : '<anonymous>';
+        $function = '<anonymous>';
       }
       if (isset($frame['class'])) {
         $function = $frame['class'] . '->' . $function;

@@ -119,7 +119,7 @@ RegExp::$classMethods = array();
 
 RegExp::$protoMethods = array(
   'exec' => function($str) {
-      $self = $this->context;
+      $self = Func::getContext();
       $str = to_string($str);
       $result = preg_match($self->toString(true), $str, $matches);
       if ($result === false) {
@@ -133,11 +133,13 @@ RegExp::$protoMethods = array(
       return $arr;
     },
   'test' => function($str) {
-      $result = preg_match($this->context->toString(true), to_string($str));
+      $self = Func::getContext();
+      $result = preg_match($self->toString(true), to_string($str));
       return ($result !== false);
     },
   'toString' => function() {
-      return $this->context->toString(false);
+      $self = Func::getContext();
+      return $self->toString(false);
     }
 );
 

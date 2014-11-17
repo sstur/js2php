@@ -13,7 +13,7 @@ class Util {
 }
 
 Util::$on = new Func(function($name, $listener) {
-  $self = $this->context;
+  $self = Func::getContext();
   $events = $self->get('_events');
   if ($events === null) {
     $events = new Object();
@@ -28,7 +28,7 @@ Util::$on = new Func(function($name, $listener) {
 });
 
 Util::$emit = new Func(function($name) {
-  $self = $this->context;
+  $self = Func::getContext();
   $events = $self->get('_events');
   if ($events === null) {
     return;

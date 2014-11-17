@@ -65,11 +65,13 @@ Str::$classMethods = array(
 
 Str::$protoMethods = array(
   'charAt' => function($i) {
-      $ch = mb_substr($this->context->value, $i, 1);
+      $self = Func::getContext();
+      $ch = mb_substr($self->value, $i, 1);
       return ($ch === false) ? '' : $ch;
     },
   'charCodeAt' => function($i) {
-      $ch = mb_substr($this->context->value, $i, 1);
+      $self = Func::getContext();
+      $ch = mb_substr($self->value, $i, 1);
       if ($ch === false) return NAN;
       $len = strlen($ch);
       if ($len === 1) {
@@ -81,11 +83,12 @@ Str::$protoMethods = array(
       return (float)$code;
     },
   'indexOf' => function($search, $offset = 0) {
-      $index = mb_strpos($this->context->value, $search, $offset);
+      $self = Func::getContext();
+      $index = mb_strpos($self->value, $search, $offset);
       return ($index === false) ? -1.0 : (float)$index;
     },
   'lastIndexOf' => function($search, $offset = null) {
-      $self = $this->context;
+      $self = Func::getContext();
       $str = $self->value;
       if ($offset !== null) {
         $offset = to_number($offset);
@@ -97,7 +100,8 @@ Str::$protoMethods = array(
       return ($index === false) ? -1.0 : (float)$index;
     },
   'split' => function($delim) {
-      $str = $this->context->value;
+      $self = Func::getContext();
+      $str = $self->value;
       if ($delim instanceof RegExp) {
         //$arr = mb_split($delim->source, $str);
         $arr = preg_split($delim->toString(true), $str);
@@ -118,7 +122,7 @@ Str::$protoMethods = array(
       return $result;
     },
   'substr' => function($start, $num = null) {
-      $self = $this->context;
+      $self = Func::getContext();
       $len = $self->length;
       if ($len === 0) {
         return '';
@@ -138,7 +142,7 @@ Str::$protoMethods = array(
       }
     },
   'substring' => function($start, $end = null) {
-      $self = $this->context;
+      $self = Func::getContext();
       $len = $self->length;
       //if second param is absent
       if (func_num_args() === 1) {
@@ -159,7 +163,7 @@ Str::$protoMethods = array(
       return mb_substr($self->value, $start, $end - $start);
     },
   'slice' => function($start, $end = null) {
-      $self = $this->context;
+      $self = Func::getContext();
       $len = $self->length;
       if ($len === 0) {
         return '';
@@ -185,12 +189,14 @@ Str::$protoMethods = array(
       return mb_substr($self->value, $start, $end - $start);
     },
   'trim' => function() {
+      $self = Func::getContext();
       //todo: unicode [\u1680​\u180e\u2000​\u2001\u2002​\u2003\u2004​\u2005\u2006​\u2007\u2008​\u2009\u200a​\u2028\u2029​​\u202f\u205f​\u3000]
       //note: trim doesn't work here because \xA0 is a multibyte character in utf8
-      return preg_replace('/^[\s\x0B\xA0]+|[\s\x0B\​xA0]+$/u', '', $this->context->value);
+      return preg_replace('/^[\s\x0B\xA0]+|[\s\x0B\​xA0]+$/u', '', $self->value);
     },
   'replace' => function($search, $replace) {
-      $str = $this->context->value;
+      $self = Func::getContext();
+      $str = $self->value;
       $isRegEx = ($search instanceof RegExp);
       $limit = ($isRegEx && $search->globalFlag) ? -1 : 1;
       $search = $isRegEx ? $search->toString(true) : to_string($search);
@@ -247,25 +253,32 @@ Str::$protoMethods = array(
       }
     },
   'toLowerCase' => function() {
-      return mb_strtolower($this->context->value);
+      $self = Func::getContext();
+      return mb_strtolower($self->value);
     },
   'toLocaleLowerCase' => function() {
-      return mb_strtolower($this->context->value);
+      $self = Func::getContext();
+      return mb_strtolower($self->value);
     },
   'toUpperCase' => function() {
-      return mb_strtoupper($this->context->value);
+      $self = Func::getContext();
+      return mb_strtoupper($self->value);
     },
   'toLocaleUpperCase' => function() {
-      return mb_strtoupper($this->context->value);
+      $self = Func::getContext();
+      return mb_strtoupper($self->value);
     },
   'localeCompare' => function($compareTo) {
-      return (float)strcmp($this->context->value, to_string($compareTo));
+      $self = Func::getContext();
+      return (float)strcmp($self->value, to_string($compareTo));
     },
   'valueOf' => function() {
-      return $this->context->value;
+      $self = Func::getContext();
+      return $self->value;
     },
   'toString' => function() {
-      return $this->context->value;
+      $self = Func::getContext();
+      return $self->value;
     }
 );
 

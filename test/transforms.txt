@@ -40,7 +40,7 @@ $x = _plus($a, ($b / $c), $d);
 ----
 x = a + (function() { return b; })() + c;
 ====
-$x = _plus($a, call(new Func(function($this_, $arguments) use (&$b) {
+$x = _plus($a, call(new Func(function() use (&$b) {
   return $b;
 })), $c);
 
@@ -49,7 +49,8 @@ var a = function a() {
   return this;
 };
 ====
-$a = new Func("a", function($this_, $arguments) {
+$a = new Func("a", function() {
+  $this_ = Func::getContext();
   return $this_;
 });
 
@@ -59,7 +60,8 @@ var a = function a() {
   return this;
 };
 ====
-$a = new Func("a", function($this_, $arguments) {
+$a = new Func("a", function() {
+  $this_ = Func::getContext();
   return $this_;
 }, array("strict" => true));
 
@@ -69,8 +71,8 @@ function f() {
   return function() {};
 }
 ====
-$f = new Func("f", function($this_, $arguments) {
-  return new Func(function($this_, $arguments) {
+$f = new Func("f", function() {
+  return new Func(function() {
   }, array("strict" => true));
 }, array("strict" => true));
 
@@ -79,8 +81,8 @@ function fn() {
   var f = new Function('a', 'b', 'return a + b');
 }
 ====
-$fn = new Func("fn", function($this_, $arguments) {
-  $f = new Func(function($this_, $arguments, $a = null, $b = null) {
+$fn = new Func("fn", function() {
+  $f = new Func(function($a = null, $b = null) {
     return _plus($a, $b);
   });
 });
@@ -91,9 +93,10 @@ $fn = new Func("fn", function($this_, $arguments) {
   console.log('global', global);
 })(new Function('return this')())
 ====
-call(new Func(function($this_, $arguments, $global = null) use (&$console) {
+call(new Func(function($global = null) use (&$console) {
   call_method($console, "log", "global", $global);
-}, array("strict" => true)), call(new Func(function($this_, $arguments) {
+}, array("strict" => true)), call(new Func(function() {
+  $this_ = Func::getContext();
   return $this_;
 })));
 
@@ -103,7 +106,7 @@ function a(x, y) {
   return x + y;
 }
 ====
-$a = new Func("a", function($this_, $arguments, $x = null, $y = null) {
+$a = new Func("a", function($x = null, $y = null) {
   return _plus($x, $y);
 });
 $result = call($a, "foo");
@@ -221,8 +224,8 @@ function f() {
   return f;
 }
 ====
-$f = new Func("f", function($this_, $arguments) {
-  $f = $arguments->callee;
+$f = new Func("f", function() {
+  $f = Func::getCurrent();
   return $f;
 });
 
@@ -238,7 +241,7 @@ var f = function(undefined) {
 }
 ====
 $undefined_ = 1.0;
-$f = new Func(function($this_, $arguments, $undefined = null) {
+$f = new Func(function($undefined = null) {
   return $undefined++;
 });
 
@@ -248,8 +251,9 @@ function $() {
   return $;
 }
 ====
-$«24» = new Func("\$", function($this_, $arguments) {
-  $«24» = $arguments->callee;
+$«24» = new Func("\$", function() {
+  $«24» = Func::getCurrent();
+  $this_ = Func::getContext();
   set($this_, "foo", 1.0, "+=");
   return $«24»;
 });
@@ -269,9 +273,9 @@ var a = function a() {
   }
 };
 ====
-$a = new Func("a", function($this_, $arguments) use (&$console) {
-  $a = $arguments->callee;
-  $b = new Func("b", function($this_, $arguments, $y = null) use (&$console, &$x, &$a) {
+$a = new Func("a", function() use (&$console) {
+  $a = Func::getCurrent();
+  $b = new Func("b", function($y = null) use (&$console, &$x, &$a) {
     call_method($console, "log", to_number($x) - to_number($y));
     return $a;
   });
@@ -302,14 +306,14 @@ call_method($r, "match", $s);
   response.end();
 })();
 ====
-call(new Func(function($this_, $arguments) use (&$process, &$Object) {
+call(new Func(function() use (&$process, &$Object) {
   $request = get($process, "request");
   $response = get($process, "response");
   $resHeaders = new Object("Content-Type", "text/plain");
   call_method($response, "writeHead", 200.0, "OK", $resHeaders);
   call_method($response, "write", _concat(call_method($request, "getMethod"), " ", call_method($request, "getURL"), "\n"));
   $reqHeaders = call_method($request, "getHeaders");
-  call_method(call_method($Object, "keys", $reqHeaders), "forEach", new Func(function($this_, $arguments, $key = null) use (&$response, &$reqHeaders) {
+  call_method(call_method($Object, "keys", $reqHeaders), "forEach", new Func(function($key = null) use (&$response, &$reqHeaders) {
     call_method($response, "write", _concat($key, ": ", get($reqHeaders, $key), "\n"));
   }));
   call_method($response, "end");

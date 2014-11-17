@@ -181,13 +181,13 @@
       });
     });
     var firstVar = scope.variables[0];
-    var argumentsFound = firstVar && firstVar.name === arguments;
+    var argumentsFound = firstVar && firstVar.name === 'arguments' && firstVar.references.length;
     var scopeIndex = {
       defined: defined,
       referenced: referenced,
       unresolved: unresolved,
       thisFound: scope.thisFound,
-      argumentsFound: argumentsFound
+      argumentsFound: !!argumentsFound
     };
     setHidden(scope.block, 'scopeIndex', scopeIndex);
     return scopeIndex;

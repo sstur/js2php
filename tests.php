@@ -178,8 +178,9 @@ Test::suite(
     Test::assert('Function name is immutable', $fn->get('name') === 'foo');
     Test::assert('Function should run', $fn->call() === 'bar');
     $fn = new Func('foo', function() use (&$fn) {
-      $self = $this->context;
-      $arguments = $this->get_arguments();
+      $self = Func::getContext();
+      $arguments = Func::getArguments();
+      Test::assert('arguments', $arguments instanceof Args);
       Test::assert('arguments.callee', $arguments->get('callee') === $fn);
       Test::assert('arguments is object', $arguments instanceof Object);
       Test::assert('arguments is not array', !($arguments instanceof Arr));
@@ -188,8 +189,8 @@ Test::suite(
     });
     $fn->call();
     $fn = new Func('foo', function() use ($fn, $Array) {
-      $self = $this->context;
-      $arguments = $this->get_arguments();
+      $self = Func::getContext();
+      $arguments = Func::getArguments();
       Test::assert('arguments length', $arguments->get('length') === 1.0);
       Test::assert('arguments -> args', join(',', $arguments->args) === 'foo');
       Test::assert('this is global', $self === $Array);

@@ -67,7 +67,8 @@ Error::$classMethods = array();
 
 Error::$protoMethods = array(
   'toString' => function() {
-      return $this->context->get('message');
+      $self = Func::getContext();
+      return $self->get('message');
     }
 );
 
