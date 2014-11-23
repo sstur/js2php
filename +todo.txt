@@ -12,11 +12,11 @@ fs:
   helpers array to BaseObject?
 specify ->toJSON for boxed primitives
 
-Bugs:
+Behavior:
   division by zero should not throw (+/- Infinity)
   `0 / 0` should not throw (NaN)
 
-build tool:
+Transform:
   nested expressions: wrap all then conditionally unwrap?
   debug mode: Func() gets extra param "meta"
     array('source' => 3, 'line' => 4, 'start' => 146, 'end' => 283, 'def' => 'a.b')
@@ -28,7 +28,7 @@ build tool:
   Optimizations:
     `a + 'b'` => `to_string($a) . "b"`
 
-test:
+Test:
   encodeURI/decodeURI, escape/unescape
   // decodeURI('%E2%86%97%D4%B6') === '↗Զ'
   JSON.parse('{"":1}')
