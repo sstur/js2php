@@ -150,4 +150,16 @@ testSuite('core', function(assert) {
     assert('TypeError is distinct from Error', TypeError !== Error);
   });
 
+  testSuite('equality coercion', function() {
+    assert('', true == true && false == false && true != false);
+    assert('', 1 == 1 && 0 == 0 && -1 == -1 && -1 != 1);
+    assert('', 'a' == 'a' && 'a' != 'b');
+    assert('', [] == false);
+    assert('', [[]] == false);
+    assert('', [0] == false);
+    assert('', [0] == 0);
+    assert('', '1' == 1 && 1 == true && '1' == true && '0' == false);
+    assert('', '' == 0 && '' == false);
+  });
+
 });

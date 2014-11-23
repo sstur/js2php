@@ -11,9 +11,12 @@ fs:
   readStream encoding
   helpers array to BaseObject?
 specify ->toJSON for boxed primitives
+cases like `a == b && c == d`
+  we know that must be boolean
+  in codegen, when encounter a BinaryExpression of type || or && check if both sides are boolean
+  walk the tree and mark each BinaryExpression node as boolean or not (move BOOL_SAFE_OPS from codegen to transform)
 
 Bugs:
-  undefined == null
   division by zero should not throw (+/- Infinity)
   `0 / 0` should not throw (NaN)
 

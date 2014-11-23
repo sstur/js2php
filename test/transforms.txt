@@ -38,10 +38,10 @@ $x = _plus($a, ($b / $c), $d);
 ~to_number($a);
 
 ----
-x = a + (function() { return b; })() + c;
+x = a + (function(c) { return b == c; })() + c;
 ====
-$x = _plus($a, call(new Func(function() use (&$b) {
-  return $b;
+$x = _plus($a, call(new Func(function($c = null) use (&$b) {
+  return eq($b, $c);
 })), $c);
 
 ----
@@ -116,6 +116,27 @@ if (a) b();
 ====
 if (is($a)) {
   call($b);
+}
+
+----
+if (a == b) c();
+====
+if (eq($a, $b)) {
+  call($c);
+}
+
+----
+if (a != b) c();
+====
+if (!eq($a, $b)) {
+  call($c);
+}
+
+----
+if (a in b) c();
+====
+if (_in($a, $b)) {
+  call($c);
 }
 
 ----

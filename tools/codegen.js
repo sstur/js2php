@@ -16,9 +16,8 @@
   var BINARY_NUM_OPS = {
     '+': '_plus',
     '-': '-',
-    //todo: 1 / 0 === INF?
+    //todo: 1 / 0 === Infinity?
     //'*': '*', '/': '/',
-    //todo: type coercion?
     //'<': '<', '<=': '<=',
     //'>': '>', '>=': '>=',
     '&': '&', //bitwise and
@@ -34,7 +33,9 @@
     '===': 1, '!==': 1,
     '==': 1, '!=': 1,
     '<': 1, '<=': 1,
-    '>': 1, '>=': 1
+    '>': 1, '>=': 1,
+    'in': 1,
+    'instanceof': 1
   };
 
   //built-in globals (should not be re-assigned)
@@ -392,6 +393,12 @@
           return '_plus(' + terms.join(', ') + ')';
         }
       }
+      if (op === '==') {
+        return 'eq(' + this.generate(node.left) + ', ' + this.generate(node.right) + ')';
+      }
+      if (op === '!=') {
+        return '!eq(' + this.generate(node.left) + ', ' + this.generate(node.right) + ')';
+      }
       var toNumber = false;
       if (op in BINARY_NUM_OPS) {
         op = BINARY_NUM_OPS[op];
@@ -478,10 +485,12 @@
           return this.truthyWrap(node.left) + ' ' + op + ' ' + this.truthyWrap(node.right);
         }
       }
-      if (type === 'BinaryExpression' || op in BOOL_SAFE_OPS) {
-        return this.generate(node.left) + ' ' + op + ' ' + this.generate(node.right);
+      if (type === 'BinaryExpression' && op in BOOL_SAFE_OPS) {
+        //prevent is($a === $b) and is(_in($a, $b))
+        return this.generate(node);
       }
       if (type === 'UnaryExpression' && node.operator === '!') {
+        //prevent is(not($thing))
         return this.generate(node);
       }
       return 'is(' + this.generate(node) + ')';

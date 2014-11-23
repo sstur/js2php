@@ -21,6 +21,51 @@ function not($x) {
 }
 
 /**
+ * Non-strict equality (==) using type coercion
+ *   http://javascriptweblog.wordpress.com/2011/02/07/truth-equality-and-javascript/
+ * @param $a
+ * @param $b
+ * @return bool
+ */
+function eq($a, $b) {
+  $typeA = ($a === null || $a === Object::$null ? 'null' : ($a instanceof Object ? 'object' : gettype($a)));
+  $typeB = ($b === null || $b === Object::$null ? 'null' : ($b instanceof Object ? 'object' : gettype($b)));
+  if ($typeA === 'null' && $typeB === 'null') {
+    return true;
+  }
+  if ($typeA === 'integer') {
+    $a = (float)$a;
+    $typeA = 'double';
+  }
+  if ($typeB === 'integer') {
+    $b = (float)$b;
+    $typeB = 'double';
+  }
+  if ($typeA === $typeB) {
+    return $a === $b;
+  }
+  if ($typeA === 'double' && $typeB === 'string') {
+    return $a === to_number($b);
+  }
+  if ($typeB === 'double' && $typeA === 'string') {
+    return $b === to_number($a);
+  }
+  if ($typeA === 'boolean') {
+    return eq((float)$a, $b);
+  }
+  if ($typeB === 'boolean') {
+    return eq((float)$b, $a);
+  }
+  if (($typeA === 'string' || $typeA === 'double') && $typeB === 'object') {
+    return eq($a, to_primitive($b));
+  }
+  if (($typeB === 'string' || $typeB === 'double') && $typeA === 'object') {
+    return eq($b, to_primitive($a));
+  }
+  return false;
+}
+
+/**
  * Used in `for..in` to get keys (including up the proto chain)
  * @param $obj
  * @param array $arr
@@ -115,7 +160,7 @@ function to_number($value) {
 }
 
 /**
- * Used in to_number to handle objects
+ * Used in to_number/eq to handle objects
  * @param Object $obj
  * @return mixed
  */
