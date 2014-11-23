@@ -176,7 +176,21 @@
     },
 
     ConditionalExpression: function(node) {
-      return this.truthyWrap(node.test) + ' ? ' + this.generate(node.consequent) + ' : ' + this.generate(node.alternate);
+      //PHP has "non-obvious" ternary operator precedence according to the docs
+      // these are safe: Literal, Identifier, ThisExpression,
+      // FunctionExpression, CallExpression, MemberExpression, NewExpression,
+      // ArrayExpression, ObjectExpression, SequenceExpression, UnaryExpression
+      var alternate = this.generate(node.alternate);
+      switch (node.alternate.type) {
+        case 'AssignmentExpression':
+        case 'BinaryExpression':
+        case 'LogicalExpression':
+        case 'UpdateExpression':
+        case 'ConditionalExpression':
+          alternate = '(' + alternate + ')';
+          break;
+      }
+      return this.truthyWrap(node.test) + ' ? ' + this.generate(node.consequent) + ' : ' + alternate;
     },
 
     ForStatement: function(node) {

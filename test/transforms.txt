@@ -28,6 +28,16 @@ x = a + b / c + d;
 $x = _plus($a, ($b / $c), $d);
 
 ----
+true ? 'true' : false ? 't' : 'f';
+====
+true ? "true" : (false ? "t" : "f");
+
+----
+true ? 'true' : f();
+====
+true ? "true" : call($f);
+
+----
 ~1;
 ====
 ~1.0;
