@@ -6536,6 +6536,9 @@ exports.moonwalk = function moonwalk(ast, fn){
       if (op === '==') {
         return 'eq(' + this.generate(node.left) + ', ' + this.generate(node.right) + ')';
       }
+      if (op === '!=') {
+        return '!eq(' + this.generate(node.left) + ', ' + this.generate(node.right) + ')';
+      }
       var toNumber = false;
       if (op in BINARY_NUM_OPS) {
         op = BINARY_NUM_OPS[op];
@@ -6569,7 +6572,7 @@ exports.moonwalk = function moonwalk(ast, fn){
     UnaryExpression: function(node) {
       var op = node.operator;
       if (op === '!') {
-        return 'not(' + this.generate(node.argument) + ')';
+        return isBooleanExpr(node.argument) ? '!' + this.generate(node.argument) : 'not(' + this.generate(node.argument) + ')';
       }
       //special case here: -3 is just a number literal, not negate(3)
       if (op === '-' && node.argument.type === 'Literal' && typeof node.argument.value === 'number') {
@@ -6612,6 +6615,7 @@ exports.moonwalk = function moonwalk(ast, fn){
       }
     },
 
+    // used from if/for/while and ternary to determine truthiness
     truthyWrap: function(node) {
       //node can be null, for instance: `for (;;) {}`
       if (!node) return '';
@@ -6622,15 +6626,12 @@ exports.moonwalk = function moonwalk(ast, fn){
           return this.truthyWrap(node.left) + ' ' + op + ' ' + this.truthyWrap(node.right);
         }
       }
-      if (type === 'BinaryExpression' && op in BOOL_SAFE_OPS) {
-        //prevent is(a === b) and is(a in b)
+      if (isBooleanExpr(node)) {
+        //prevent is($a === $b) and is(_in($a, $b)) and is(not($a))
         return this.generate(node);
+      } else {
+        return 'is(' + this.generate(node) + ')';
       }
-      if (type === 'UnaryExpression' && node.operator === '!') {
-        //prevent is(not(thing))
-        return this.generate(node);
-      }
-      return 'is(' + this.generate(node) + ')';
     },
 
     generate: function(node) {
@@ -6755,6 +6756,25 @@ exports.moonwalk = function moonwalk(ast, fn){
       if (expr.type === 'Literal' && expr.value === 'use strict') {
         return true;
       }
+    }
+    return false;
+  }
+
+
+  function isBooleanExpr(node) {
+    var op = node.operator;
+    var type = node.type;
+    if (type === 'Literal' && typeof node.value === 'boolean') {
+      //prevent is(true)
+      return true;
+    }
+    if (type === 'BinaryExpression' && op in BOOL_SAFE_OPS) {
+      //prevent is($a === $b) and is(_in($a, $b))
+      return true;
+    }
+    if (type === 'UnaryExpression' && node.operator === '!') {
+      //prevent is(not($thing))
+      return true;
     }
     return false;
   }

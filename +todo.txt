@@ -1,3 +1,4 @@
+ternary operator precedence
 opt-in modules at build
 use node-commander instead of yargs
 json parse reviver
@@ -15,6 +16,7 @@ cases like `a == b && c == d`
   we know that must be boolean
   in codegen, when encounter a BinaryExpression of type || or && check if both sides are boolean
   walk the tree and mark each BinaryExpression node as boolean or not (move BOOL_SAFE_OPS from codegen to transform)
+nested expressions: wrap all then conditionally unwrap?
 
 Bugs:
   division by zero should not throw (+/- Infinity)
