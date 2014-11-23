@@ -6511,6 +6511,9 @@ exports.moonwalk = function moonwalk(ast, fn){
 
     LogicalExpression: function(node) {
       var op = node.operator;
+      if (isBooleanExpr(node)) {
+        return this.generate(node.left) + ' ' + op + ' ' + this.generate(node.right);
+      }
       if (op === '&&') {
         return this.genAnd(node);
       }
@@ -6523,7 +6526,11 @@ exports.moonwalk = function moonwalk(ast, fn){
       var opts = this.opts;
       opts.andDepth = (opts.andDepth == null) ? 0 : opts.andDepth + 1;
       var name = (opts.andDepth === 0) ? '$and_' : '$and' + opts.andDepth + '_';
-      var result = '(is(' + name + ' = ' + this.generate(node.left) + ') ? ' + this.generate(node.right) + ' : ' + name + ')';
+      var test = '(' + name + ' = ' + this.generate(node.left) + ')';
+      if (!isBooleanExpr(node.left)) {
+        test = 'is' + test;
+      }
+      var result = '(' + test + ' ? ' + this.generate(node.right) + ' : ' + name + ')';
       opts.andDepth = (opts.andDepth === 0) ? null : opts.andDepth - 1;
       return result;
     },
@@ -6532,7 +6539,11 @@ exports.moonwalk = function moonwalk(ast, fn){
       var opts = this.opts;
       opts.orDepth = (opts.orDepth == null) ? 0 : opts.orDepth + 1;
       var name = (opts.orDepth === 0) ? '$or_' : '$or' + opts.orDepth + '_';
-      var result = '(is(' + name + ' = ' + this.generate(node.left) + ') ? ' + name + ' : ' + this.generate(node.right) + ')';
+      var test = '(' + name + ' = ' + this.generate(node.left) + ')';
+      if (!isBooleanExpr(node.left)) {
+        test = 'is' + test;
+      }
+      var result = '(' + test + ' ? ' + name + ' : ' + this.generate(node.right) + ')';
       opts.orDepth = (opts.orDepth === 0) ? null : opts.orDepth - 1;
       return result;
     },
@@ -6776,17 +6787,19 @@ exports.moonwalk = function moonwalk(ast, fn){
 
 
   function isBooleanExpr(node) {
-    var op = node.operator;
-    var type = node.type;
-    if (type === 'Literal' && typeof node.value === 'boolean') {
+    if (node.type === 'LogicalExpression') {
+      //prevent unnecessary (is($and_ = $a === $b) ? $c === $d : $and_)
+      return isBooleanExpr(node.left) && isBooleanExpr(node.right);
+    }
+    if (node.type === 'Literal' && typeof node.value === 'boolean') {
       //prevent is(true)
       return true;
     }
-    if (type === 'BinaryExpression' && op in BOOL_SAFE_OPS) {
+    if (node.type === 'BinaryExpression' && node.operator in BOOL_SAFE_OPS) {
       //prevent is($a === $b) and is(_in($a, $b))
       return true;
     }
-    if (type === 'UnaryExpression' && node.operator === '!') {
+    if (node.type === 'UnaryExpression' && node.operator === '!') {
       //prevent is(not($thing))
       return true;
     }

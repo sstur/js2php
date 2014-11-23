@@ -11,17 +11,13 @@ fs:
   readStream encoding
   helpers array to BaseObject?
 specify ->toJSON for boxed primitives
-cases like `a == b && c == d`
-  we know that must be boolean
-  in codegen, when encounter a BinaryExpression of type || or && check if both sides are boolean
-  walk the tree and mark each BinaryExpression node as boolean or not (move BOOL_SAFE_OPS from codegen to transform)
-nested expressions: wrap all then conditionally unwrap?
 
 Bugs:
   division by zero should not throw (+/- Infinity)
   `0 / 0` should not throw (NaN)
 
 build tool:
+  nested expressions: wrap all then conditionally unwrap?
   debug mode: Func() gets extra param "meta"
     array('source' => 3, 'line' => 4, 'start' => 146, 'end' => 283, 'def' => 'a.b')
     source is an id referencing source file
@@ -29,6 +25,8 @@ build tool:
       $GLOBALS['source_'] = array('var a = 1;', ...)
     line number, source start/end offsets
     def: best-guess name: a.b = function() {}
+  Optimizations:
+    `a + 'b'` => `to_string($a) . "b"`
 
 test:
   encodeURI/decodeURI, escape/unescape
@@ -46,11 +44,6 @@ test:
   Unicode in strings
     including surrogate pairs: "\uD835\uDFD8"
     including mis-matched surrogate pairs: 0xD800-0xDBFF not followed by 0xDC00–0xDFFF
-
-Optimizations:
-  return (a === a1 && b === b1) //don't use ternary
-  `x = !a || b;` => `$x = (is($or_ = not($a)) ? $or_ : $b);` #redundant
-  `a + 'b'` => `to_string($a) . "b"`
 
 Performance:
   Array::checkInt
