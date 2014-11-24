@@ -1,10 +1,44 @@
 <?php
-class Util {
+class Module {
   /* @var Func */
   static $on = null;
   /* @var Func */
   static $emit = null;
+  /* @var array */
+  static $definitions = array();
+  /* @var array */
+  static $modules = array();
 
+  /**
+   * @param string $name
+   * @param callable $fn
+   */
+  static function define($name, $fn) {
+    self::$definitions[$name] = $fn;
+  }
+
+  /**
+   * @param string $name
+   * @return mixed
+   */
+  static function get($name) {
+    $modules = self::$modules;
+    if (array_key_exists($name, $modules)) {
+      return $modules[$name];
+    }
+    $definitions = self::$definitions;
+    if (array_key_exists($name, $definitions)) {
+      $definition = $definitions[$name];
+      $module = $definition();
+      $modules[$name] = $module;
+      return $module;
+    }
+    return null;
+  }
+
+  /**
+   * @param Object $obj
+   */
   static function eventify($obj) {
     $obj->set('on', self::$on);
     $obj->set('emit', self::$emit);
@@ -12,7 +46,7 @@ class Util {
 
 }
 
-Util::$on = new Func(function($name, $listener) {
+Module::$on = new Func(function($name, $listener) {
   $self = Func::getContext();
   $events = $self->get('_events');
   if ($events === null) {
@@ -27,7 +61,7 @@ Util::$on = new Func(function($name, $listener) {
   $listeners->push($listener);
 });
 
-Util::$emit = new Func(function($name) {
+Module::$emit = new Func(function($name) {
   $self = Func::getContext();
   $events = $self->get('_events');
   if ($events === null) {

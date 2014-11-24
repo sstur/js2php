@@ -11,7 +11,7 @@
   var path = require('path');
   var yargs = require('yargs');
   var transform = require('./tools/transform.js');
-  var child_process = require('child_process');
+  var childProcess = require('child_process');
 
   var argv = yargs
     .boolean(['fragment', 'runtime-only', 'test', 'quiet'])
@@ -139,7 +139,7 @@
   }
 
   function runTests() {
-    var child = child_process.spawn('php', ['-f', 'tests.php'], {cwd: __dirname});
+    var child = childProcess.spawn('php', ['-f', 'tests.php'], {cwd: __dirname});
     child.stdout.on('data', function(data) {
       process.stdout.write(data);
     });

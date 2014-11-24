@@ -1,5 +1,5 @@
 <?php
-$process->define('request', function() {
+Module::define('request', function() {
   $SERVER = isset($_SERVER) ? $_SERVER : array();
   $headers = null;
   $methods = array(
@@ -34,7 +34,7 @@ $process->define('request', function() {
   return $request;
 });
 
-$process->define('response', function() {
+Module::define('response', function() {
   $methods = array(
     'writeHead' => function($statusCode, $statusReason, $headers) {
         http_response_code($statusCode);

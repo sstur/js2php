@@ -1,13 +1,6 @@
 <?php
 $process = new Object();
 
-$process->definitions = array();
-$process->modules = array();
-
-$process->define = function($name, $fn) use (&$process) {
-  $process->definitions[$name] = $fn;
-};
-
 // the type of interface between web server and PHP
 $process->set('sapi_name', php_sapi_name());
 
@@ -17,16 +10,11 @@ $process->set('exit', new Func(function($code = 0) {
 }));
 
 $process->set('binding', new Func(function($name) {
-  $self = Func::getContext();
-  if (isset($self->modules[$name])) {
-    return $self->modules[$name];
+  $module = Module::get($name);
+  if ($module === null) {
+    throw new Ex(Error::create("Binding `$name` not found."));
   }
-  if (isset($self->definitions[$name])) {
-    $module = $self->definitions[$name]();
-    $self->modules[$name] = $module;
-    return $module;
-  }
-  throw new Ex(Error::create("Binding `$name` not found."));
+  return $module;
 }));
 
 //command line arguments

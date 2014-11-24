@@ -1,5 +1,5 @@
 <?php
-$process->define('fs', function() {
+Module::define('fs', function() {
 
   $CHUNK_SIZE = 1024;
 
@@ -26,7 +26,7 @@ $process->define('fs', function() {
 
   /* @var Object $prototype */
   $prototype = $ReadStream->get('prototype');
-  Util::eventify($prototype);
+  Module::eventify($prototype);
   $prototype->setMethods(array(
     'readBytes' => function($bytes) {
         $self = Func::getContext();
