@@ -4,12 +4,8 @@ object data to use array instead of ArrayObject
 get/setters
   'length' in []
   Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}
-writeAll -> helper function
 new Func(function() {}) should use name where possible
-fs:
-  readStream encoding
-  helpers array to BaseObject?
-specify ->toJSON for boxed primitives
+fs: readStream encoding
 
 Behavior:
   division by zero should not throw (+/- Infinity)
