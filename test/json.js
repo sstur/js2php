@@ -313,6 +313,9 @@ testSuite('json', function(assert) {
     testSuite("Object literal containing one member", function() {
       parses({"hello": "world"}, "{\"hello\": \"world\"}");
     });
+    testSuite("Object literal containing empty key", function() {
+      parses({"": 1}, "{\"\": 1}");
+    });
     testSuite("Object literal containing multiple members", function() {
       parses({"hello": "world", "foo": ["bar", true], "fox": {"quick": true, "purple": false}}, "{\"hello\": \"world\", \"foo\": [\"bar\", true], \"fox\": {\"quick\": true, \"purple\": false}}");
     });

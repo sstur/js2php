@@ -26,7 +26,7 @@ $escape = call_user_func(function() {
     foreach ($list as $pct => $ch) {
       $result = str_replace($pct, $ch, $result);
     }
-    return $result;
+    return str_replace('~', '%7E', $result);
   });
 });
 
