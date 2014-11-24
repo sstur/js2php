@@ -10,6 +10,8 @@
 
   var codegen = require('./codegen');
 
+  var COMMENT_OR_STRING = /'(\\.|[^'\n])*'|"(\\.|[^"\n])*"|\/\*([\s\S]*?)\*\/|\/\/.*?\n/g;
+
   /**
    * opts.source - JS source code to transform
    * opts.initVars - initialize all variables in PHP (default: true)
@@ -194,32 +196,72 @@
   }
 
 
-  function buildRuntime() {
+  function buildRuntime(opts) {
+    opts = opts || {};
+    if (!opts.includeAllModules) {
+      var includeModules = opts.includeModules || [];
+      includeModules = includeModules.reduce(function(includeModules, name) {
+        includeModules[name] = true;
+        return includeModules;
+      }, {});
+    }
     var source = fs.readFileSync(path.join(__dirname, '../runtime.php'), 'utf8');
-    var output = [];
+    var fileList = [];
+    var totalModules = 0;
     source.replace(/require_once\('(.+?)'\)/g, function(_, file) {
+      var name = file.split('/').pop().split('.')[0];
+      if (includeModules && file.indexOf('php/modules/') === 0) {
+        if (!includeModules.hasOwnProperty(name)) {
+          return;
+        }
+        totalModules += 1;
+      }
+      if (name === 'Debug' && !opts.includeDebug) {
+        return;
+      }
+      if (name === 'Test' && !opts.includeTest) {
+        return;
+      }
+      fileList.push(file);
+    });
+    var output = fileList.map(function(file) {
+      var name = file.split('/').pop().split('.')[0];
+      //if no modules were included, remove the Module reference
+      if (includeModules && totalModules === 0 && name === 'Module') {
+        return;
+      }
+      if (opts.log) {
+        opts.log('Adding runtime file: ' + file);
+      }
       var source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
       source = source.replace(/^<\?php/, '');
       source = source.replace(/^\n+|\n+$/g, '');
-      output.push(source);
+      return source;
     });
     output.unshift('mb_internal_encoding("UTF-8");\n');
     var timezone = new Date().toString().slice(-4, -1);
     output.unshift('define("LOCAL_TZ", "' + timezone + '");\n');
     output = output.join('\n');
-    //note: this is a really primitive way to remove comments from PHP; it will
-    // choke on several edge cases, but it's OK because we don't have anything
-    // too funky in our runtime code
-    output = output.replace(/'(\\.|[^'\n])*'|"(\\.|[^"\n])*"|\/\*([\s\S]*?)\*\/|\/\/.*?\n/g, function(match) {
+    output = removeComments(output);
+    output = removeEmptyLines(output);
+    return output;
+  }
+
+  function removeComments(code) {
+    //primitive method of removing comments from PHP; it might choke on some
+    // edge cases, but it's OK because we don't have anything too funky in our
+    // runtime code
+    return code.replace(COMMENT_OR_STRING, function(match) {
       var ch = match.charAt(0);
       if (ch === '"' || ch === "'") {
         return match;
       }
       return (match.slice(0, 2) === '//') ? '\n' : '';
     });
-    //remove empty lines
-    output = output.replace(/\n([ \t]*\n)+/g, '\n');
-    return output;
+  }
+
+  function removeEmptyLines(code) {
+    return code.replace(/\n([ \t]*\n)+/g, '\n');
   }
 
   function setHidden(object, name, value) {

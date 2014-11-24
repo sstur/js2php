@@ -14,9 +14,10 @@
   var childProcess = require('child_process');
 
   var argv = yargs
-    .boolean(['fragment', 'runtime-only', 'test', 'quiet'])
+    .boolean(['debug', 'fragment', 'runtime-only', 'test', 'quiet'])
     .alias('out', 'o')
     .alias('quiet', 'q')
+    .alias('modules', 'm')
     .argv;
 
   var logTo = argv.quiet ? 'none' : 'stdout';
@@ -38,7 +39,20 @@
 
     var pathToRuntime = argv.runtime;
     if (!argv.fragment && !pathToRuntime) {
-      var runtime = transform.buildRuntime();
+      var includeModules = argv.modules || '';
+      var includeAllModules = false;
+      if (includeModules === 'all') {
+        includeAllModules = true;
+        includeModules = '';
+      }
+      includeModules = includeModules.split(',');
+      var runtime = transform.buildRuntime({
+        includeModules: includeModules,
+        includeAllModules: includeAllModules,
+        includeDebug: argv.debug,
+        includeTest: argv.test,
+        log: log
+      });
       if (argv['runtime-only']) {
         outputContent(outfile, '<?php\n' + runtime, 'runtime.php');
         process.exit(0);
