@@ -19,20 +19,78 @@ $TypeError = TypeError::getGlobalConstructor();
 $RegExp = RegExp::getGlobalConstructor();
 $Buffer = Buffer::getGlobalConstructor();
 
-$escape = call_user_func(function() {
-  $list = array('%2A' => '*', '%2B' => '+', '%2F' => '/', '%40' => '@');
-  return new Func(function($str) use (&$list) {
-    $result = rawurlencode($str);
-    foreach ($list as $pct => $ch) {
-      $result = str_replace($pct, $ch, $result);
-    }
-    return str_replace('~', '%7E', $result);
-  });
-});
+call_user_func(function() use (&$escape, &$unescape) {
 
-$unescape = new Func(function($str) {
-  $str = str_replace('+', '%2B', $str);
-  return urldecode($str);
+  $ord = function($ch) {
+    $i = ord($ch[0]);
+    if ($i <= 0x7F) {
+      return $i;
+    } else if ($i < 0xC2) {
+      return $i; //invalid byte sequence
+    } else if ($i <= 0xDF) {
+      return ($i & 0x1F) << 6 | (ord($ch[1]) & 0x3F);
+    } else if ($i <= 0xEF) {
+      return ($i & 0x0F) << 12 | (ord($ch[1]) & 0x3F) << 6 | (ord($ch[2]) & 0x3F);
+    } else if ($i <= 0xF4) {
+      return ($i & 0x0F) << 18 | (ord($ch[1]) & 0x3F) << 12 | (ord($ch[2]) & 0x3F) << 6 | (ord($ch[3]) & 0x3F);
+    } else {
+      return $i; //invalid byte sequence
+    }
+  };
+
+  $chr = function($i) {
+    if ($i <= 0x7F) return chr($i);
+    if ($i <= 0x7FF) return chr(0xC0 | ($i >> 6)) . chr(0x80 | ($i & 0x3F));
+    if ($i <= 0xFFFF) return chr(0xE0 | ($i >> 12)) . chr(0x80 | ($i >> 6) & 0x3F) . chr(0x80 | $i & 0x3F);
+    return chr(0xF0 | ($i >> 18)) . chr(0x80 | ($i >> 12) & 0x3F) . chr(0x80 | ($i >> 6) & 0x3F) . chr(0x80 | $i & 0x3F);
+  };
+
+  $escape = new Func(function($str) use (&$ord) {
+    $result = '';
+    $length = mb_strlen($str);
+    for ($i = 0; $i < $length; $i++) {
+      $ch = mb_substr($str, $i, 1);
+      $j = $ord($ch);
+      if ($j <= 41 || $j === 44 || ($j >= 58 && $j <= 63) || ($j >= 91 && $j <= 94) || $j === 96 || ($j >= 123 && $j <= 255)) {
+        $result .= '%' . strtoupper($j < 16 ? '0' . dechex($j) : dechex($j));
+      } else if ($j > 255) {
+        $result .= '%u' . strtoupper($j < 4096 ? '0' . dechex($j) : dechex($j));
+      } else {
+        $result .= $ch;
+      }
+    }
+    return $result;
+  });
+
+  $unescape = new Func(function($str) use (&$chr) {
+    $result = '';
+    $length = strlen($str);
+    for ($i = 0; $i < $length; $i++) {
+      $ch = $str[$i];
+      if ($ch === '%' && $length > $i + 2) {
+        if ($str[$i + 1] === 'u') {
+          if ($length > $i + 4) {
+            $hex = substr($str, $i + 2, 4);
+            if (ctype_xdigit($hex)) {
+              $result .= $chr(hexdec($hex));
+              $i += 5;
+              continue;
+            }
+          }
+        } else {
+          $hex = substr($str, $i + 1, 2);
+          if (ctype_xdigit($hex)) {
+            $result .= $chr(hexdec($hex));
+            $i += 2;
+            continue;
+          }
+        }
+      }
+      $result .= $ch;
+    }
+    return $result;
+  });
+
 });
 
 $encodeURI = call_user_func(function() {
