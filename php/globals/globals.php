@@ -106,21 +106,21 @@ call_user_func(function() use (&$escape, &$unescape, &$encodeURI, &$decodeURI) {
     return $result;
   });
 
-  //decodeURI shouldn't decode these entities
-  $skipEnt = array("23" => "#", "24" => "$", "26" => "&", "2B" => "+", "2C" => ",", "2F" => "/", "3A" => ":", "3B" => ";", "3D" => "=", "3F" => "?", "40" => "@");
-
-  //todo: this should throw on invalid utf8 sequence
-  $decodeURI = new Func(function($str) use (&$skipEnt) {
+  //todo: throw on invalid utf8 sequence
+  $decodeURI = new Func(function($str) {
     $result = '';
     $length = strlen($str);
     for ($i = 0; $i < $length; $i++) {
       $ch = $str[$i];
       if ($ch === '%' && $length > $i + 2) {
         $hex = substr($str, $i + 1, 2);
-        if (ctype_xdigit($hex) && !array_key_exists($hex, $skipEnt)) {
-          $result .= chr(hexdec($hex));
-          $i += 2;
-          continue;
+        if (ctype_xdigit($hex)) {
+          $j = hexdec($hex);
+          if ($j !== 35 && $j !== 36 && $j !== 38 && $j !== 43 && $j !== 44 && $j !== 47 && $j !== 58 && $j !== 59 && $j !== 61 && $j !== 63 && $j !== 64) {
+            $result .= chr($j);
+            $i += 2;
+            continue;
+          }
         }
       }
       $result .= $ch;
