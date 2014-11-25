@@ -19,7 +19,7 @@ $TypeError = TypeError::getGlobalConstructor();
 $RegExp = RegExp::getGlobalConstructor();
 $Buffer = Buffer::getGlobalConstructor();
 
-call_user_func(function() use (&$escape, &$unescape, &$encodeURI, &$decodeURI) {
+call_user_func(function() use (&$escape, &$unescape, &$encodeURI, &$decodeURI, &$encodeURIComponent, &$decodeURIComponent) {
 
   $ord = function($ch) {
     $i = ord($ch[0]);
@@ -128,22 +128,26 @@ call_user_func(function() use (&$escape, &$unescape, &$encodeURI, &$decodeURI) {
     return $result;
   });
 
-});
-
-$encodeURIComponent = call_user_func(function() {
-  $list = array('%21' => '!', '%23' => '#', '%24' => '$', '%26' => '&', '%27' => '\'', '%28' => '(', '%29' => ')', '%2A' => '*', '%2B' => '+', '%2C' => ',', '%2F' => '/', '%3A' => ':', '%3B' => ';', '%3D' => '=', '%3F' => '?', '%40' => '@', '%7E' => '~');
-  return new Func(function($str) use (&$list) {
-    $result = rawurlencode($str);
-    foreach ($list as $pct => $ch) {
-      $result = str_replace($pct, $ch, $result);
+  $encodeURIComponent = new Func(function($str) {
+    $result = '';
+    $length = strlen($str);
+    for ($i = 0; $i < $length; $i++) {
+      $ch = substr($str, $i, 1);
+      $j = ord($ch);
+      if ($j === 33 || ($j >= 39 && $j <= 42) || $j === 45 || $j === 46 || ($j >= 48 && $j <= 57) || ($j >= 65 && $j <= 90) || $j === 95 || ($j >= 97 && $j <= 122) || $j === 126) {
+        $result .= $ch;
+      } else {
+        $result .= '%' . strtoupper($j < 16 ? '0' . dechex($j) : dechex($j));
+      }
     }
     return $result;
   });
-});
 
-$decodeURIComponent = new Func(function($str) {
-  $str = str_replace('+', '%2B', $str);
-  return urldecode($str);
+  //todo: throw on invalid utf8 sequence
+  $decodeURIComponent = new Func(function($str) {
+    return rawurldecode($str);
+  });
+
 });
 
 $isNaN = $Number->get('isNaN');
