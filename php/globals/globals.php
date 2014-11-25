@@ -19,7 +19,7 @@ $TypeError = TypeError::getGlobalConstructor();
 $RegExp = RegExp::getGlobalConstructor();
 $Buffer = Buffer::getGlobalConstructor();
 
-call_user_func(function() use (&$escape, &$unescape) {
+call_user_func(function() use (&$escape, &$unescape, &$encodeURI, &$decodeURI) {
 
   $ord = function($ch) {
     $i = ord($ch[0]);
@@ -91,22 +91,43 @@ call_user_func(function() use (&$escape, &$unescape) {
     return $result;
   });
 
-});
-
-$encodeURI = call_user_func(function() {
-  $list = array('%21' => '!', '%27' => '\'', '%28' => '(', '%29' => ')', '%2A' => '*', '%7E' => '~');
-  return new Func(function($str) use (&$list) {
-    $result = rawurlencode($str);
-    foreach ($list as $pct => $ch) {
-      $result = str_replace($pct, $ch, $result);
+  $encodeURI = new Func(function($str) {
+    $result = '';
+    $length = strlen($str);
+    for ($i = 0; $i < $length; $i++) {
+      $ch = substr($str, $i, 1);
+      $j = ord($ch);
+      if ($j === 33 || $j === 35 || $j === 36 || ($j >= 38 && $j <= 59) || $j === 61 || ($j >= 63 && $j <= 90) || $j === 95 || ($j >= 97 && $j <= 122) || $j === 126) {
+        $result .= $ch;
+      } else {
+        $result .= '%' . strtoupper($j < 16 ? '0' . dechex($j) : dechex($j));
+      }
     }
     return $result;
   });
-});
 
-$decodeURI = new Func(function($str) {
-  $str = str_replace('+', '%2B', $str);
-  return urldecode($str);
+  //decodeURI shouldn't decode these entities
+  $skipEnt = array("23" => "#", "24" => "$", "26" => "&", "2B" => "+", "2C" => ",", "2F" => "/", "3A" => ":", "3B" => ";", "3D" => "=", "3F" => "?", "40" => "@");
+
+  //todo: this should throw on invalid utf8 sequence
+  $decodeURI = new Func(function($str) use (&$skipEnt) {
+    $result = '';
+    $length = strlen($str);
+    for ($i = 0; $i < $length; $i++) {
+      $ch = $str[$i];
+      if ($ch === '%' && $length > $i + 2) {
+        $hex = substr($str, $i + 1, 2);
+        if (ctype_xdigit($hex) && !array_key_exists($hex, $skipEnt)) {
+          $result .= chr(hexdec($hex));
+          $i += 2;
+          continue;
+        }
+      }
+      $result .= $ch;
+    }
+    return $result;
+  });
+
 });
 
 $encodeURIComponent = call_user_func(function() {
