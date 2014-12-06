@@ -12,9 +12,8 @@ class Arr extends Object {
   function __construct() {
     parent::__construct();
     $this->proto = self::$protoObject;
-    $args = func_get_args();
-    if (count($args) > 0) {
-      $this->init($args);
+    if (func_num_args() > 0) {
+      $this->init(func_get_args());
     } else {
       $this->length = 0;
     }
@@ -161,7 +160,7 @@ Arr::$classMethods = array(
     }
 );
 
-// splice, reverse, filter, some, every, map, reduce, reduceRight
+// splice, reverse, some, every, reduce, reduceRight
 Arr::$protoMethods = array(
   'push' => function($value) {
       $self = Func::getContext();
@@ -253,6 +252,33 @@ Arr::$protoMethods = array(
           $fn->call($context, $self->get($i), (float)$i, $self);
         }
       }
+    },
+  'map' => function($fn, $context = null) {
+      $self = Func::getContext();
+      $results = new Arr();
+      $len = $results->length = $self->length;
+      for ($i = 0; $i < $len; $i++) {
+        if ($self->hasOwnProperty($i)) {
+          $result = $fn->call($context, $self->get($i), (float)$i, $self);
+          $results->set($i, $result);
+        }
+      }
+      return $results;
+    },
+  'filter' => function($fn, $context = null) {
+      $self = Func::getContext();
+      $results = new Arr();
+      $len = $self->length;
+      for ($i = 0; $i < $len; $i++) {
+        if ($self->hasOwnProperty($i)) {
+          $item = $self->get($i);
+          $result = $fn->call($context, $item, (float)$i, $self);
+          if (is($result)) {
+            $results->push($item);
+          }
+        }
+      }
+      return $results;
     },
   'sort' => function($fn = null) {
       $self = Func::getContext();

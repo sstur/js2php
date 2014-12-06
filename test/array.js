@@ -105,4 +105,31 @@ testSuite('array', function(assert) {
     assert('function sort', a[0] === b[2] && a[1] === b[0] && a[2] === b[1]);
   });
 
+
+  testSuite('map', function() {
+    var a = [2, 3, 4, 5, 6];
+    delete a[1];
+    var b = a.map(function(n) {
+      return n * 2;
+    });
+    assert('length', b.length === 5);
+    assert('contents', b.join() === '4,,8,10,12');
+    assert('preserves undefined', b[1] === undefined);
+    assert('has hole', !(1 in b));
+  });
+
+
+  testSuite('filter', function() {
+    var a = [2, 3, 4, 5, 6, 7];
+    delete a[1];
+    var b = a.filter(function(n) {
+      return 1;
+    });
+    assert('all', b.join() === '2,4,5,6,7');
+    var c = a.filter(function(n) {
+      return n % 2 > 0;
+    });
+    assert('contents', c.join() === '5,7');
+  });
+
 });
