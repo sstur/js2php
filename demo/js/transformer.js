@@ -6154,10 +6154,12 @@ exports.moonwalk = function moonwalk(ast, fn){
 
   //these operators expect numbers
   var BINARY_NUM_OPS = {
-    '+': '_plus',
+    // `+` is not in this list because it's a special case
     '-': '-',
-    //todo: 1 / 0 === Infinity?
-    //'*': '*', '/': '/',
+    '%': '%',
+    '*': '*',
+    '/': '_divide',
+    // let's assume these comparison operators are only used on numbers
     //'<': '<', '<=': '<=',
     //'>': '>', '>=': '>=',
     '&': '&', //bitwise and
@@ -6165,7 +6167,7 @@ exports.moonwalk = function moonwalk(ast, fn){
     '^': '^', //bitwise xor
     '<<': '<<', //bitwise left shift
     '>>': '>>', //bitwise sign-propagating right shift
-    'b:>>>': '_bitwise_zfrs' //bitwise zero-fill right shift
+    '>>>': '_bitwise_zfrs' //bitwise zero-fill right shift
   };
 
   //these operators will always return true/false
@@ -6176,6 +6178,23 @@ exports.moonwalk = function moonwalk(ast, fn){
     '>': 1, '>=': 1,
     'in': 1,
     'instanceof': 1
+  };
+
+  //these operators will always return numbers
+  var NUM_SAFE_UNARY_OPS = {
+    '-': 1,
+    '+': 1,
+    '~': 1
+  };
+  var NUM_SAFE_BINARY_OPS = {
+    // `+` is not in this list because it's a special case
+    '-': 1,
+    '%': 1,
+    '*': 1, '/': 1,
+    '&': 1, '|': 1,
+    '^': 1,
+    '<<': 1, '>>': 1,
+    '>>>': 1
   };
 
   //built-in globals (should not be re-assigned)
@@ -6564,6 +6583,10 @@ exports.moonwalk = function moonwalk(ast, fn){
       if (op === '!=') {
         return '!eq(' + this.generate(node.left) + ', ' + this.generate(node.right) + ')';
       }
+      // some ops will return int in which case we need to cast result
+      if (op === '%') {
+        var castFloat = true;
+      }
       var toNumber = false;
       if (op in BINARY_NUM_OPS) {
         op = BINARY_NUM_OPS[op];
@@ -6579,14 +6602,17 @@ exports.moonwalk = function moonwalk(ast, fn){
         return op + '(' + leftExpr + ', ' + rightExpr + ')';
       } else
       if (toNumber) {
-        if (node.left.type !== 'Literal' || typeof node.left.value !== 'number') {
+        if (!isNumericExpr(node.left)) {
           leftExpr = 'to_number(' + leftExpr + ')';
         }
-        if (node.right.type !== 'Literal' || typeof node.right.value !== 'number') {
+        if (!isNumericExpr(node.right)) {
           rightExpr = 'to_number(' + rightExpr + ')';
         }
       }
       var result = leftExpr + ' ' + op + ' ' + rightExpr;
+      if (castFloat) {
+        result = '(float)(' + result + ')';
+      } else
       //todo: is this really needed?
       if (node.parent.type === 'BinaryExpression') {
         return '(' + result + ')';
@@ -6807,6 +6833,21 @@ exports.moonwalk = function moonwalk(ast, fn){
   }
 
 
+  // used to determine when we can omit to_number() so as to prevent stuff
+  //  like: to_number(5.0 - 2.0) - 1.0;
+  function isNumericExpr(node) {
+    if (node.type === 'Literal' && typeof node.value === 'number') {
+      return true;
+    }
+    if (node.type === 'UnaryExpression' && node.operator in NUM_SAFE_UNARY_OPS) {
+      return true;
+    }
+    if (node.type === 'BinaryExpression' && node.operator in NUM_SAFE_BINARY_OPS) {
+      return true;
+    }
+  }
+
+
   function encodeLiteral(value) {
     var type = (value === null) ? 'null' : typeof value;
     if (type === 'undefined') {
@@ -6881,6 +6922,8 @@ exports.moonwalk = function moonwalk(ast, fn){
   var escope = _dereq_('escope');
 
   var codegen = _dereq_('./codegen');
+
+  var COMMENT_OR_STRING = /'(\\.|[^'\n])*'|"(\\.|[^"\n])*"|\/\*([\s\S]*?)\*\/|\/\/.*?\n/g;
 
   /**
    * opts.source - JS source code to transform
@@ -7066,32 +7109,72 @@ exports.moonwalk = function moonwalk(ast, fn){
   }
 
 
-  function buildRuntime() {
+  function buildRuntime(opts) {
+    opts = opts || {};
+    if (!opts.includeAllModules) {
+      var includeModules = opts.includeModules || [];
+      includeModules = includeModules.reduce(function(includeModules, name) {
+        includeModules[name] = true;
+        return includeModules;
+      }, {});
+    }
     var source = fs.readFileSync(path.join(__dirname, '../runtime.php'), 'utf8');
-    var output = [];
+    var fileList = [];
+    var totalModules = 0;
     source.replace(/require_once\('(.+?)'\)/g, function(_, file) {
+      var name = file.split('/').pop().split('.')[0];
+      if (includeModules && file.indexOf('php/modules/') === 0) {
+        if (!includeModules.hasOwnProperty(name)) {
+          return;
+        }
+        totalModules += 1;
+      }
+      if (name === 'Debug' && !opts.includeDebug) {
+        return;
+      }
+      if (name === 'Test' && !opts.includeTest) {
+        return;
+      }
+      fileList.push(file);
+    });
+    var output = fileList.map(function(file) {
+      var name = file.split('/').pop().split('.')[0];
+      //if no modules were included, remove the Module reference
+      if (includeModules && totalModules === 0 && name === 'Module') {
+        return;
+      }
+      if (opts.log) {
+        opts.log('Adding runtime file: ' + file);
+      }
       var source = fs.readFileSync(path.join(__dirname, '..', file), 'utf8');
       source = source.replace(/^<\?php/, '');
       source = source.replace(/^\n+|\n+$/g, '');
-      output.push(source);
+      return source;
     });
     output.unshift('mb_internal_encoding("UTF-8");\n');
     var timezone = new Date().toString().slice(-4, -1);
     output.unshift('define("LOCAL_TZ", "' + timezone + '");\n');
     output = output.join('\n');
-    //note: this is a really primitive way to remove comments from PHP; it will
-    // choke on several edge cases, but it's OK because we don't have anything
-    // too funky in our runtime code
-    output = output.replace(/'(\\.|[^'\n])*'|"(\\.|[^"\n])*"|\/\*([\s\S]*?)\*\/|\/\/.*?\n/g, function(match) {
+    output = removeComments(output);
+    output = removeEmptyLines(output);
+    return output;
+  }
+
+  function removeComments(code) {
+    //primitive method of removing comments from PHP; it might choke on some
+    // edge cases, but it's OK because we don't have anything too funky in our
+    // runtime code
+    return code.replace(COMMENT_OR_STRING, function(match) {
       var ch = match.charAt(0);
       if (ch === '"' || ch === "'") {
         return match;
       }
       return (match.slice(0, 2) === '//') ? '\n' : '';
     });
-    //remove empty lines
-    output = output.replace(/\n([ \t]*\n)+/g, '\n');
-    return output;
+  }
+
+  function removeEmptyLines(code) {
+    return code.replace(/\n([ \t]*\n)+/g, '\n');
   }
 
   function setHidden(object, name, value) {
