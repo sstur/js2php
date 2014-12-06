@@ -4,29 +4,31 @@ This tool transforms JavaScript to PHP. Just for fun.
 
 [View Online Demo][2]
 
-[![Example Code](/demo/images/example.png?raw=true)][2]
+[![Example Code](https://raw.githubusercontent.com/sstur/js2php/master/demo/images/example.png)][2]
 
 ### Why?
 
-This is a proof-of-concept started at a hackathon recently to see if it could be done. There's some interesting aspects of the two languages that make this a really interesting challenge: lexical scope, prototypal inheritance, duality of `+` operator in JS, PHP's implicit variable declaration, etc. A lot of this had to be implemented in runtime helpers with type checking, but it turns out it's totally doable.
+This is a proof-of-concept started at a hackathon recently, just for fun. There are various aspects of the two languages that make this a really interesting challenge: lexical scope, prototypal inheritance, duality of `+` operator in JS, PHP's implicit variable declaration, etc. A lot of this had to be implemented in runtime helpers with type checking, but it turns out JavaScript and PHP are similar enough to do this as a source transformation without actually building an interpreter.
 
 ### What could this possibly be used for?
 
-There are dozens of ["compile to JS"][3] languages available (Coffee, TypeScript, Dart), but not many good choices in the PHP world[**](#alternatives). PHP is ubiquitous in bulk hosting, it runs on Google App Engine, AppFog, Rackspace Cloud Sites and virtually every LAMP stack in the world. So if you need to host on PHP but don't like writing PHP, well tough luck. ...unless you could write in JS and deploy to PHP!
+There are dozens of ["compile to JS"][3] languages available (Coffee, TypeScript, Dart), but not many good choices in the PHP space[**](#alternatives). PHP is ubiquitous in bulk hosting, it runs on almost every web server around. PHP applications are generally easy to host and maintain. So if you need to host on PHP but don't like writing PHP, well tough. ...unless you could write in JS and deploy to PHP!
 
 ### That's madness!
 
-Maybe so. But if you wanted a compile-to-PHP language, JavaScript (or a subset thereof) is a pretty solid choice. There's plenty of tooling, libraries, community, etc. Plus web developers have to know JS anyway because it's in the browser. OK, I'm not suggesting you deploy this generated PHP to production, but if this project matures that might become feasable. I could imagine a JS dev creating a cool thing in JS and then compiling to PHP to put it up on CodeCanyon. The same application might then be run on [Node][4] using [Fibers][7] and the JVM via [Nahsorn][5] or [DynJS][6]. Another interesting use case is this: your web app has a need for some user-generated scripting (think plugins) but you can't just run untrusted PHP on your server. Well, what if you could expose a small API via JS instead. Then compile the user's JS into perfectly safe PHP that has no disk or network access.
+Maybe so. But if you wanted a compile-to-PHP language, JavaScript is a fairly solid choice. There's heaps of tooling, libraries, community, etc. Plus web developers should know JavaScript anyway because it's the language of the browser. We're not at a place where you can really deploy this stuff to production, but that could become feasible at some point. I can imagine building a simple web app in JS and then compiling it to PHP to run on a LAMP stack and then run the same application on [Node][4] using [Fibers][7] or maybe even on the JVM via [Nahsorn][5] or [DynJS][6] (stay tuned for a PoC).
+
+Another use case might be allowing some user-generated scripting (think plugins). Your application could compile user-generated JS safely to PHP to be run server-side. None of the usual PHP functions are exposed and there is no disk/network access or eval. You can expose a carefully defined set of functions to JS land.
 
 ### What about performance?
 
-Sure, you pay a performance penalty at runtime, but seriously, have you run mainstream PHP apps before? It's not like the performance bar is too high (I think a default WP install runs 27 SQL queries to render the homepage). Your app is likely not CPU bound anyway (and if it is, then you should be running Node + worker processes or some other awesome solution).
+Sure, you'll take a performance hit at runtime, but let's face it, mainstream PHP apps haven't exactly set the performance bar too high (I think a default WP install runs 27 SQL queries to render a single page). Your app is likely not CPU bound anyway (and if it is, you should be running Node + worker processes or some other awesome solution).
 
-At this point I'm focusing on correctness, not performance, and this is very alpha stuff, but it works.
+At this point I'm focusing on correctness, not performance, and this is very alpha stuff, but so far it seems the performance penalty is not prohibitively expensive.
 
 ### Project Status
 
-The core language is mostly implemented and has some tests (Object, Array, Math lib, String methods, etc) but there is no interface to the outside world besides `console.log()` and `process.exit()`. A basic HTTP module is in the works, but there's no file-system or database access and there's no formal way to call into PHP from JS.
+The core language constructs, classes and methods are mostly implemented and we have decent test coverage. I'm working on an opt-in module system to interface with request/response and file-system. Database access, HTTP client, crypto and other modules to follow. Specific modules can be specified at compile time; by default js2php will only allow access to the outside world via `console.log()` and `process.exit()` so the generated PHP is completely safe.
 
 Feel free to contribute if this interests you.
 
@@ -70,19 +72,23 @@ Have a play with the [online demo][2]. The generated code will look something li
 
 ```php
 <?php
-$HelloWorld = new Func("HelloWorld", function($this_, $arguments, $greeting) {
+$HelloWorld = new Func("HelloWorld", function($greeting = null) {
+  $this_ = Func::getContext();
   set($this_, "greeting", $greeting);
 });
-set(get($HelloWorld, "prototype"), "go", new Func(function($this_, $arguments, $subject) use (&$console) {
+set(get($HelloWorld, "prototype"), "greet", new Func(function($subject = null) use (&$console) {
+  $this_ = Func::getContext();
   call_method($console, "log", get($this_, "greeting"), $subject);
 }));
-call_method(_new($HelloWorld, "Hi"), "go", "world");
+call_method(_new($HelloWorld, "Hi"), "greet", "world");
 ```
 
 It's not particularly elegant, but it's human-readable and has all the basics we need to implement standards-compliant JS in PHP.
 
-### Alternatives
-There are a handful of other compile-to-PHP languages I want to mention. [Haxe][11] is probably the most popular and is a solid statically-typed language. I also came across [Pharen][13] (a Lisp implementation), [gutscript][19] and [Mammouth][14] (both similar to CoffeeScript) and [Pratphall][15] (TypeScript syntax). There's also another [JS to PHP project][17] from a few years back which is written in PHP and [a project with the same name as this one][18] which is similar at the parsing level, but somewhat different beyond that (accepts JS syntax but otherwise behaves like PHP). Most of these projects are either incomplete or abandoned which is a shame. I love the idea of writing PHP but in a friendlier language or syntax, and it would be great to see more usable choices in this space!
+### Alternative "Compile to PHP" languages
+There are a handful of other projects worth noting. [Haxe][11] is probably the most popular and is a solid statically-typed language which compiles to PHP (among others). [gutscript][19] and [Mammouth][14] are both syntactically similar to CoffeeScript, [Pharen][13] is a Lisp implementation and [Pratphall][15] uses TypeScript syntax. There's also [another project with the same name as this][18] which is similar at the parsing level, but somewhat different in execution. It accepts JS syntax but otherwise behaves like PHP.
+
+Most of these projects are either incomplete or abandoned which is a shame. I love the idea of writing PHP in a friendlier syntax, especially if the source-transform can iron out some of the core inconsistencies in to PHP. It would be great to see more usable choices in this space!
 
 ### Tests
 Run `npm test`. Requires PHP 5.3+ or [HHVM][16].
