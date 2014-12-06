@@ -40,6 +40,16 @@ function _instanceof($obj, $fn) {
   return false;
 }
 
+function _divide($a, $b) {
+  $a = to_number($a);
+  $b = to_number($b);
+  if ($b === 0.0) {
+    if ($a === 0.0) return NAN;
+    return ($a < 0.0) ? -INF : INF;
+  }
+  return $a / $b;
+}
+
 function _plus() {
   $total = 0;
   $strings = array();

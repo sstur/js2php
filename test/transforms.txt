@@ -25,7 +25,17 @@ call_method($console, "log", _concat("hi ", $name, "!"));
 ----
 x = a + b / c + d;
 ====
-$x = _plus($a, ($b / $c), $d);
+$x = _plus($a, _divide($b, $c), $d);
+
+----
+x = a % b;
+====
+$x = (float)(to_number($a) % to_number($b));
+
+----
+x = a * b;
+====
+$x = to_number($a) * to_number($b);
 
 ----
 true ? 'true' : false ? 't' : 'f';

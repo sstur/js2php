@@ -1,6 +1,17 @@
 /*global global, testSuite*/
 testSuite('numbers', function(assert) {
 
+  testSuite('plus', function() {
+    assert('float to int', 1.5 + 1.5 === 3);
+  });
+
+  testSuite('divide', function() {
+    assert('3 / 2', 3 / 2 === 1.5);
+    assert('3 / 0', 3 / 0 === Infinity);
+    assert('-3 / 0', -3 / 0 === -Infinity);
+    assert('0 / 0', String(0 / 0) === 'NaN');
+  });
+
   testSuite('NaN and Infinity', function() {
     assert('NaN global', 'NaN' in global);
     assert('Number.NaN', NaN.toString() === Number.NaN.toString());
@@ -17,8 +28,7 @@ testSuite('numbers', function(assert) {
     assert('Number(undefined)', isNaN(Number(undefined)));
   });
 
-  testSuite('operators', function() {
-    //coercion
+  testSuite('operator coercion', function() {
     assert('"2" < "a"', '2' < 'a' === true);
     assert('2 < "a"', 2 < 'a' === false);
     assert("str + 1", 'x' + 1 === 'x1');

@@ -14,10 +14,12 @@
 
   //these operators expect numbers
   var BINARY_NUM_OPS = {
-    '+': '_plus',
+    // `+` is not in this list because it's a special case
     '-': '-',
     '%': '%',
-    //'*': '*', '/': '/',
+    '*': '*',
+    '/': '_divide',
+    // let's assume these comparison operators are only used on numbers
     //'<': '<', '<=': '<=',
     //'>': '>', '>=': '>=',
     '&': '&', //bitwise and

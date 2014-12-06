@@ -8,8 +8,7 @@ new Func(function() {}) should use name where possible
 fs: readStream encoding; createReadStream(directory) should throw
 
 Behavior:
-  division by zero should not throw (+/- Infinity)
-  `0 / 0` should not throw (NaN)
+  `a - 1 - 2` => `to_number((to_number($a) - 1.0)) - 2.0;`
 
 Transform:
   nested expressions: wrap all then conditionally unwrap?
