@@ -38,6 +38,11 @@ x = a * b;
 $x = to_number($a) * to_number($b);
 
 ----
+x = a - 1 - 2;
+====
+$x = (to_number($a) - 1.0) - 2.0;
+
+----
 true ? 'true' : false ? 't' : 'f';
 ====
 true ? "true" : (false ? "t" : "f");

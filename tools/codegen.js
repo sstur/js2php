@@ -27,7 +27,7 @@
     '^': '^', //bitwise xor
     '<<': '<<', //bitwise left shift
     '>>': '>>', //bitwise sign-propagating right shift
-    'b:>>>': '_bitwise_zfrs' //bitwise zero-fill right shift
+    '>>>': '_bitwise_zfrs' //bitwise zero-fill right shift
   };
 
   //these operators will always return true/false
@@ -38,6 +38,23 @@
     '>': 1, '>=': 1,
     'in': 1,
     'instanceof': 1
+  };
+
+  //these operators will always return numbers
+  var NUM_SAFE_UNARY_OPS = {
+    '-': 1,
+    '+': 1,
+    '~': 1
+  };
+  var NUM_SAFE_BINARY_OPS = {
+    // `+` is not in this list because it's a special case
+    '-': 1,
+    '%': 1,
+    '*': 1, '/': 1,
+    '&': 1, '|': 1,
+    '^': 1,
+    '<<': 1, '>>': 1,
+    '>>>': 1
   };
 
   //built-in globals (should not be re-assigned)
@@ -445,10 +462,10 @@
         return op + '(' + leftExpr + ', ' + rightExpr + ')';
       } else
       if (toNumber) {
-        if (node.left.type !== 'Literal' || typeof node.left.value !== 'number') {
+        if (!isNumericExpr(node.left)) {
           leftExpr = 'to_number(' + leftExpr + ')';
         }
-        if (node.right.type !== 'Literal' || typeof node.right.value !== 'number') {
+        if (!isNumericExpr(node.right)) {
           rightExpr = 'to_number(' + rightExpr + ')';
         }
       }
@@ -673,6 +690,21 @@
       return true;
     }
     return false;
+  }
+
+
+  // used to determine when we can omit to_number() so as to prevent stuff
+  //  like: to_number(5.0 - 2.0) - 1.0;
+  function isNumericExpr(node) {
+    if (node.type === 'Literal' && typeof node.value === 'number') {
+      return true;
+    }
+    if (node.type === 'UnaryExpression' && node.operator in NUM_SAFE_UNARY_OPS) {
+      return true;
+    }
+    if (node.type === 'BinaryExpression' && node.operator in NUM_SAFE_BINARY_OPS) {
+      return true;
+    }
   }
 
 
