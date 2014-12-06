@@ -5,7 +5,7 @@ get/setters
   'length' in []
   Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}
 new Func(function() {}) should use name where possible
-fs: readStream encoding
+fs: readStream encoding; createReadStream(directory) should throw
 
 Behavior:
   division by zero should not throw (+/- Infinity)
@@ -24,7 +24,6 @@ Transform:
     `a + 'b'` => `to_string($a) . "b"`
 
 Test:
-  encodeURI/decodeURI, escape/unescape
   function scope stuff including named function expression
   for (i in array) {}
   array set returns value

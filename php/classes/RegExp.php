@@ -121,14 +121,22 @@ RegExp::$protoMethods = array(
   'exec' => function($str) {
       $self = Func::getContext();
       $str = to_string($str);
-      $result = preg_match($self->toString(true), $str, $matches);
+      //todo $offset
+      $offset = 0;
+      $result = preg_match($self->toString(true), $str, $matches, PREG_OFFSET_CAPTURE, $offset);
       if ($result === false) {
+        throw new Ex(Error::create('Error executing Regular Expression: ' . $self->toString()));
+      }
+      if ($result === 0) {
         return Object::$null;
       }
-      $self->set('lastIndex', (float)($result + strlen($matches[0])));
+      $index = $matches[0][1];
+      $self->set('lastIndex', (float)($index + strlen($matches[0][0])));
       $arr = new Arr();
-      $arr->init($matches);
-      $arr->set('index', (float)$result);
+      foreach ($matches as $match) {
+        $arr->push($match[0]);
+      }
+      $arr->set('index', (float)$index);
       $arr->set('input', $str);
       return $arr;
     },

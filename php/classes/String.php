@@ -194,6 +194,26 @@ Str::$protoMethods = array(
       //note: trim doesn't work here because \xA0 is a multibyte character in utf8
       return preg_replace('/^[\s\x0B\xA0]+|[\s\x0B\​xA0]+$/u', '', $self->value);
     },
+  'match' => function($regex) use (&$RegExp) {
+      $self = Func::getContext();
+      $str = $self->value;
+      if (!($regex instanceof RegExp)) {
+        $regex = $RegExp->construct($regex);
+      }
+      if (!$regex->globalFlag) {
+        return $regex->callMethod('exec', $str);
+      }
+      $results = new Arr();
+      $index = 0;
+      $preg = $regex->toString(true);
+      while (preg_match($preg, $str, $matches, PREG_OFFSET_CAPTURE, $index) === 1) {
+        $foundAt = $matches[0][1];
+        $foundStr = $matches[0][0];
+        $index = $foundAt + strlen($foundStr);
+        $results->push($foundStr);
+      }
+      return $results;
+    },
   'replace' => function($search, $replace) {
       $self = Func::getContext();
       $str = $self->value;
