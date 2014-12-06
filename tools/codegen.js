@@ -16,7 +16,7 @@
   var BINARY_NUM_OPS = {
     '+': '_plus',
     '-': '-',
-    //todo: 1 / 0 === Infinity?
+    '%': '%',
     //'*': '*', '/': '/',
     //'<': '<', '<=': '<=',
     //'>': '>', '>=': '>=',
@@ -424,6 +424,10 @@
       if (op === '!=') {
         return '!eq(' + this.generate(node.left) + ', ' + this.generate(node.right) + ')';
       }
+      // some ops will return int in which case we need to cast result
+      if (op === '%') {
+        var castFloat = true;
+      }
       var toNumber = false;
       if (op in BINARY_NUM_OPS) {
         op = BINARY_NUM_OPS[op];
@@ -447,6 +451,9 @@
         }
       }
       var result = leftExpr + ' ' + op + ' ' + rightExpr;
+      if (castFloat) {
+        result = '(float)(' + result + ')';
+      } else
       //todo: is this really needed?
       if (node.parent.type === 'BinaryExpression') {
         return '(' + result + ')';

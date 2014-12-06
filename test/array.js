@@ -127,7 +127,7 @@ testSuite('array', function(assert) {
     });
     assert('all', b.join() === '2,4,5,6,7');
     var c = a.filter(function(n) {
-      return n % 2 > 0;
+      return n % 2;
     });
     assert('contents', c.join() === '5,7');
   });
