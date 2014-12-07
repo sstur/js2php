@@ -1,6 +1,8 @@
 browserify tools/transform.js --standalone Transformer -o demo/js/transformer.js
-js2php examples/http.js > _http.php
-php -S 127.0.0.1:8080 _http.php
+
+js2php --modules all examples/http.js > examples/compiled/http.php
+serv --spawn "php -S 127.0.0.1:8080 examples/compiled/http.php" --proxy http://127.0.0.1:8080
+
 echo "console.log(123)" | node js2php --quiet | php
 rsync -av ../js2php dev:~/
 
