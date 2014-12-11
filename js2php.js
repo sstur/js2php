@@ -59,12 +59,17 @@
       }
     }
 
+    var infiles = argv._;
+    if (infiles.length) {
+      //process input from files specified as arguments
+      processInputFiles(infiles);
+    } else
     if (!process.stdin.isTTY) {
       //process input from stdin
       processInputStream();
     } else {
-      //process input from files specified as arguments
-      processInputFiles();
+      log('No input file(s) specified.');
+      process.exit(1);
     }
 
     function processInputStream() {
@@ -92,12 +97,7 @@
       stdin.resume();
     }
 
-    function processInputFiles() {
-      var infiles = argv._;
-      if (!infiles.length) {
-        log('No input file(s) specified.');
-        process.exit(1);
-      }
+    function processInputFiles(infiles) {
       var output = infiles.map(function(infile) {
         try {
           var source = fs.readFileSync(infile, 'utf8');
