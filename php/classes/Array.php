@@ -240,7 +240,7 @@ Arr::$protoMethods = array(
       $result = new Arr();
       for ($i = $start; $i < $end; $i++) {
         $value = $self->get($i);
-        $result->set($i, $value);
+        $result->push($value);
       }
       return $result;
     },
