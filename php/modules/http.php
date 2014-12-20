@@ -26,7 +26,19 @@ Module::define('request', function() {
         return isset($SERVER['REMOTE_ADDR']) ? $SERVER['REMOTE_ADDR'] : '127.0.0.1';
       },
     'read' => function($bytes) {
-        throw new Ex(Error::create('not implemented: Request.read()'));
+        $self = Func::getContext();
+        if (!property_exists($self, 'stream')) {
+          $self->stream = fopen('php://input', 'r');
+        }
+        if (feof($self->stream)) {
+          fclose($self->stream);
+          return Object::$null;
+        }
+        return new Buffer(fread($self->stream, $bytes));
+      },
+    'readAll' => function() {
+        $data = file_get_contents('php://input');
+        return new Buffer($data);
       }
   );
   $request = new Object();
@@ -55,4 +67,10 @@ Module::define('response', function() {
   $response = new Object();
   $response->setMethods($methods, true, false, true);
   return $response;
+});
+
+array_push(Ex::$errorOutputHandlers, function($stackTrace) {
+  http_response_code(500);
+  header("Content-Type: text/plain");
+  echo $stackTrace;
 });

@@ -1,7 +1,8 @@
 <?php
 class Ex extends Exception {
-  public $value = null;
   const MAX_STR_LEN = 32;
+  public $value = null;
+  static $errorOutputHandlers = array();
 
   function __construct($value) {
     if ($value instanceof Error) {
@@ -32,25 +33,32 @@ class Ex extends Exception {
    * @param Exception $ex
    */
   static function handleException($ex) {
+    global $console;
     $stack = null;
+    $output = array();
     if ($ex instanceof Ex) {
       $value = $ex->value;
       if ($value instanceof Error) {
         $stack = $value->stack;
         $frame = array_shift($stack);
         if (isset($frame['file'])) {
-          echo $frame['file'] . "(" . $frame['line'] . ")\n";
+          $output[] = $frame['file'] . "(" . $frame['line'] . ")\n";
         }
-        echo $value->getMessage() . "\n";
+        $output[] = $value->getMessage() . "\n";
       }
     }
     if ($stack === null) {
-      echo $ex->getFile() . "(" . $ex->getLine() . ")\n";
-      echo $ex->getMessage() . "\n";
+      $output[] = $ex->getFile() . "(" . $ex->getLine() . ")\n";
+      $output[] = $ex->getMessage() . "\n";
       $stack = $ex->getTrace();
     }
-    echo self::renderStack($stack) . "\n";
-    echo "----\n";
+    $output[] = self::renderStack($stack) . "\n";
+    $output[] = "----\n";
+    $output = implode('', $output);
+    foreach(self::$errorOutputHandlers as $fn) {
+      $fn($output);
+    }
+    $console->callMethod('log', $output);
     exit(1);
   }
 

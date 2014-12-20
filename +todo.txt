@@ -1,3 +1,4 @@
+bug: `var s = 'a'; s += 'b'`
 use node-commander instead of yargs
 json parse reviver
 object data to use array instead of ArrayObject
