@@ -218,6 +218,13 @@ Module::define('fs', function() {
         $fullPath = $helpers['mapPath']($path);
         $helpers['removeDir']($fullPath, $deep);
       },
+    'removeDirIfExists' => function($path, $deep = false) use (&$helpers, &$fs) {
+        $fullPath = $helpers['mapPath']($path);
+        if (!is_dir($fullPath)) {
+          return;
+        }
+        $helpers['removeDir']($fullPath, $deep);
+      },
     'moveDir' => function($src, $dst) use (&$helpers) {
         $src = $helpers['mapPath']($src);
         if (!is_dir($src)) {
@@ -239,13 +246,6 @@ Module::define('fs', function() {
         if ($result === false) {
           $helpers['throwError']('EIO', array($src, $dst));
         }
-      },
-    'removeDirIfExists' => function($path, $deep = false) use (&$helpers, &$fs) {
-        $fullPath = $helpers['mapPath']($path);
-        if (!is_dir($fullPath)) {
-          return;
-        }
-        $helpers['removeDir']($fullPath, $deep);
       },
     'getDirContents' => function($path) use (&$helpers) {
         $fullPath = $helpers['mapPath']($path);
