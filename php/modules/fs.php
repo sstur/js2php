@@ -218,6 +218,28 @@ Module::define('fs', function() {
         $fullPath = $helpers['mapPath']($path);
         $helpers['removeDir']($fullPath, $deep);
       },
+    'moveDir' => function($src, $dst) use (&$helpers) {
+        $src = $helpers['mapPath']($src);
+        if (!is_dir($src)) {
+          $helpers['throwError']('ENOENT', $src);
+        }
+        $dst = $helpers['mapPath']($dst);
+        $dstDir = dirname($dst);
+        $dstName = basename($dst);
+        if (!is_dir($dstDir)) {
+          $helpers['throwError']('ENOENT', $dstDir);
+        }
+        $dst = $dstDir . DIRECTORY_SEPARATOR . $dstName;
+        try {
+          $result = rename($src, $dst);
+        } catch(Exception $e) {
+          $helpers['handleException']($e, $src, $dst);
+        }
+        //fallback for if set_error_handler didn't do it's thing
+        if ($result === false) {
+          $helpers['throwError']('EIO', array($src, $dst));
+        }
+      },
     'removeDirIfExists' => function($path, $deep = false) use (&$helpers, &$fs) {
         $fullPath = $helpers['mapPath']($path);
         if (!is_dir($fullPath)) {
@@ -329,7 +351,8 @@ Module::define('fs', function() {
         foreach ($paths as $path) {
           $message = str_replace($path, '', $message);
         }
-        $message = trim(array_slice(explode(':', $message), -1)[0]);
+        $slice = array_slice(explode(':', $message), -1);
+        $message = trim($slice[0]);
         if (strpos($message, 'No such file or directory') !== false) {
           $helpers['throwError']('ENOENT', $paths, 1);
         } else if (strpos($message, 'Permission denied') !== false) {

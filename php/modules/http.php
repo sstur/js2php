@@ -49,7 +49,15 @@ Module::define('request', function() {
 Module::define('response', function() {
   $methods = array(
     'writeHead' => function($statusCode, $statusReason, $headers) {
-        http_response_code($statusCode);
+        //send the response code
+        $sapiName = substr(php_sapi_name(), 0, 3);
+        if ($sapiName === 'cgi' || $sapiName === 'fpm') {
+          header('Status: ' . $statusCode . ' ' . $statusReason);
+        } else {
+          $protocol = isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0';
+          header($protocol . ' ' . $statusCode . ' ' . $statusReason);
+        }
+        //send the response headers
         $keys = $headers->getOwnKeys(true);
         foreach ($keys as $key) {
           $value = $headers->get($key);
