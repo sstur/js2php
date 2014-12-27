@@ -4,24 +4,22 @@ $console = call_user_func(function() {
   $stdout = defined('STDOUT') ? STDOUT : null;
   $stderr = defined('STDERR') ? STDERR : null;
 
-  $toString = function($values) {
-    $output = array();
-    foreach ($values as $value) {
-      if ($value instanceof Object) {
-        $toString = $value->get('inspect');
-        if (!($toString instanceof Func)) {
-          $toString = $value->get('toString');
-        }
-        if (!($toString instanceof Func)) {
-          $toString = Object::$protoObject->get('toString');
-        }
-        $value = $toString->call($value);
-      } else {
-        $value = to_string($value);
+  $toString = function($value) {
+    if ($value instanceof Object) {
+      if (class_exists('Debug')) {
+        //should be ok to call the underlying function directly
+        return call_user_func(Debug::$inspect->fn, $value);
       }
-      $output[] = $value;
+      $toString = $value->get('inspect');
+      if (!($toString instanceof Func)) {
+        $toString = $value->get('toString');
+      }
+      if (!($toString instanceof Func)) {
+        $toString = Object::$protoObject->get('toString');
+      }
+      return $toString->call($value);
     }
-    return join(' ', $output) . "\n";
+    return to_string($value);
   };
 
   $console = new Object();
@@ -30,16 +28,22 @@ $console = call_user_func(function() {
     if ($stdout === null) {
       $stdout = fopen('php://stdout', 'w');
     }
-    $output = $toString(func_get_args());
-    write_all($stdout, $output);
+    $output = array();
+    foreach (func_get_args() as $value) {
+      $output[] = $toString($value);
+    }
+    write_all($stdout, join(' ', $output) . "\n");
   }));
 
   $console->set('error', new Func(function() use (&$stderr, &$toString) {
     if ($stderr === null) {
       $stderr = fopen('php://stderr', 'w');
     }
-    $output = $toString(func_get_args());
-    write_all($stderr, $output);
+    $output = array();
+    foreach (func_get_args() as $value) {
+      $output[] = $toString($value);
+    }
+    write_all($stderr, join(' ', $output) . "\n");
   }));
 
   return $console;
