@@ -106,10 +106,10 @@ class Object {
     foreach ($this->data as $key => $prop) {
       if ($onlyEnumerable) {
         if ($prop->enumerable) {
-          $arr[] = $key;
+          $arr[] = (string)$key;
         }
       } else {
-        $arr[] = $key;
+        $arr[] = (string)$key;
       }
     }
     return $arr;
@@ -119,7 +119,7 @@ class Object {
   function getKeys(&$arr = array()) {
     foreach ($this->data as $key => $prop) {
       if ($prop->enumerable) {
-        $arr[] = $key;
+        $arr[] = (string)$key;
       }
     }
     $proto = $this->proto;
@@ -172,7 +172,7 @@ class Object {
    */
   function setMethods($methods, $writable = null, $enumerable = null, $configurable = null) {
     foreach ($methods as $name => $fn) {
-      $func = new Func($name, $fn);
+      $func = new Func((string)$name, $fn);
       $func->strict = true;
       $this->setProperty($name, $func, $writable, $enumerable, $configurable);
     }
