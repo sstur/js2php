@@ -216,13 +216,14 @@ Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$J
   });
   $reduceToSingleString = new Func("reduceToSingleString", function($output = null, $base = null, $braces = null) {
     $numLinesEst = 0.0;
-    $length = call_method($output, "reduce", new Func(function($prev = null, $cur = null) use (&$numLinesEst) {
+    $length = 0.0;
+    call_method($output, "forEach", new Func(function($str = null) use (&$numLinesEst, &$length) {
       $numLinesEst++;
-      if (call_method($cur, "indexOf", "\n") >= 0.0) {
+      if (call_method($str, "indexOf", "\n") >= 0.0) {
         $numLinesEst++;
       }
-      return _plus($prev, get($cur, "length"), 1.0);
-    }), 0.0);
+      $length += _plus(get($str, "length"), 1.0);
+    }));
     if ($length > 60.0) {
       return _concat(get($braces, 0.0), $base === "" ? "" : (_concat($base, "\n ")), " ", call_method($output, "join", ",\n  "), " ", get($braces, 1.0));
     }
