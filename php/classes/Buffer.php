@@ -130,16 +130,34 @@ Buffer::$protoMethods = array(
       $self->raw = substr($old, 0, $i) . chr($byte) . substr($old, $i + 1);
       return $self->raw;
     },
-  //todo bounds check
-  'write' => function($data, $enc = null, $start = null, $len = null) {
+  //todo: bounds check; see node[test/parallel/test-buffer.js] ~L243 `assert.throws`
+  'write' => function($data /*, $offset = null, $len = null, $enc = null*/) {
       $self = Func::getContext();
-      //allow second argument (enc) to be omitted
-      if (func_num_args() > 1 && !is_string($enc)) {
-        $len = $start;
-        $start = $enc;
-        $enc = null;
+      //all optional args
+      $args = array_slice(func_get_args(), 1);
+      //the number of optional args
+      $count = func_num_args() - 1;
+      $offset = null; $len = null; $enc = null;
+      if ($count > 0) {
+        //allow write(data, enc), write(data, enc, offset), write(data, enc, offset, length)
+        if (is_string($args[0])) {
+          $enc = array_shift($args);
+          $offset = array_shift($args);
+          $len = array_shift($args);
+          //allow write(data, offset), write(data, offset, enc), write(data, offset, len), write(data, offset, enc, len)
+        } else if (is_int_or_float($args[0])) {
+          $offset = array_shift($args);
+          $enc = array_pop($args);
+          $len = array_pop($args);
+          //swap len/enc if necessary
+          if (is_int_or_float($enc)) {
+            list($len, $enc) = array($enc, $len);
+          }
+        }
       }
-      $data = new Buffer($data, $enc);
+      if (!($data instanceof Buffer)) {
+        $data = new Buffer($data, $enc);
+      }
       $new = $data->raw;
       if ($len !== null) {
         $newLen = (int)$len;
@@ -147,14 +165,14 @@ Buffer::$protoMethods = array(
       } else {
         $newLen = $data->length;
       }
-      $start = (int)$start;
+      $offset = (int)$offset;
       $old = $self->raw;
       $oldLen = $self->length;
-      if ($start + $newLen > strlen($old)) {
-        $newLen = $oldLen - $start;
+      if ($offset + $newLen > strlen($old)) {
+        $newLen = $oldLen - $offset;
       }
-      $pre = ($start === 0) ? '' : substr($old, 0, $start);
-      $self->raw = $pre . $new . substr($old, $start + $newLen);
+      $pre = ($offset === 0) ? '' : substr($old, 0, $offset);
+      $self->raw = $pre . $new . substr($old, $offset + $newLen);
     },
   'slice' => function($start, $end = null) {
       $self = Func::getContext();

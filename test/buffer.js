@@ -56,15 +56,70 @@ testSuite('buffer', function(assert) {
 
 
   testSuite('write', function() {
-    var b = new Buffer('abcdef');
-    b.write('xx', 'ascii', 2);
-    assert('write all', b.toString() === 'abxxef');
-    b.write('yyzz', 'ascii', 2, 2);
-    assert('write some', b.toString() === 'abyyef');
-    b.write('__', 0);
-    assert('write beginning', b.toString() === '__yyef');
-    b.write('---', 4, 2);
-    assert('write end', b.toString() === '__yy--');
+    var chunks = ['010203', '0405'];
+    var totalLength = 0;
+    chunks.forEach(function(chunk) {
+      totalLength += Buffer.byteLength(chunk, 'hex');
+    });
+    var i, output, buf;
+
+    //test: write(buffer, offset)
+    i = 0;
+    output = new Buffer(totalLength);
+    chunks.forEach(function(chunk) {
+      output.write(new Buffer(chunk, 'hex'), i);
+      i += Buffer.byteLength(chunk, 'hex');
+    });
+    assert('write(buffer, offset)', output.toString('hex') === chunks.join(''));
+
+    //test: write(string, offset, enc)
+    i = 0;
+    output = new Buffer(totalLength);
+    chunks.forEach(function(chunk) {
+      output.write(chunk, i, 'hex');
+      i += Buffer.byteLength(chunk, 'hex');
+    });
+    assert('write(string, offset, enc)', output.toString('hex') === chunks.join(''));
+
+    //test: write(string, enc, offset)
+    i = 0;
+    output = new Buffer(totalLength);
+    chunks.forEach(function(chunk) {
+      output.write(chunk, 'hex', i);
+      i += Buffer.byteLength(chunk, 'hex');
+    });
+    assert('write(string, enc, offset)', output.toString('hex') === chunks.join(''));
+
+    //write(string, enc)
+    buf = new Buffer('abcdef');
+    buf.write('xx', 'ascii');
+    assert('write(string, enc)', buf.toString() === 'xxcdef');
+
+    //write(string, enc, offset)
+    buf = new Buffer('abcdef');
+    buf.write('xx', 'ascii', 2);
+    assert('write(string, enc, offset)', buf.toString() === 'abxxef');
+
+    //write(string, enc, offset, len)
+    buf = new Buffer('abcdef');
+    buf.write('xxyy', 'ascii', 2, 2);
+    assert('write(string, enc, offset, len)', buf.toString() === 'abxxef');
+
+    //write(data, offset)
+    buf.write('__', 0);
+    assert('write(data, offset)', buf.toString() === '__xxef');
+
+    //write(data, offset, len)
+    buf.write('---', 4, 2);
+    assert('write(data, offset, len)', buf.toString() === '__xx--');
+
+    //write(data, offset, len, enc)
+    buf.write('78787979', 4, 2, 'hex');
+    assert('write(data, offset, len, enc)', buf.toString() === '__xxxx');
+
+    //write(data, offset, enc, len)
+    buf.write('78787979', 0, 'hex', 2);
+    assert('write(data, offset, enc, len)', buf.toString() === 'xxxxxx');
   });
 
 
