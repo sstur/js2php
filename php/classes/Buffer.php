@@ -222,10 +222,6 @@ Buffer::$protoMethods = array(
   'inspect' => function() {
       $self = Func::getContext();
       return $self->toJSON(Buffer::$SHOW_MAX);
-    },
-  'clone' => function() {
-      $self = Func::getContext();
-      return new Buffer($self->raw, 'binary');
     }
 );
 
