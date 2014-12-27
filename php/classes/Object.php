@@ -293,8 +293,11 @@ Object::$classMethods = array(
       if (!($obj instanceof Object)) {
         throw new Ex(Error::create('Object.getOwnPropertyDescriptor called on non-object'));
       }
-      $result = $obj->get($key);
-      return ($result) ? $result->getDescriptor() : null;
+      if (array_key_exists($key, $obj->data)) {
+        return $obj->data->{$key}->getDescriptor();
+      } else {
+        return null;
+      }
     },
   'defineProperty' => function($obj, $key, $desc) {
       //todo: ensure configurable
