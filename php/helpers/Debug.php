@@ -170,49 +170,34 @@ Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$J
     }));
     return $output;
   });
-  $formatProperty = new Func("formatProperty", function($ctx = null, $value = null, $recurseTimes = null, $keys = null, $key = null, $array = null) use (&$Object, &$formatValue, &$JSON) {
-    $desc = (is($or_ = (is($and_ = get($Object, "getOwnPropertyDescriptor")) ? call_method($Object, "getOwnPropertyDescriptor", $value, $key) : $and_)) ? $or_ : new Object("value", get($value, $key)));
-    if (is(get($desc, "get"))) {
-      if (is(get($desc, "set"))) {
-        $str = call_method($ctx, "stylize", "[Getter/Setter]", "special");
-      } else {
-        $str = call_method($ctx, "stylize", "[Getter]", "special");
-      }
-
-    } else {
-      if (is(get($desc, "set"))) {
-        $str = call_method($ctx, "stylize", "[Setter]", "special");
-      }
-    }
-
+  $formatProperty = new Func("formatProperty", function($ctx = null, $value = null, $recurseTimes = null, $keys = null, $key = null, $array = null) use (&$formatValue, &$JSON) {
+    $desc = new Object("value", get($value, $key));
     if (call_method($keys, "indexOf", $key) < 0.0) {
       $name = _concat("[", $key, "]");
     }
-    if (not($str)) {
-      if (call_method(get($ctx, "seen"), "indexOf", get($desc, "value")) < 0.0) {
-        if ($recurseTimes === Object::$null) {
-          $str = call($formatValue, $ctx, get($desc, "value"), Object::$null);
-        } else {
-          $str = call($formatValue, $ctx, get($desc, "value"), to_number($recurseTimes) - 1.0);
-        }
-
-        if (call_method($str, "indexOf", "\n") > -1.0) {
-          if (is($array)) {
-            $str = call_method(call_method(call_method(call_method($str, "split", "\n"), "map", new Func(function($line = null) {
-              return _concat("  ", $line);
-            })), "join", "\n"), "substr", 2.0);
-          } else {
-            $str = _concat("\n", call_method(call_method(call_method($str, "split", "\n"), "map", new Func(function($line = null) {
-              return _concat("   ", $line);
-            })), "join", "\n"));
-          }
-
-        }
+    if (call_method(get($ctx, "seen"), "indexOf", get($desc, "value")) < 0.0) {
+      if ($recurseTimes === Object::$null) {
+        $str = call($formatValue, $ctx, get($desc, "value"), Object::$null);
       } else {
-        $str = call_method($ctx, "stylize", "[Circular]", "special");
+        $str = call($formatValue, $ctx, get($desc, "value"), to_number($recurseTimes) - 1.0);
       }
 
+      if (call_method($str, "indexOf", "\n") > -1.0) {
+        if (is($array)) {
+          $str = call_method(call_method(call_method(call_method($str, "split", "\n"), "map", new Func(function($line = null) {
+            return _concat("  ", $line);
+          })), "join", "\n"), "substr", 2.0);
+        } else {
+          $str = _concat("\n", call_method(call_method(call_method($str, "split", "\n"), "map", new Func(function($line = null) {
+            return _concat("   ", $line);
+          })), "join", "\n"));
+        }
+
+      }
+    } else {
+      $str = call_method($ctx, "stylize", "[Circular]", "special");
     }
+
     if (_typeof($name) === "undefined") {
       if (is($array) && is(call_method($key, "match", new RegExp("^\\d+\$", "")))) {
         return $str;
