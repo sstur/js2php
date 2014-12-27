@@ -41,6 +41,20 @@ testSuite('buffer', function(assert) {
   });
 
 
+  testSuite('Buffer.concat', function() {
+    var a = new Buffer('010203', 'hex');
+    var b = new Buffer('0405', 'hex');
+    assert('a length', a.length === 3);
+    assert('b length', b.length === 2);
+    var c = Buffer.concat([a, b]);
+    assert('c length', c.length === 5);
+    assert('c content', c.toString('hex') === '0102030405');
+    assert('length equal', Buffer.concat([a, b], 5).toString('hex') === '0102030405');
+    assert('length greater', Buffer.concat([a, b], 6).toString('hex') === '010203040500');
+    assert('length less', Buffer.concat([a, b], 4).toString('hex') === '01020304');
+  });
+
+
   testSuite('write', function() {
     var b = new Buffer('abcdef');
     b.write('xx', 'ascii', 2);

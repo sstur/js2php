@@ -76,6 +76,35 @@ Buffer::$classMethods = array(
       global $Buffer;
       return _instanceof($obj, $Buffer);
     },
+  'concat' => function(/*Arr*/ $list, $totalLength = null) {
+      if (!($list instanceof Arr)) {
+        throw new Ex(Error::create('Usage: Buffer.concat(array, [length])'));
+      }
+      $rawList = array();
+      $length = 0;
+      foreach ($list->toArray() as $buffer) {
+        if (!($buffer instanceof Buffer)) {
+          throw new Ex(Error::create('Usage: Buffer.concat(array, [length])'));
+        }
+        $rawList[] = $buffer->raw;
+        $length += $buffer->length;
+      }
+      $newRaw = join('', $rawList);
+      if ($totalLength !== null) {
+        $totalLength = (int)$totalLength;
+        if ($totalLength > $length) {
+          $newRaw .= str_repeat("\0", $totalLength - $length);
+        } else if ($totalLength < $length) {
+          $newRaw = substr($newRaw, 0, $totalLength);
+        }
+        $length = $totalLength;
+      }
+      $newBuffer = new Buffer();
+      $newBuffer->raw = $newRaw;
+      $newBuffer->length = $length;
+      $newBuffer->set('length', (float)$length);
+      return $newBuffer;
+    },
   'byteLength' => function($string, $enc = null) {
       $b = new Buffer($string, $enc);
       return $b->length;

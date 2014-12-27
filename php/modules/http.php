@@ -78,6 +78,10 @@ Module::define('response', function() {
 });
 
 array_push(Ex::$errorOutputHandlers, function($stackTrace) {
+  //don't double echo when in cli (test suite and such)
+  if (php_sapi_name() === 'cli') {
+    return;
+  }
   http_response_code(500);
   header("Content-Type: text/plain");
   echo $stackTrace;
