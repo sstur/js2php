@@ -29,7 +29,16 @@ class Date extends Object {
   }
 
   function _initFromString($str) {
-    $tz = (substr($str, -1) === 'Z') ? 'UTC' : null;
+    $tz = null;
+    //todo: this is kinda hacky; get tz from parser
+    if (substr($str, -1) === 'Z') {
+      $tz = 'UTC';
+    } else {
+      $code = substr($str, -3);
+      if ($code === 'GMT' || $code === 'UTC') {
+        $tz = 'UTC';
+      }
+    }
     $arr = self::parse($str);
     $this->_initFromParts($arr, $tz);
   }
@@ -37,29 +46,28 @@ class Date extends Object {
   function _initFromParts($arr, $tz = null) {
     $len = count($arr);
     if ($len === 1) {
-      $ms = $arr[0];
-      $this->value = (float)$ms;
-      $this->date = self::fromValue($ms);
+      $ms = (int)$arr[0];
+      $this->value = $ms;
+      $this->date = self::fromMilliseconds($ms);
       return;
     }
-    //allow 0 - 7 parts; default value for each part is 0
-    $arr = array_pad($arr, 7, 0);
-    $date = self::create($tz);
     if ($len > 1) {
+      //allow 0 - 7 parts; default for each part is 0
+      $arr = array_pad($arr, 7, 0);
+      $date = self::create($tz);
       $date->setDate($arr[0], $arr[1] + 1, $arr[2]);
       $date->setTime($arr[3], $arr[4], $arr[5]);
-      $ms = $arr[6];
+      $this->date = $date;
+      $this->value = (int)($date->getTimestamp() * 1000 + $arr[6]);
     } else {
-      $seconds = microtime(true);
-      $fraction = $seconds - (int)$seconds;
-      $ms = (int)($fraction * 1000);
+      $ms = (int)self::now();
+      $this->date = self::fromMilliseconds($ms, 'UTC');
+      $this->value = $ms;
     }
-    $this->date = $date;
-    $this->value = (float)($date->getTimestamp() * 1000 + $ms);
   }
 
   function toJSON() {
-    $date = self::fromValue($this->value, 'UTC');
+    $date = self::fromMilliseconds($this->value, 'UTC');
     $str = $date->format('Y-m-d\TH:i:s');
     $ms = $this->value % 1000;
     if ($ms < 0) $ms = 1000 + $ms;
@@ -67,6 +75,11 @@ class Date extends Object {
     return $str . '.' . substr('00' . $ms, -3) . 'Z';
   }
 
+  static function now() {
+    return floor(microtime(true) * 1000);
+  }
+
+  //create a native DateTime object with current time (optional timezone)
   static function create($tz = null) {
     if ($tz === null) {
       return new DateTime('now', new DateTimeZone(self::$LOCAL_TZ));
@@ -75,17 +88,16 @@ class Date extends Object {
     }
   }
 
-  static function now() {
-    return floor(microtime(true) * 1000);
-  }
-
-  static function fromValue($ms, $tz = null) {
-    $timestamp = floor($ms / 1000);
+  //create a native DateTime object from milliseconds (optional timezone)
+  static function fromMilliseconds($ms, $tz = null) {
     $date = self::create($tz);
-    $date->setTimestamp($timestamp);
+    $seconds = floor($ms / 1000);
+    $date->setTimestamp($seconds);
     return $date;
   }
 
+  //todo: see if we can determine if timezone was specified;
+  //  if tz not specified; treat as local only if time is specified
   static function parse($str) {
     $str = to_string($str);
     $d = date_parse($str);
@@ -115,33 +127,66 @@ Date::$classMethods = array(
     },
   'parse' => function($str) {
       $date = new Date($str);
-      return $date->value;
+      return (float)$date->value;
     },
   'UTC' => function() {
       $date = new Date();
       $date->_initFromParts(func_get_args(), 'UTC');
-      return $date->value;
+      return (float)$date->value;
     }
 );
 
 Date::$protoMethods = array(
   'valueOf' => function() {
       $self = Func::getContext();
-      return $self->value;
+      return (float)$self->value;
+    },
+  'toString' => function() {
+      $self = Func::getContext();
+      //Sat Aug 09 2014 12:00:00 GMT+0000 (UTC)
+      return str_replace('~', 'GMT', $self->date->format('D M d Y H:i:s ~O (T)'));
+    },
+  //this will give us en-US locale formatted
+  'toLocaleString' => function() {
+      $self = Func::getContext();
+      //12/28/2014, 1:37:30 AM
+      return str_replace('~', 'GMT', $self->date->format('n/j/Y, g:i:s A'));
     },
   'toJSON' => function() {
       $self = Func::getContext();
       //2014-08-09T12:00:00.000Z
       return $self->toJSON();
     },
+  //identical to `toJSON` above
+  'toISOString' => function() {
+      $self = Func::getContext();
+      //2014-08-09T12:00:00.000Z
+      return $self->toJSON();
+    },
   'toUTCString' => function() {
       $self = Func::getContext();
-      $date = Date::fromValue($self->value, 'UTC');
+      $date = Date::fromMilliseconds($self->value, 'UTC');
+      //Sun, 07 Dec 2014 01:10:08 GMT
+      return $date->format('D, d M Y H:i:s') . ' GMT';
+    },
+  //identical to `toUTCString` above
+  'toGMTString' => function() {
+      $self = Func::getContext();
+      $date = Date::fromMilliseconds($self->value, 'UTC');
       //Sun, 07 Dec 2014 01:10:08 GMT
       return $date->format('D, d M Y H:i:s') . ' GMT';
     },
   'toDateString' => function() {
       throw new Ex(Error::create('date.toDateString not implemented'));
+    },
+  'toLocaleDateString' => function() {
+      throw new Ex(Error::create('date.toLocaleDateString not implemented'));
+    },
+  'toTimeString' => function() {
+      throw new Ex(Error::create('date.toTimeString not implemented'));
+    },
+  'toLocaleTimeString' => function() {
+      throw new Ex(Error::create('date.toLocaleTimeString not implemented'));
     },
   'getDate' => function() {
       throw new Ex(Error::create('date.getDate not implemented'));
@@ -247,29 +292,6 @@ Date::$protoMethods = array(
     },
   'setYear' => function() {
       throw new Ex(Error::create('date.setYear not implemented'));
-    },
-  'toGMTString' => function() {
-      throw new Ex(Error::create('date.toGMTString not implemented'));
-    },
-  'toISOString' => function() {
-      throw new Ex(Error::create('date.toISOString not implemented'));
-    },
-  'toLocaleDateString' => function() {
-      throw new Ex(Error::create('date.toLocaleDateString not implemented'));
-    },
-  'toLocaleString' => function() {
-      throw new Ex(Error::create('date.toLocaleString not implemented'));
-    },
-  'toLocaleTimeString' => function() {
-      throw new Ex(Error::create('date.toLocaleTimeString not implemented'));
-    },
-  'toTimeString' => function() {
-      throw new Ex(Error::create('date.toTimeString not implemented'));
-    },
-  'toString' => function() {
-      $self = Func::getContext();
-      //Sat Aug 09 2014 12:00:00 GMT+0000 (UTC)
-      return str_replace('~', 'GMT', $self->date->format('D M d Y H:i:s ~O (T)'));
     }
 );
 

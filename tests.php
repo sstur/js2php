@@ -1,6 +1,13 @@
 <?php
 require_once('runtime.php');
 
+$process->setMethods(array(
+  //used to test dates
+  'sleep' => function($ms) {
+      usleep($ms * 1000);
+    }
+));
+
 //set some implicit globals
 $foo = 'test';
 $«24» = '$';
@@ -257,13 +264,14 @@ Test::suite(
   }
 );
 
+//todo: move this to js-land
 Test::suite(
   'Date',
   function() use ($Date, $Object, $Array) {
     $date = new Date(2013, 7, 5, 18, 11, 8, 411);
     //todo: PHP 5.4 will output 1375751468411 (1hr in the past due to DST)
-    Test::assert('date value', $date->value === 1375755068411.0);
-    Test::assert('date valueOf', $date->value === $date->callMethod('valueOf'));
+    Test::assert('date value', $date->value === 1375755068411);
+    Test::assert('date valueOf', (float)($date->value) === $date->callMethod('valueOf'));
     //todo: PHP 5.4 will output Mon Aug 05 2013 18:11:08 GMT-0700 (PDT)
     Test::assert('date local string', $date->callMethod('toString') === 'Mon Aug 05 2013 18:11:08 GMT-0800 (PST)');
     //todo: PHP 5.4 will output 2013-08-06T01:11:08.411Z
@@ -375,6 +383,7 @@ require_once('test/compiled/helpers.php');
 require_once('test/compiled/core.php');
 require_once('test/compiled/number.php');
 require_once('test/compiled/string.php');
+require_once('test/compiled/date.php');
 require_once('test/compiled/regex.php');
 require_once('test/compiled/array.php');
 require_once('test/compiled/buffer.php');
