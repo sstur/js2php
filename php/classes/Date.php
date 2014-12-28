@@ -1,7 +1,10 @@
 <?php
 class Date extends Object {
   public $className = "Date";
+  /* @var DateTime - date object; second accuracy only; "local" timezone */
   public $date = null;
+  /* @var int - ms since 01/01/1970 UTC */
+  public $value = null;
 
   static $LOCAL_TZ = null;
   static $protoObject = null;
@@ -11,29 +14,18 @@ class Date extends Object {
   function __construct() {
     parent::__construct();
     $this->proto = self::$protoObject;
-    $args = func_get_args();
-    if (count($args) > 0) {
-      $this->init($args);
+    if (func_num_args() > 0) {
+      $this->init(func_get_args());
     }
   }
 
   function init($arr) {
     $len = count($arr);
-    if ($len === 1) {
-      $value = $arr[0];
-      if (is_int_or_float($value)) {
-        $this->_initFromMiliseconds($value);
-      } else {
-        $this->_initFromString($value);
-      }
+    if ($len === 1 && is_string($arr[0])) {
+      $this->_initFromString($arr[0]);
     } else {
       $this->_initFromParts($arr);
     }
-  }
-
-  function _initFromMiliseconds($ms) {
-    $this->value = (float)$ms;
-    $this->date = self::fromValue($ms);
   }
 
   function _initFromString($str) {
@@ -43,13 +35,27 @@ class Date extends Object {
   }
 
   function _initFromParts($arr, $tz = null) {
+    $len = count($arr);
+    if ($len === 1) {
+      $ms = $arr[0];
+      $this->value = (float)$ms;
+      $this->date = self::fromValue($ms);
+      return;
+    }
     //allow 0 - 7 parts; default value for each part is 0
     $arr = array_pad($arr, 7, 0);
     $date = self::create($tz);
-    $date->setDate($arr[0], $arr[1] + 1, $arr[2]);
-    $date->setTime($arr[3], $arr[4], $arr[5]);
+    if ($len > 1) {
+      $date->setDate($arr[0], $arr[1] + 1, $arr[2]);
+      $date->setTime($arr[3], $arr[4], $arr[5]);
+      $ms = $arr[6];
+    } else {
+      $seconds = microtime(true);
+      $fraction = $seconds - (int)$seconds;
+      $ms = (int)($fraction * 1000);
+    }
     $this->date = $date;
-    $this->value = (float)($date->getTimestamp() * 1000 + $arr[6]);
+    $this->value = (float)($date->getTimestamp() * 1000 + $ms);
   }
 
   function toJSON() {
@@ -129,7 +135,10 @@ Date::$protoMethods = array(
       return $self->toJSON();
     },
   'toUTCString' => function() {
-      //todo
+      $self = Func::getContext();
+      $date = Date::fromValue($self->value, 'UTC');
+      //Sun, 07 Dec 2014 01:10:08 GMT
+      return $date->format('D, d M Y H:i:s') . ' GMT';
     },
   //todo: toISOString
   'toString' => function() {
