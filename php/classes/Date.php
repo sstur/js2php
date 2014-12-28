@@ -140,7 +140,132 @@ Date::$protoMethods = array(
       //Sun, 07 Dec 2014 01:10:08 GMT
       return $date->format('D, d M Y H:i:s') . ' GMT';
     },
-  //todo: toISOString
+  'toDateString' => function() {
+      throw new Ex(Error::create('date.toDateString not implemented'));
+    },
+  'getDate' => function() {
+      throw new Ex(Error::create('date.getDate not implemented'));
+    },
+  'getDay' => function() {
+      throw new Ex(Error::create('date.getDay not implemented'));
+    },
+  'getFullYear' => function() {
+      throw new Ex(Error::create('date.getFullYear not implemented'));
+    },
+  'getHours' => function() {
+      throw new Ex(Error::create('date.getHours not implemented'));
+    },
+  'getMilliseconds' => function() {
+      throw new Ex(Error::create('date.getMilliseconds not implemented'));
+    },
+  'getMinutes' => function() {
+      throw new Ex(Error::create('date.getMinutes not implemented'));
+    },
+  'getMonth' => function() {
+      throw new Ex(Error::create('date.getMonth not implemented'));
+    },
+  'getSeconds' => function() {
+      throw new Ex(Error::create('date.getSeconds not implemented'));
+    },
+  'getUTCDate' => function() {
+      throw new Ex(Error::create('date.getUTCDate not implemented'));
+    },
+  'getUTCDay' => function() {
+      throw new Ex(Error::create('date.getUTCDay not implemented'));
+    },
+  'getUTCFullYear' => function() {
+      throw new Ex(Error::create('date.getUTCFullYear not implemented'));
+    },
+  'getUTCHours' => function() {
+      throw new Ex(Error::create('date.getUTCHours not implemented'));
+    },
+  'getUTCMilliseconds' => function() {
+      throw new Ex(Error::create('date.getUTCMilliseconds not implemented'));
+    },
+  'getUTCMinutes' => function() {
+      throw new Ex(Error::create('date.getUTCMinutes not implemented'));
+    },
+  'getUTCMonth' => function() {
+      throw new Ex(Error::create('date.getUTCMonth not implemented'));
+    },
+  'getUTCSeconds' => function() {
+      throw new Ex(Error::create('date.getUTCSeconds not implemented'));
+    },
+  'setDate' => function() {
+      throw new Ex(Error::create('date.setDate not implemented'));
+    },
+  'setFullYear' => function() {
+      throw new Ex(Error::create('date.setFullYear not implemented'));
+    },
+  'setHours' => function() {
+      throw new Ex(Error::create('date.setHours not implemented'));
+    },
+  'setMilliseconds' => function() {
+      throw new Ex(Error::create('date.setMilliseconds not implemented'));
+    },
+  'setMinutes' => function() {
+      throw new Ex(Error::create('date.setMinutes not implemented'));
+    },
+  'setMonth' => function() {
+      throw new Ex(Error::create('date.setMonth not implemented'));
+    },
+  'setSeconds' => function() {
+      throw new Ex(Error::create('date.setSeconds not implemented'));
+    },
+  'setUTCDate' => function() {
+      throw new Ex(Error::create('date.setUTCDate not implemented'));
+    },
+  'setUTCFullYear' => function() {
+      throw new Ex(Error::create('date.setUTCFullYear not implemented'));
+    },
+  'setUTCHours' => function() {
+      throw new Ex(Error::create('date.setUTCHours not implemented'));
+    },
+  'setUTCMilliseconds' => function() {
+      throw new Ex(Error::create('date.setUTCMilliseconds not implemented'));
+    },
+  'setUTCMinutes' => function() {
+      throw new Ex(Error::create('date.setUTCMinutes not implemented'));
+    },
+  'setUTCMonth' => function() {
+      throw new Ex(Error::create('date.setUTCMonth not implemented'));
+    },
+  'setUTCSeconds' => function() {
+      throw new Ex(Error::create('date.setUTCSeconds not implemented'));
+    },
+  'getTimezoneOffset' => function() {
+      throw new Ex(Error::create('date.getTimezoneOffset not implemented'));
+    },
+  'getTime' => function() {
+      throw new Ex(Error::create('date.getTime not implemented'));
+    },
+  'getYear' => function() {
+      throw new Ex(Error::create('date.getYear not implemented'));
+    },
+  'setTime' => function() {
+      throw new Ex(Error::create('date.setTime not implemented'));
+    },
+  'setYear' => function() {
+      throw new Ex(Error::create('date.setYear not implemented'));
+    },
+  'toGMTString' => function() {
+      throw new Ex(Error::create('date.toGMTString not implemented'));
+    },
+  'toISOString' => function() {
+      throw new Ex(Error::create('date.toISOString not implemented'));
+    },
+  'toLocaleDateString' => function() {
+      throw new Ex(Error::create('date.toLocaleDateString not implemented'));
+    },
+  'toLocaleString' => function() {
+      throw new Ex(Error::create('date.toLocaleString not implemented'));
+    },
+  'toLocaleTimeString' => function() {
+      throw new Ex(Error::create('date.toLocaleTimeString not implemented'));
+    },
+  'toTimeString' => function() {
+      throw new Ex(Error::create('date.toTimeString not implemented'));
+    },
   'toString' => function() {
       $self = Func::getContext();
       //Sat Aug 09 2014 12:00:00 GMT+0000 (UTC)

@@ -272,6 +272,12 @@ Str::$protoMethods = array(
         return $first . $replace . implode($search, $parts);
       }
     },
+  'concat' => function() {
+      throw new Ex(Error::create('string.concat not implemented'));
+    },
+  'search' => function() {
+      throw new Ex(Error::create('string.search not implemented'));
+    },
   'toLowerCase' => function() {
       $self = Func::getContext();
       return mb_strtolower($self->value);

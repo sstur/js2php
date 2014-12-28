@@ -323,6 +323,30 @@ Object::$classMethods = array(
           $methods['defineProperty']($obj, $key, $prop->value);
         }
       }
+    },
+  'getPrototypeOf' => function() {
+      throw new Ex(Error::create('Object.getPrototypeOf not implemented'));
+    },
+  'setPrototypeOf' => function() {
+      throw new Ex(Error::create('Object.getPrototypeOf not implemented'));
+    },
+  'preventExtensions' => function() {
+      throw new Ex(Error::create('Object.preventExtensions not implemented'));
+    },
+  'isExtensible' => function() {
+      throw new Ex(Error::create('Object.isExtensible not implemented'));
+    },
+  'seal' => function() {
+      throw new Ex(Error::create('Object.seal not implemented'));
+    },
+  'isSealed' => function() {
+      throw new Ex(Error::create('Object.isSealed not implemented'));
+    },
+  'freeze' => function() {
+      throw new Ex(Error::create('Object.freeze not implemented'));
+    },
+  'isFrozen' => function() {
+      throw new Ex(Error::create('Object.isFrozen not implemented'));
     }
 );
 

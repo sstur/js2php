@@ -40,10 +40,10 @@ Performance:
   Array::checkInt
 
 String.prototype
-  concat, match, search
+  concat, search
 
 Array.prototype
-  splice, reverse, filter, some, every, reduce, reduceRight
+  splice, reverse, some, every, reduce, reduceRight
 
 Object
   getPrototypeOf, setPrototypeOf

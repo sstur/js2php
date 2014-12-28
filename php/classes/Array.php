@@ -323,6 +323,24 @@ Arr::$protoMethods = array(
       $arr->init($items);
       return $arr;
     },
+  'splice' => function() {
+      throw new Ex(Error::create('array.splice not implemented'));
+    },
+  'reverse' => function() {
+      throw new Ex(Error::create('array.reverse not implemented'));
+    },
+  'some' => function() {
+      throw new Ex(Error::create('array.some not implemented'));
+    },
+  'every' => function() {
+      throw new Ex(Error::create('array.every not implemented'));
+    },
+  'reduce' => function() {
+      throw new Ex(Error::create('array.reduce not implemented'));
+    },
+  'reduceRight' => function() {
+      throw new Ex(Error::create('array.reduceRight not implemented'));
+    },
   'toString' => function() {
       $self = Func::getContext();
       return $self->callMethod('join');
