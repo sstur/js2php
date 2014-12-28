@@ -57,6 +57,7 @@ class Debug {
 //this is generated from JS; loosely based on inspect module from Node.js
 Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$JSON, &$Error, &$String, &$Array) {
   $inspect = new Func("inspect", function($obj = null, $depth = null) use (&$stylizeNoColor, &$formatValue) {
+    $ctx = null;
     $ctx = new Object("seen", new Arr(), "stylize", $stylizeNoColor);
     return call($formatValue, $ctx, $obj, _typeof($depth) === "undefined" ? 2.0 : $depth);
   });
@@ -64,6 +65,7 @@ Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$J
     return $str;
   });
   $formatValue = new Func("formatValue", function($ctx = null, $value = null, $recurseTimes = null) use (&$inspect, &$isDate, &$Date, &$formatPrimitive, &$Object, &$isRegExp, &$RegExp, &$isError, &$formatError, &$isArray, &$formatArray, &$reduceToSingleString, &$formatProperty) {
+    $primitive = null; $keys = null; $name = null; $base = null; $array = null; $braces = null; $n = null; $output = null;
     if (is($value) && _typeof(get($value, "inspect")) === "function" && get($value, "inspect") !== $inspect && not((is($and_ = get($value, "constructor")) ? get(get($value, "constructor"), "prototype") === $value : $and_))) {
       return call_method($value, "inspect", $recurseTimes);
     }
@@ -135,6 +137,7 @@ Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$J
     return call($reduceToSingleString, $output, $base, $braces);
   });
   $formatPrimitive = new Func("formatPrimitive", function($ctx = null, $value = null) use (&$JSON) {
+    $simple = null;
     switch (_typeof($value)) {
       case "undefined":
         return call_method($ctx, "stylize", "undefined", "undefined");
@@ -154,6 +157,7 @@ Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$J
     return _concat("[", call_method(get(get($Error, "prototype"), "toString"), "call", $value), "]");
   });
   $formatArray = new Func("formatArray", function($ctx = null, $value = null, $recurseTimes = null, $keys = null) use (&$Object, &$String, &$formatProperty) {
+    $output = null; $i = null; $l = null;
     $output = new Arr();
     for ($i = 0.0, $l = get($value, "length"); $i < $l; ++$i) {
       if (is(call_method(get(get($Object, "prototype"), "hasOwnProperty"), "call", $value, call($String, $i)))) {
@@ -171,6 +175,7 @@ Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$J
     return $output;
   });
   $formatProperty = new Func("formatProperty", function($ctx = null, $value = null, $recurseTimes = null, $keys = null, $key = null, $array = null) use (&$formatValue, &$JSON) {
+    $desc = null; $name = null; $str = null;
     $desc = new Object("value", get($value, $key));
     if (call_method($keys, "indexOf", $key) < 0.0) {
       $name = _concat("[", $key, "]");
@@ -215,6 +220,7 @@ Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$J
     return _concat($name, ": ", $str);
   });
   $reduceToSingleString = new Func("reduceToSingleString", function($output = null, $base = null, $braces = null) {
+    $numLinesEst = null; $length = null;
     $numLinesEst = 0.0;
     $length = 0.0;
     call_method($output, "forEach", new Func(function($str = null) use (&$numLinesEst, &$length) {
