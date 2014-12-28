@@ -49,24 +49,15 @@ RegExp
 String -> Str
 --
 Global -> GlobalObject
-NaN
-Null
+NaN -> NAN
+Null -> Object::$null
 --
 Ex (exception wrapper)
 
 
 ------
 
-use $HTTP_RAW_POST_DATA for multipart/form-data
-use stream php://input for all else
-use fopen, fread
-
-$data = stream_get_contents(STDIN);
---OR--
-while(!feof(STDIN)){
-    $line = fgets(STDIN);
-}
-
+$HTTP_RAW_POST_DATA available for all but multipart/form-data unless disabled in php.ini
 
 ------
 

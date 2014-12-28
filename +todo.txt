@@ -2,6 +2,8 @@ bug: `var s = 'a'; s += 'b'`
 use node-commander instead of yargs
 json parse reviver
 object data to use array instead of ArrayObject
+  keep in mind array implicitly converts string keys to int
+  keep in mind Objects don't allow empty string keys
 get/setters
   'length' in []
   Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}
@@ -41,7 +43,7 @@ String.prototype
   concat, match, search
 
 Array.prototype
-  splice, reverse, filter, some, every, map, reduce, reduceRight
+  splice, reverse, filter, some, every, reduce, reduceRight
 
 Object
   getPrototypeOf, setPrototypeOf
@@ -53,4 +55,4 @@ Date.prototype
   setDate, setFullYear, setHours, setMilliseconds, setMinutes, setMonth, setSeconds
   setUTCDate, setUTCFullYear, setUTCHours, setUTCMilliseconds, setUTCMinutes, setUTCMonth, setUTCSeconds
   getTimezoneOffset, getTime, getYear, setTime, setYear
-  toDateString, toGMTString, toISOString, toLocaleDateString, toLocaleString, toLocaleTimeString, toTimeString, toUTCString
+  toDateString, toGMTString, toISOString, toLocaleDateString, toLocaleString, toLocaleTimeString, toTimeString
