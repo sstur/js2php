@@ -22,7 +22,7 @@ class Error extends Object {
 
   //this is used in class/helper code only
   static function create($str, $framesToPop = 0) {
-    $error = new self($str);
+    $error = new Error($str);
     $stack = debug_backtrace();
     while ($framesToPop--) {
       array_shift($stack);
@@ -37,12 +37,12 @@ class Error extends Object {
    */
   static function getGlobalConstructor() {
     $Error = new Func(function($str = null) {
-      $error = new self($str);
+      $error = new Error($str);
       $error->stack = debug_backtrace();
       return $error;
     });
-    $Error->set('prototype', self::$protoObject);
-    $Error->setMethods(self::$classMethods, true, false, true);
+    $Error->set('prototype', Error::$protoObject);
+    $Error->setMethods(Error::$classMethods, true, false, true);
     return $Error;
   }
 }
