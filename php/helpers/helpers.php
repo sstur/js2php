@@ -67,7 +67,7 @@ function eq($a, $b) {
 
 /**
  * Used in `for..in` to get keys (including up the proto chain)
- * @param $obj
+ * @param Object $obj
  * @param array $arr
  * @return array
  */

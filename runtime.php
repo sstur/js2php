@@ -1,5 +1,5 @@
 <?php
-define('LOCAL_TZ', 'PST');
+define('LOCAL_TZ', 'America/Phoenix');
 mb_internal_encoding('UTF-8');
 error_reporting(E_ALL);
 

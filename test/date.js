@@ -27,4 +27,12 @@ testSuite('dates', function(assert) {
     assert('date-only, local', date.toLocaleString() === '12/7/2014, 12:00:00 AM');
   });
 
+  testSuite('construct from UTC', function() {
+    var ms = Date.UTC(2013, 7, 5, 18, 11, 8, 411);
+    assert('Date.UTC', ms === 1375726268411);
+    var date = new Date(ms);
+    assert('toJSON', date.toJSON() === '2013-08-05T18:11:08.411Z');
+    assert('toString', date.toString() === 'Mon Aug 05 2013 11:11:08 GMT-0700 (MST)');
+  });
+
 });

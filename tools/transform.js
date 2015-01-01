@@ -239,8 +239,9 @@
       return source;
     });
     output.unshift('mb_internal_encoding("UTF-8");\n');
-    var timezone = new Date().toString().slice(-4, -1);
-    output.unshift('define("LOCAL_TZ", "' + timezone + '");\n');
+    //todo: let's be smart here about detection; regions like "America/Los_Angeles" use PST/PDT depending on DST
+    //var timezone = new Date().toString().slice(-4, -1);
+    //output.unshift('define("LOCAL_TZ", "' + timezone + '");\n');
     output = output.join('\n');
     output = removeComments(output);
     output = removeEmptyLines(output);

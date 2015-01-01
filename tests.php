@@ -269,22 +269,15 @@ Test::suite(
   'Date',
   function() use ($Date, $Object, $Array) {
     $date = new Date(2013, 7, 5, 18, 11, 8, 411);
-    //todo: PHP 5.4 will output 1375751468411 (1hr in the past due to DST)
-    Test::assert('date value', $date->value === 1375755068411);
+    //this is based on timezone 'America/Phoenix' which we hard-code for tests
+    Test::assert('date value', $date->value === 1375751468411);
     Test::assert('date valueOf', (float)($date->value) === $date->callMethod('valueOf'));
-    //todo: PHP 5.4 will output Mon Aug 05 2013 18:11:08 GMT-0700 (PDT)
-    Test::assert('date local string', $date->callMethod('toString') === 'Mon Aug 05 2013 18:11:08 GMT-0800 (PST)');
-    //todo: PHP 5.4 will output 2013-08-06T01:11:08.411Z
-    Test::assert('date json string', $date->callMethod('toJSON') === '2013-08-06T02:11:08.411Z');
+    Test::assert('date local string', $date->callMethod('toString') === 'Mon Aug 05 2013 18:11:08 GMT-0700 (MST)');
+    Test::assert('date json string', $date->callMethod('toJSON') === '2013-08-06T01:11:08.411Z');
     $date = new Date(1375751468412.0);
     Test::assert('init from value', $date->callMethod('toJSON') === '2013-08-06T01:11:08.412Z');
     $date = new Date('2013-08-06T01:11:08.412Z');
     Test::assert('init from string', $date->callMethod('toJSON') === '2013-08-06T01:11:08.412Z');
-    //test Date.UTC
-    $ms = $Date->callMethod('UTC', 2013, 7, 5, 18, 11, 8, 411);
-    $date = $Date->construct($ms);
-    Test::assert('date from UTC', $date->callMethod('toJSON') === '2013-08-05T18:11:08.411Z');
-    Test::assert('date from UTC toString', $date->callMethod('toString') === 'Mon Aug 05 2013 10:11:08 GMT-0800 (PST)');
   }
 );
 

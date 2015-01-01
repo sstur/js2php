@@ -13,7 +13,7 @@ class Date extends Object {
 
   function __construct() {
     parent::__construct();
-    $this->proto = self::$protoObject;
+    $this->proto = Date::$protoObject;
     if (func_num_args() > 0) {
       $this->init(func_get_args());
     }
@@ -29,45 +29,40 @@ class Date extends Object {
   }
 
   function _initFromString($str) {
-    $tz = null;
-    //todo: this is kinda hacky; get tz from parser
-    if (substr($str, -1) === 'Z') {
-      $tz = 'UTC';
+    $a = Date::parse($str);
+    if ($a['isLocal']) {
+      $arr = array($a['year'], $a['month'] - 1, $a['day'], $a['hour'], $a['minute'], $a['second'], $a['ms']);
+      $this->_initFromParts($arr);
     } else {
-      $code = substr($str, -3);
-      if ($code === 'GMT' || $code === 'UTC') {
-        $tz = 'UTC';
-      }
+      //create a UTC date first, get it's unix timestamp, then create a local date
+      $date = Date::create('UTC');
+      $date->setDate($a['year'], $a['month'], $a['day']);
+      $date->setTime($a['hour'], $a['minute'], $a['second']);
+      $ms = $date->getTimestamp() * 1000 + $a['ms'];
+      $this->date = Date::fromMilliseconds($ms);
+      $this->value = $ms;
     }
-    $arr = self::parse($str);
-    $this->_initFromParts($arr, $tz);
   }
 
   function _initFromParts($arr, $tz = null) {
     $len = count($arr);
-    if ($len === 1) {
-      $ms = (int)$arr[0];
-      $this->value = $ms;
-      $this->date = self::fromMilliseconds($ms);
-      return;
-    }
     if ($len > 1) {
       //allow 0 - 7 parts; default for each part is 0
       $arr = array_pad($arr, 7, 0);
-      $date = self::create($tz);
+      $date = Date::create($tz);
       $date->setDate($arr[0], $arr[1] + 1, $arr[2]);
       $date->setTime($arr[3], $arr[4], $arr[5]);
       $this->date = $date;
       $this->value = (int)($date->getTimestamp() * 1000 + $arr[6]);
     } else {
-      $ms = (int)self::now();
-      $this->date = self::fromMilliseconds($ms, 'UTC');
+      $ms = ($len === 1) ? (int)$arr[0] : (int)Date::now();
+      $this->date = Date::fromMilliseconds($ms);
       $this->value = $ms;
     }
   }
 
   function toJSON() {
-    $date = self::fromMilliseconds($this->value, 'UTC');
+    $date = Date::fromMilliseconds($this->value, 'UTC');
     $str = $date->format('Y-m-d\TH:i:s');
     $ms = $this->value % 1000;
     if ($ms < 0) $ms = 1000 + $ms;
@@ -82,7 +77,7 @@ class Date extends Object {
   //create a native DateTime object with current time (optional timezone)
   static function create($tz = null) {
     if ($tz === null) {
-      return new DateTime('now', new DateTimeZone(self::$LOCAL_TZ));
+      return new DateTime('now', new DateTimeZone(Date::$LOCAL_TZ));
     } else {
       return new DateTime('now', new DateTimeZone($tz));
     }
@@ -90,19 +85,35 @@ class Date extends Object {
 
   //create a native DateTime object from milliseconds (optional timezone)
   static function fromMilliseconds($ms, $tz = null) {
-    $date = self::create($tz);
+    $date = Date::create($tz);
     $seconds = floor($ms / 1000);
     $date->setTimestamp($seconds);
     return $date;
   }
 
-  //todo: see if we can determine if timezone was specified;
-  //  if tz not specified; treat as local only if time is specified
   static function parse($str) {
     $str = to_string($str);
-    $d = date_parse($str);
-    //todo: validate $d for errors array and false values
-    return array($d['year'], $d['month'] - 1, $d['day'], $d['hour'], $d['minute'], $d['second'], floor($d['fraction'] * 1000));
+    $a = date_parse($str);
+    if ($a['error_count'] > 0 || $a['warning_count'] > 0) {
+      return null;
+    }
+    $hasTime = ($a['hour'] !== false || $a['minute'] !== false || $a['second'] !== false);
+    $tz = array_key_exists('tz_abbr', $a) ? $a['tz_abbr'] : null;
+    if ($tz === 'Z' || $tz === 'GMT') {
+      $tz = 'UTC';
+    }
+    $isLocal = ($tz === null && $hasTime === true);
+    return array(
+      'year' => $a['year'] ?: 1970,
+      'month' => $a['month'] ?: 1,
+      'day' => $a['day'] ?: 1,
+      'hour' => $a['hour'] ?: 0,
+      'minute' => $a['minute'] ?: 0,
+      'second' => $a['second'] ?: 0,
+      'ms' => (int)($a['fraction'] * 1000),
+      'timezone' => $tz,
+      'isLocal' => $isLocal
+    );
   }
 
   /**
@@ -298,8 +309,11 @@ Date::$protoMethods = array(
 Date::$protoObject = new Object();
 Date::$protoObject->setMethods(Date::$protoMethods, true, false, true);
 
-//get the local timezone by looking for constant or environment variable; default to UTC
-Date::$LOCAL_TZ = defined('LOCAL_TZ') ? constant('LOCAL_TZ') : getenv('LOCAL_TZ');
+//get the local timezone by looking for environment variable; fallback to constant and then UTC
+Date::$LOCAL_TZ = getenv('LOCAL_TZ');
+if (Date::$LOCAL_TZ === false && defined('LOCAL_TZ')) {
+  Date::$LOCAL_TZ = constant('LOCAL_TZ');
+}
 if (Date::$LOCAL_TZ === false) {
   Date::$LOCAL_TZ = 'UTC';
 }
