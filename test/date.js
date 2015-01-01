@@ -15,6 +15,7 @@ testSuite('dates', function(assert) {
     var date = new Date(1419750026906);
     assert('toGMTString', date.toGMTString() === 'Sun, 28 Dec 2014 07:00:26 GMT');
     assert('toJSON', date.toJSON() === '2014-12-28T07:00:26.906Z');
+    assert('toString', date.toString() === 'Sun Dec 28 2014 00:00:26 GMT-0700 (MST)');
   });
 
   testSuite('construct from string', function() {
@@ -25,6 +26,12 @@ testSuite('dates', function(assert) {
     // if we don't specify a time, spec-compliant js would parse as UTC
     date = new Date('12/07/2014, 12:00 AM');
     assert('date-only, local', date.toLocaleString() === '12/7/2014, 12:00:00 AM');
+  });
+
+  testSuite('construct from string with only date specified', function() {
+    var date = new Date('2014-12-28');
+    assert('iso string', date.toISOString() === '2014-12-28T00:00:00.000Z');
+    assert('local string', date.toString() === 'Sat Dec 27 2014 17:00:00 GMT-0700 (MST)');
   });
 
   testSuite('construct from UTC', function() {
