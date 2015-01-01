@@ -1,4 +1,6 @@
 bug: `var s = 'a'; s += 'b'`
+bug: `typeof foo === 'undefined'` throws
+  `Notice: Undefined variable: foo in ./script.php`
 use node-commander instead of yargs
 json parse reviver
 object data to use array instead of ArrayObject
@@ -25,6 +27,7 @@ Transform:
 Test:
   function scope stuff including named function expression
   for (i in array) {}
+  `Object.getOwnPropertyDescriptor && Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };`
   array set returns value
   new Boolean().valueOf() === false
   new Number().valueOf() === 0

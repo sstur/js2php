@@ -41,21 +41,21 @@ testSuite('json', function(assert) {
       'sparse arrays should serialize correctly',
         JSON.stringify(a) === '[null,null,null,null,null,1]'
     );
-    //var d = new Date(Date.UTC(1994, 6, 3));
-    //assert(
-    //  'dates should serialze correctly',
-    //  JSON.stringify(d) === '"1994-07-03T00:00:00.000Z"'
-    //);
-    //d = new Date(Date.UTC(1993, 5, 2, 2, 10, 28, 224));
-    //assert(
-    //  'dates with milliseconds',
-    //  JSON.stringify(d) === '"1993-06-02T02:10:28.224Z"'
-    //);
-    //d = new Date(-1);
-    //assert(
-    //  'date initialized with negative epoch ms',
-    //  JSON.stringify(d) === '"1969-12-31T23:59:59.999Z"'
-    //);
+    var d = new Date(Date.UTC(1994, 6, 3));
+    assert(
+      'dates should serialze correctly',
+      JSON.stringify(d) === '"1994-07-03T00:00:00.000Z"'
+    );
+    d = new Date(Date.UTC(1993, 5, 2, 2, 10, 28, 224));
+    assert(
+      'dates with milliseconds',
+      JSON.stringify(d) === '"1993-06-02T02:10:28.224Z"'
+    );
+    d = new Date(-1);
+    assert(
+      'date initialized with negative epoch ms',
+      JSON.stringify(d) === '"1969-12-31T23:59:59.999Z"'
+    );
   });
 
   function equals(value1, value2) {
