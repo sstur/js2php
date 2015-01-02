@@ -105,8 +105,30 @@ Test::suite(
   function() use ($Object) {
     $o = new Object("a", 1.0, "b", 2.0);
     Test::assert(
-      'for..in helper',
-      join(',', keys($o)) === 'a,b'
+      'data present',
+      join(',', array_keys($o->data)) === 'a,b'
+    );
+    Test::assert(
+      'descriptors not present',
+      join(',', array_keys($o->dscr)) === ''
+    );
+    $o->setProperty('c', 3.0, true, true, true);
+    Test::assert(
+      'three keys',
+      join(',', array_keys($o->data)) === 'a,b,c'
+    );
+    Test::assert(
+      'descriptors present',
+      join(',', array_keys($o->dscr)) === 'c'
+    );
+    _delete($o, 'c');
+    Test::assert(
+      'descriptors now empty',
+      join(',', array_keys($o->dscr)) === ''
+    );
+    Test::assert(
+      'keys now two',
+      join(',', array_keys($o->data)) === 'a,b'
     );
     $o = new Object("a", 1.0, "b", 2.0);
     Test::assert(
