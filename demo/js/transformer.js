@@ -6629,6 +6629,11 @@ exports.moonwalk = function moonwalk(ast, fn){
       if (op === '-' && node.argument.type === 'Literal' && typeof node.argument.value === 'number') {
         return '-' + encodeLiteral(node.argument.value);
       }
+      //special case here: `typeof a` can be called on a non-declared variable
+      if (op === 'typeof' && node.argument.type === 'Identifier') {
+        //isset($a) ? _typeof($a) : "undefined"
+        return '(isset(' + this.generate(node.argument) + ') ? _typeof(' + this.generate(node.argument) + ') : "undefined")';
+      }
       //special case here: `delete a.b.c` needs to compute a.b and then delete c
       if (op === 'delete' && node.argument.type === 'MemberExpression') {
         return '_delete(' + this.generate(node.argument.object) + ', ' + this.encodeProp(node.argument) + ')';
@@ -7152,8 +7157,9 @@ exports.moonwalk = function moonwalk(ast, fn){
       return source;
     });
     output.unshift('mb_internal_encoding("UTF-8");\n');
-    var timezone = new Date().toString().slice(-4, -1);
-    output.unshift('define("LOCAL_TZ", "' + timezone + '");\n');
+    //todo: let's be smart here about detection; regions like "America/Los_Angeles" use PST/PDT depending on DST
+    //var timezone = new Date().toString().slice(-4, -1);
+    //output.unshift('define("LOCAL_TZ", "' + timezone + '");\n');
     output = output.join('\n');
     output = removeComments(output);
     output = removeEmptyLines(output);

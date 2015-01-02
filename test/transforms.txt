@@ -63,6 +63,11 @@ true ? "true" : call($f);
 ~to_number($a);
 
 ----
+typeof a;
+====
+(isset($a) ? _typeof($a) : "undefined");
+
+----
 x = a + (function(c) { return b == c; })() + c;
 ====
 $x = _plus($a, call(new Func(function($c = null) use (&$b) {

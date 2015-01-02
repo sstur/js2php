@@ -489,6 +489,11 @@
       if (op === '-' && node.argument.type === 'Literal' && typeof node.argument.value === 'number') {
         return '-' + encodeLiteral(node.argument.value);
       }
+      //special case here: `typeof a` can be called on a non-declared variable
+      if (op === 'typeof' && node.argument.type === 'Identifier') {
+        //isset($a) ? _typeof($a) : "undefined"
+        return '(isset(' + this.generate(node.argument) + ') ? _typeof(' + this.generate(node.argument) + ') : "undefined")';
+      }
       //special case here: `delete a.b.c` needs to compute a.b and then delete c
       if (op === 'delete' && node.argument.type === 'MemberExpression') {
         return '_delete(' + this.generate(node.argument.object) + ', ' + this.encodeProp(node.argument) + ')';

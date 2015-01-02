@@ -1,6 +1,4 @@
 bug: `var s = 'a'; s += 'b'`
-bug: `typeof foo === 'undefined'` throws
-  `Notice: Undefined variable: foo in ./script.php`
 use node-commander instead of yargs
 json parse reviver
 object data to use array instead of ArrayObject
