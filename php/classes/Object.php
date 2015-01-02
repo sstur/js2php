@@ -1,6 +1,6 @@
 <?php
 class Object {
-  public $data = null;
+  public $data = array();
   public $proto = null;
   public $className = "Object";
 
@@ -16,7 +16,6 @@ class Object {
   static $global = null;
 
   function __construct() {
-    $this->data = new ArrayObject(array(), ArrayObject::ARRAY_AS_PROPS);
     $this->proto = self::$protoObject;
     $args = func_get_args();
     if (count($args) > 0) {
@@ -43,9 +42,8 @@ class Object {
     }
     $obj = $this;
     while ($obj !== Object::$null) {
-      $data = $obj->data;
-      if (array_key_exists($key, $data)) {
-        return $data->{$key}->value;
+      if (array_key_exists($key, $obj->data)) {
+        return $obj->data[$key]->value;
       }
       $obj = $obj->proto;
     }
@@ -57,26 +55,24 @@ class Object {
     if (method_exists($this, 'set_' . $key)) {
       return $this->{'set_' . $key}($value);
     }
-    $data = $this->data;
-    if (array_key_exists($key, $data)) {
-      $property = $data->{$key};
+    if (array_key_exists($key, $this->data)) {
+      $property = $this->data[$key];
       if ($property->writable) {
         $property->value = $value;
       }
     } else {
-      $data->{$key} = new Property($value);
+      $this->data[$key] = new Property($value);
     }
     return $value;
   }
 
   function remove($key) {
     $key = (string)$key;
-    $data = $this->data;
-    if (array_key_exists($key, $data)) {
-      if (!$data->{$key}->configurable) {
+    if (array_key_exists($key, $this->data)) {
+      if (!$this->data[$key]->configurable) {
         return false;
       }
-      unset($data->{$key});
+      unset($this->data[$key]);
     }
     return true;
   }
@@ -139,15 +135,14 @@ class Object {
    */
   function setProperty($key, $value, $writable = null, $enumerable = null, $configurable = null) {
     $key = (string)$key;
-    $data = $this->data;
-    if (array_key_exists($key, $data)) {
-      $prop = $data->{$key};
+    if (array_key_exists($key, $this->data)) {
+      $prop = $this->data[$key];
       $prop->value = $value;
       if ($writable !== null) $prop->writable = $writable;
       if ($enumerable !== null) $prop->enumerable = $enumerable;
       if ($configurable !== null) $prop->configurable = $configurable;
     } else {
-      $data->{$key} = new Property($value, $writable, $enumerable, $configurable);
+      $this->data[$key] = new Property($value, $writable, $enumerable, $configurable);
     }
     return $value;
   }
@@ -198,6 +193,10 @@ class Object {
   function callMethod($name) {
     /** @var Func $fn */
     $fn = $this->get($name);
+    if (!($fn instanceof Func)) {
+      Debug::log($this, $name, $fn);
+      throw new Ex(Error::create('Invalid method called'));
+    }
     $args = array_slice(func_get_args(), 1);
     return $fn->apply($this, $args);
   }
@@ -294,7 +293,7 @@ Object::$classMethods = array(
         throw new Ex(Error::create('Object.getOwnPropertyDescriptor called on non-object'));
       }
       if (array_key_exists($key, $obj->data)) {
-        return $obj->data->{$key}->getDescriptor();
+        return $obj->data[$key]->getDescriptor();
       } else {
         return null;
       }
@@ -311,7 +310,7 @@ Object::$classMethods = array(
       if ($enumerable === null) $enumerable = true;
       $configurable = $desc->get('configurable');
       if ($configurable === null) $configurable = true;
-      $obj->data->{$key} = new Property($value, $writable, $enumerable, $configurable);
+      $obj->data[$key] = new Property($value, $writable, $enumerable, $configurable);
     },
   'defineProperties' => function($obj, $items) {
       if (!($obj instanceof Object)) {

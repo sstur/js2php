@@ -43,18 +43,17 @@ class Arr extends Object {
   function shift() {
     $el = $this->get(0);
     //shift all elements
-    $data = $this->data;
     $len = $this->length;
     for ($pos = 1; $pos < $len; $pos ++) {
       $newPos = $pos - 1;
-      if (array_key_exists($pos, $data)) {
-        $data->{$newPos} = $data->{$pos};
-      } else if (array_key_exists($newPos, $data)) {
-        unset($data->{$newPos});
+      if (array_key_exists($pos, $this->data)) {
+        $this->data[$newPos] = $this->data[$pos];
+      } else if (array_key_exists($newPos, $this->data)) {
+        unset($this->data[$newPos]);
       }
     }
     //remove what was previously the last element
-    unset($data->{$len - 1});
+    unset($this->data[$len - 1]);
     $this->length = $len - 1;
     return $el;
   }
@@ -63,15 +62,14 @@ class Arr extends Object {
     $len = $this->length;
     $num = func_num_args();
     //shift all elements
-    $data = $this->data;
     $pos = $len;
     while ($pos--) {
       $newPos = $pos + $num;
-      if (array_key_exists($pos, $data)) {
-        $data->{$newPos} = $data->{$pos};
-        unset($data->{$pos});
-      } else if (array_key_exists($newPos, $data)) {
-        unset($data->{$newPos});
+      if (array_key_exists($pos, $this->data)) {
+        $this->data[$newPos] = $this->data[$pos];
+        unset($this->data[$pos]);
+      } else if (array_key_exists($newPos, $this->data)) {
+        unset($this->data[$newPos]);
       }
     }
     $this->length = $len + $num;
@@ -297,13 +295,13 @@ Arr::$protoMethods = array(
         asort($results, SORT_STRING);
       }
       $i = 0;
-      $temp = new StdClass();
+      $temp = array();
       foreach ($results as $index => $str) {
-        $temp->{$i} = $self->data->{$index};
+        $temp[$i] = $self->data[$index];
         $i += 1;
       }
       foreach ($temp as $i => $prop) {
-        $self->data->{$i} = $prop;
+        $self->data[$i] = $prop;
       }
       return $self;
     },

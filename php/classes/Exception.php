@@ -58,7 +58,11 @@ class Ex extends Exception {
     foreach(self::$errorOutputHandlers as $fn) {
       $fn($output);
     }
-    $console->callMethod('log', $output);
+    try {
+      $console->callMethod('log', $output);
+    } catch(Exception $e) {
+      echo $output;
+    }
     exit(1);
   }
 
