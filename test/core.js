@@ -31,6 +31,12 @@ testSuite('core', function(assert) {
     assert('toString.call([])', toString.call([]) === '[object Array]');
     assert('toString.call(new String)', toString.call(new String()) === '[object String]');
     assert('new String() instanceof String', new String('s') instanceof String);
+    var o = {};
+    o[2] = 1;
+    o[2.3] = 2;
+    assert('key coersion float', o[2] === 1);
+    o['2'] = 3;
+    assert('key coersion string', o[2] === 3);
   });
 
   testSuite('in operator', function() {
@@ -66,6 +72,14 @@ testSuite('core', function(assert) {
       var found = true;
     }
     assert('should have no keys', found !== true);
+    var o = {};
+    o[2] = 1;
+    o[2.3] = 2;
+    a = [];
+    for (var m in o) {
+      a.push(typeof m, m);
+    }
+    assert('keys should always be strings', a.join(',') === 'string,2,string,2.3');
   });
 
   testSuite('global', function() {
