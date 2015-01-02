@@ -44,6 +44,7 @@ class Arr extends Object {
     $el = $this->get(0);
     //shift all elements
     $len = $this->length;
+    //todo: descriptors
     for ($pos = 1; $pos < $len; $pos ++) {
       $newPos = $pos - 1;
       if (array_key_exists($pos, $this->data)) {
@@ -294,6 +295,7 @@ Arr::$protoMethods = array(
         }
         asort($results, SORT_STRING);
       }
+      //todo: descriptors
       $i = 0;
       $temp = array();
       foreach ($results as $index => $str) {

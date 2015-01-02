@@ -1,6 +1,7 @@
 <?php
 class Object {
   public $data = array();
+  public $dscr = array();
   public $proto = null;
   public $className = "Object";
 
@@ -43,7 +44,7 @@ class Object {
     $obj = $this;
     while ($obj !== Object::$null) {
       if (array_key_exists($key, $obj->data)) {
-        return $obj->data[$key]->value;
+        return $obj->data[$key];
       }
       $obj = $obj->proto;
     }
@@ -55,25 +56,21 @@ class Object {
     if (method_exists($this, 'set_' . $key)) {
       return $this->{'set_' . $key}($value);
     }
-    if (array_key_exists($key, $this->data)) {
-      $property = $this->data[$key];
-      if ($property->writable) {
-        $property->value = $value;
-      }
-    } else {
-      $this->data[$key] = new Property($value);
+    if (!array_key_exists($key, $this->dscr) || $this->dscr[$key]->writable) {
+      $this->data[$key] = $value;
     }
     return $value;
   }
 
   function remove($key) {
     $key = (string)$key;
-    if (array_key_exists($key, $this->data)) {
-      if (!$this->data[$key]->configurable) {
+    if (array_key_exists($key, $this->dscr)) {
+      if (!$this->dscr[$key]->configurable) {
         return false;
       }
-      unset($this->data[$key]);
+      unset($this->dscr[$key]);
     }
+    unset($this->data[$key]);
     return true;
   }
 
@@ -99,13 +96,15 @@ class Object {
   //produce the list of keys (optionally get only enumerable keys)
   function getOwnKeys($onlyEnumerable) {
     $arr = array();
-    foreach ($this->data as $key => $prop) {
+    foreach ($this->data as $key => $value) {
+      $key = (string)$key;
       if ($onlyEnumerable) {
-        if ($prop->enumerable) {
-          $arr[] = (string)$key;
+        $dscr = isset($this->dscr[$key]) ? $this->dscr[$key] : null;
+        if (!$dscr || $dscr->enumerable) {
+          $arr[] = $key;
         }
       } else {
-        $arr[] = (string)$key;
+        $arr[] = $key;
       }
     }
     return $arr;
@@ -113,9 +112,11 @@ class Object {
 
   //produce the list of keys that are considered to be enumerable (walk proto)
   function getKeys(&$arr = array()) {
-    foreach ($this->data as $key => $prop) {
-      if ($prop->enumerable) {
-        $arr[] = (string)$key;
+    foreach ($this->data as $key => $v) {
+      $key = (string)$key;
+      $dscr = isset($this->dscr[$key]) ? $this->dscr[$key] : null;
+      if (!$dscr || $dscr->enumerable) {
+        $arr[] = $key;
       }
     }
     $proto = $this->proto;
@@ -135,15 +136,16 @@ class Object {
    */
   function setProperty($key, $value, $writable = null, $enumerable = null, $configurable = null) {
     $key = (string)$key;
-    if (array_key_exists($key, $this->data)) {
-      $prop = $this->data[$key];
-      $prop->value = $value;
-      if ($writable !== null) $prop->writable = $writable;
-      if ($enumerable !== null) $prop->enumerable = $enumerable;
-      if ($configurable !== null) $prop->configurable = $configurable;
+    //todo: do we need to check configurable/writable for existing descriptors?
+    if (array_key_exists($key, $this->dscr)) {
+      $dscr = $this->dscr[$key];
+      if ($writable !== null) $dscr->writable = $writable;
+      if ($enumerable !== null) $dscr->enumerable = $enumerable;
+      if ($configurable !== null) $dscr->configurable = $configurable;
     } else {
-      $this->data[$key] = new Property($value, $writable, $enumerable, $configurable);
+      $this->dscr[$key] = new Descriptor($writable, $enumerable, $configurable);
     }
+    $this->data[$key] = $value;
     return $value;
   }
 
@@ -155,7 +157,7 @@ class Object {
    */
   function setProps($props, $writable = null, $enumerable = null, $configurable = null) {
     foreach ($props as $key => $value) {
-      $this->setProperty($key, $value, $writable = null, $enumerable = null, $configurable = null);
+      $this->setProperty($key, $value, $writable, $enumerable, $configurable);
     }
   }
 
@@ -236,14 +238,12 @@ class Object {
   }
 }
 
-class Property {
-  public $value = null;
+class Descriptor {
   public $writable = true;
   public $enumerable = true;
   public $configurable = true;
 
-  function __construct($value, $writable = true, $enumerable = true, $configurable = true) {
-    $this->value = $value;
+  function __construct($writable = true, $enumerable = true, $configurable = true) {
     $this->writable = $writable;
     $this->enumerable = $enumerable;
     $this->configurable = $configurable;
@@ -252,9 +252,8 @@ class Property {
   /**
    * @return Object
    */
-  function getDescriptor() {
+  function toObject() {
     $result = new Object();
-    $result->set('value', $this->value);
     $result->set('writable', $this->writable);
     $result->set('enumerable', $this->enumerable);
     $result->set('configurable', $this->configurable);
@@ -292,8 +291,10 @@ Object::$classMethods = array(
       if (!($obj instanceof Object)) {
         throw new Ex(Error::create('Object.getOwnPropertyDescriptor called on non-object'));
       }
-      if (array_key_exists($key, $obj->data)) {
-        return $obj->data[$key]->getDescriptor();
+      if (array_key_exists($key, $obj->dscr)) {
+        return $obj->dscr[$key]->toObject();
+      } else if (array_key_exists($key, $obj->data)) {
+        return Descriptor::getDefault();
       } else {
         return null;
       }
@@ -310,16 +311,23 @@ Object::$classMethods = array(
       if ($enumerable === null) $enumerable = true;
       $configurable = $desc->get('configurable');
       if ($configurable === null) $configurable = true;
-      $obj->data[$key] = new Property($value, $writable, $enumerable, $configurable);
+      //todo: if all values are "default" then don't bother creating a descriptor
+      $obj->dscr[$key] = new Descriptor($writable, $enumerable, $configurable);
+      $obj->data[$key] = $value;
     },
   'defineProperties' => function($obj, $items) {
       if (!($obj instanceof Object)) {
         throw new Ex(Error::create('Object.defineProperties called on non-object'));
       }
-      $methods = Object::$classMethods;
-      foreach ($items->data as $key => $prop) {
-        if ($prop->enumerable) {
-          $methods['defineProperty']($obj, $key, $prop->value);
+      //todo
+//      if (!($items instanceof Object)) {
+//        throw new Ex(Error::create('Object.defineProperties called with invalid list of properties'));
+//      }
+      $defineProperty = Object::$classMethods['defineProperty'];
+      foreach ($items->data as $key => $value) {
+        $dscr = isset($items->dscr[$key]) ? $items->dscr[$key] : null;
+        if (!$dscr || $dscr->enumerable) {
+          $defineProperty($obj, $key, $value);
         }
       }
     },
@@ -352,7 +360,7 @@ Object::$classMethods = array(
 Object::$protoMethods = array(
   'hasOwnProperty' => function($key) {
       $self = Func::getContext();
-      $key = (string)$key;
+      //this should implicitly ensure $key is a string
       return array_key_exists($key, $self->data);
     },
   'toString' => function() {
