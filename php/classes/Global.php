@@ -108,7 +108,9 @@ class GlobalObject extends Object {
   }
 
   static function decodeChar($matches) {
-    return hex2bin($matches[1]);
+    //note: this is a workaround for when hex2bin() is not available (v5.3)
+    //todo: ensure the hex string length is not odd
+    return pack('H*', $matches[1]);
   }
 
   static function unsetGlobals() {

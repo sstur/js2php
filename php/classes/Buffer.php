@@ -27,7 +27,9 @@ class Buffer extends Object {
     } else if ($type === 'string') {
       $encoding = ($encoding === null) ? 'utf8' : to_string($encoding);
       if ($encoding === 'hex') {
-        $this->raw = hex2bin($subject);
+        //note: this is a workaround for when hex2bin() is not available (v5.3)
+        //todo: ensure the hex string length is not odd
+        $this->raw = pack('H*', $subject);
       } else if ($encoding === 'base64') {
         $this->raw = base64_decode($subject);
       } else {
