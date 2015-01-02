@@ -327,15 +327,13 @@ var inspect = (function() {
 //this is generated from JS; loosely based on inspect module from Node.js
 Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$JSON, &$Error, &$String, &$Array) {
   $inspect = new Func("inspect", function($obj = null, $depth = null) use (&$stylizeNoColor, &$formatValue) {
-    $ctx = null;
     $ctx = new Object("seen", new Arr(), "stylize", $stylizeNoColor);
-    return call($formatValue, $ctx, $obj, _typeof($depth) === "undefined" ? 2.0 : $depth);
+    return call($formatValue, $ctx, $obj, (isset($depth) ? _typeof($depth) : "undefined") === "undefined" ? 2.0 : $depth);
   });
   $stylizeNoColor = new Func("stylizeNoColor", function($str = null, $styleType = null) {
     return $str;
   });
   $formatValue = new Func("formatValue", function($ctx = null, $value = null, $recurseTimes = null) use (&$inspect, &$isDate, &$Date, &$formatPrimitive, &$Object, &$isRegExp, &$RegExp, &$isError, &$formatError, &$isArray, &$formatArray, &$reduceToSingleString, &$formatProperty) {
-    $primitive = null; $keys = null; $name = null; $base = null; $array = null; $braces = null; $n = null; $output = null;
     if (is($value) && _typeof(get($value, "inspect")) === "function" && get($value, "inspect") !== $inspect && not((is($and_ = get($value, "constructor")) ? get(get($value, "constructor"), "prototype") === $value : $and_))) {
       return call_method($value, "inspect", $recurseTimes);
     }
@@ -349,12 +347,12 @@ Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$J
     if (is($primitive)) {
       return $primitive;
     }
-    if (_typeof($value) === "object" && !_instanceof($value, $Object)) {
+    if ((isset($value) ? _typeof($value) : "undefined") === "object" && !_instanceof($value, $Object)) {
       return call_method($ctx, "stylize", "[object Object]", "special");
     }
     $keys = call_method($Object, "keys", $value);
     if (get($keys, "length") === 0.0) {
-      if (_typeof($value) === "function") {
+      if ((isset($value) ? _typeof($value) : "undefined") === "function") {
         $name = is(get($value, "name")) ? _concat(": ", get($value, "name")) : "";
         return call_method($ctx, "stylize", _concat("[Function", $name, "]"), "special");
       }
@@ -370,7 +368,7 @@ Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$J
       $array = true;
       $braces = new Arr("[", "]");
     }
-    if (_typeof($value) === "function") {
+    if ((isset($value) ? _typeof($value) : "undefined") === "function") {
       $n = is(get($value, "name")) ? _concat(": ", get($value, "name")) : "";
       $base = _concat(" [Function", $n, "]");
     }
@@ -407,8 +405,7 @@ Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$J
     return call($reduceToSingleString, $output, $base, $braces);
   });
   $formatPrimitive = new Func("formatPrimitive", function($ctx = null, $value = null) use (&$JSON) {
-    $simple = null;
-    switch (_typeof($value)) {
+    switch ((isset($value) ? _typeof($value) : "undefined")) {
       case "undefined":
         return call_method($ctx, "stylize", "undefined", "undefined");
       case "string":
@@ -427,7 +424,6 @@ Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$J
     return _concat("[", call_method(get(get($Error, "prototype"), "toString"), "call", $value), "]");
   });
   $formatArray = new Func("formatArray", function($ctx = null, $value = null, $recurseTimes = null, $keys = null) use (&$Object, &$String, &$formatProperty) {
-    $output = null; $i = null; $l = null;
     $output = new Arr();
     for ($i = 0.0, $l = get($value, "length"); $i < $l; ++$i) {
       if (is(call_method(get(get($Object, "prototype"), "hasOwnProperty"), "call", $value, call($String, $i)))) {
@@ -445,7 +441,6 @@ Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$J
     return $output;
   });
   $formatProperty = new Func("formatProperty", function($ctx = null, $value = null, $recurseTimes = null, $keys = null, $key = null, $array = null) use (&$formatValue, &$JSON) {
-    $desc = null; $name = null; $str = null;
     $desc = new Object("value", get($value, $key));
     if (call_method($keys, "indexOf", $key) < 0.0) {
       $name = _concat("[", $key, "]");
@@ -473,7 +468,7 @@ Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$J
       $str = call_method($ctx, "stylize", "[Circular]", "special");
     }
 
-    if (_typeof($name) === "undefined") {
+    if ((isset($name) ? _typeof($name) : "undefined") === "undefined") {
       if (is($array) && is(call_method($key, "match", new RegExp("^\\d+\$", "")))) {
         return $str;
       }
@@ -490,7 +485,6 @@ Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$J
     return _concat($name, ": ", $str);
   });
   $reduceToSingleString = new Func("reduceToSingleString", function($output = null, $base = null, $braces = null) {
-    $numLinesEst = null; $length = null;
     $numLinesEst = 0.0;
     $length = 0.0;
     call_method($output, "forEach", new Func(function($str = null) use (&$numLinesEst, &$length) {
@@ -506,16 +500,16 @@ Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$J
     return _concat(get($braces, 0.0), $base, " ", call_method($output, "join", ", "), " ", get($braces, 1.0));
   });
   $isArray = new Func("isArray", function($ar = null) use (&$Array, &$objectToString) {
-    return (is($or_ = call_method($Array, "isArray", $ar)) ? $or_ : _typeof($ar) === "object" && call($objectToString, $ar) === "[object Array]");
+    return (is($or_ = call_method($Array, "isArray", $ar)) ? $or_ : (isset($ar) ? _typeof($ar) : "undefined") === "object" && call($objectToString, $ar) === "[object Array]");
   });
   $isRegExp = new Func("isRegExp", function($re = null) use (&$objectToString) {
-    return _typeof($re) === "object" && call($objectToString, $re) === "[object RegExp]";
+    return (isset($re) ? _typeof($re) : "undefined") === "object" && call($objectToString, $re) === "[object RegExp]";
   });
   $isDate = new Func("isDate", function($d = null) use (&$objectToString) {
-    return _typeof($d) === "object" && call($objectToString, $d) === "[object Date]";
+    return (isset($d) ? _typeof($d) : "undefined") === "object" && call($objectToString, $d) === "[object Date]";
   });
   $isError = new Func("isError", function($e = null) use (&$objectToString) {
-    return _typeof($e) === "object" && call($objectToString, $e) === "[object Error]";
+    return (isset($e) ? _typeof($e) : "undefined") === "object" && call($objectToString, $e) === "[object Error]";
   });
   $objectToString = new Func("objectToString", function($o = null) use (&$Object) {
     return call_method(get(get($Object, "prototype"), "toString"), "call", $o);
