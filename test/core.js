@@ -34,9 +34,9 @@ testSuite('core', function(assert) {
     var o = {};
     o[2] = 1;
     o[2.3] = 2;
-    assert('key coersion float', o[2] === 1);
+    assert('key coercion float', o[2] === 1);
     o['2'] = 3;
-    assert('key coersion string', o[2] === 3);
+    assert('key coercion string', o[2] === 3);
   });
 
   testSuite('in operator', function() {
@@ -44,7 +44,7 @@ testSuite('core', function(assert) {
     assert('should be true for null', 'a' in o);
     o.b = void 0;
     assert('should be true for undefined', 'b' in o);
-    assert('should be false for non-existant', !('c' in o));
+    assert('should be false for non-existent', !('c' in o));
     delete o.b;
     assert('should be false when deleted', !('b' in o));
   });
