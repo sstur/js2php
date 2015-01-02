@@ -28,6 +28,13 @@ x = a + b / c + d;
 $x = _plus($a, _divide($b, $c), $d);
 
 ----
+x = 'a';
+x += 'b';
+====
+$x = "a";
+$x = _plus($x, "b");
+
+----
 x = a % b;
 ====
 $x = (float)(to_number($a) % to_number($b));

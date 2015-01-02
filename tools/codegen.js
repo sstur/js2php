@@ -369,6 +369,11 @@
           node.left.appendSuffix = '_';
         }
       }
+      //special case += since plus can be either add or concatenate
+      if (node.operator === '+=') {
+        var ident = this.generate(node.left);
+        return ident + ' = _plus(' + ident + ', ' + this.generate(node.right) + ')';
+      }
       return encodeVar(node.left) + ' ' + node.operator + ' ' + this.generate(node.right);
     },
 
