@@ -58,9 +58,10 @@ class Ex extends Exception {
     foreach(self::$errorOutputHandlers as $fn) {
       $fn($output);
     }
-    try {
+    //an exception could be thrown before we have initialized $console
+    if (isset($console) && ($console instanceof Object)) {
       $console->callMethod('log', $output);
-    } catch(Exception $e) {
+    } else {
       echo $output;
     }
     exit(1);
