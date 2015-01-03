@@ -23,9 +23,12 @@ testSuite('dates', function(assert) {
     assert('gmt string', date.toGMTString() === 'Sun, 28 Dec 2014 07:00:26 GMT');
     date = new Date('2014-12-28T07:00:26.906Z');
     assert('json (utc) string', date.toGMTString() === 'Sun, 28 Dec 2014 07:00:26 GMT');
-    // if we don't specify a time, spec-compliant js would parse as UTC
+    // if we specify a [partial] date string that looks like ISO-8601 it should be interpreted as UTC
+    date = new Date('2014-12-07');
+    assert('date-only, iso-8601', date.toLocaleString() === '12/6/2014, 5:00:00 PM');
+    // this date includes a time and should be interpreted as local
     date = new Date('12/07/2014, 12:00 AM');
-    assert('date-only, local', date.toLocaleString() === '12/7/2014, 12:00:00 AM');
+    assert('date, local', date.toLocaleString() === '12/7/2014, 12:00:00 AM');
   });
 
   testSuite('construct from string with only date specified', function() {

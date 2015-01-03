@@ -102,6 +102,7 @@ class Date extends Object {
     if ($tz === 'Z' || $tz === 'GMT') {
       $tz = 'UTC';
     }
+    //todo: this should not depend on whether there is time present, but if it "looks like" ISO-8601
     $isLocal = ($tz === null && $hasTime === true);
     return array(
       'year' => $a['year'] ?: 1970,
