@@ -5,6 +5,10 @@ testSuite('numbers', function(assert) {
     assert('float to int', 1.5 + 1.5 === 3);
   });
 
+  testSuite('object', function() {
+    assert('new Number().valueOf() === 0', new Number().valueOf() === 0);
+  });
+
   testSuite('divide', function() {
     assert('3 / 2', 3 / 2 === 1.5);
     assert('3 / 0', 3 / 0 === Infinity);

@@ -20,16 +20,13 @@ Transform:
 
 Test:
   function scope stuff including named function expression
-  for (i in array) {}
-  array set returns value
-  new Boolean().valueOf() === false
-  new Number().valueOf() === 0
-  parse `for (;;) {}`
-  support `string[1]`
-  Don't encode toString as $toString_
   Unicode in strings
     including surrogate pairs: "\uD835\uDFD8"
     including mis-matched surrogate pairs: 0xD800-0xDBFF not followed by 0xDC00–0xDFFF
+
+s = new String('abc')
+Object.getOwnPropertyDescriptor(s, '1')
+//{value: "b", writable: false, enumerable: true, configurable: false}
 
 Performance:
   Array::checkInt

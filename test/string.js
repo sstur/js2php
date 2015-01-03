@@ -13,6 +13,7 @@ testSuite('strings', function(assert) {
     assert('ascii 0', 'abc'.charAt(0) === 'a');
     assert('ascii 1', 'abc'.charAt(1) === 'b');
     assert('unicode', '↗Զ'.charAt(1) === 'Զ');
+    assert('numeric property access', '中文'[1] === '文');
   });
 
   testSuite('charCodeAt', function() {

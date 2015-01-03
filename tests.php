@@ -397,6 +397,7 @@ Test::suite(
 require_once('test/compiled/helpers.php');
 require_once('test/compiled/core.php');
 require_once('test/compiled/number.php');
+require_once('test/compiled/boolean.php');
 require_once('test/compiled/string.php');
 require_once('test/compiled/date.php');
 require_once('test/compiled/regex.php');

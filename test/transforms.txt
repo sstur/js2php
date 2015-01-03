@@ -8,6 +8,11 @@ var $ = 1;
 $«24» = 1.0;
 
 ----
+var toString = undefined;
+====
+$toString = $undefined;
+
+----
 a = a || b;
 ====
 $a = (is($or_ = $a) ? $or_ : $b);
@@ -250,6 +255,12 @@ for ($i = 0.0; $i < 2.0; $i++) {
 }
 
 ----
+for (;;) {}
+====
+for (; ; ) {
+}
+
+----
 for (i = 1, j = 2; a(), b(); false);
 ====
 for ($i = 1.0, $j = 2.0; is(_seq(call($a), call($b))); false) {
@@ -267,6 +278,12 @@ for ($i = 0.0, $j = 1.0; $i < 2.0; ++$i) {
 for (n in o) {}
 ====
 foreach (keys($o) as $n) {
+}
+
+----
+for (i in []) {}
+====
+foreach (keys(new Arr()) as $i) {
 }
 
 ----

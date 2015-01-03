@@ -1,7 +1,7 @@
 /*global global, testSuite, Buffer*/
 testSuite('array', function(assert) {
 
-  testSuite('constructor', function() {
+  testSuite('basic', function() {
     var a = new Array(5);
     assert('length', a.length === 5);
     assert('length property exists', 'length' in a);
@@ -9,9 +9,24 @@ testSuite('array', function(assert) {
     assert('length property exists', d.value === 5 && d.writable === true && d.enumerable === false && d.configurable === false);
     assert('property names', Object.getOwnPropertyNames(a).join(',') === 'length');
     assert('is empty', a.join('').length === 0);
+    assert('set value', 6 === (a[0] = 6));
+    a.push(1);
+    assert('join', a.join('') === '61');
     var b = new Array('5');
     assert('specify element', b.length === 1);
     assert('join', b.join() === '5');
+  });
+
+
+  testSuite('for..in', function() {
+    var a = [], b = [];
+    var test = 'abc'.split('');
+    for (var n in test) {
+      a.push(n);
+      b.push(test[n]);
+    }
+    assert('keys', a.join('') === '012');
+    assert('values', b.join('') === 'abc');
   });
 
 
