@@ -1,8 +1,5 @@
 use node-commander instead of yargs
 json parse reviver
-get/setters
-  'length' in [] even though it is a "computed property" in php-land
-  Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}
 new Func(function() {}) should use name where possible
 fs: readStream encoding; createReadStream(directory) should throw
 
@@ -24,13 +21,11 @@ Transform:
 Test:
   function scope stuff including named function expression
   for (i in array) {}
-  `Object.getOwnPropertyDescriptor && Object.getOwnPropertyDescriptor(value, key) || { value: value[key] };`
   array set returns value
   new Boolean().valueOf() === false
   new Number().valueOf() === 0
   parse `for (;;) {}`
   support `string[1]`
-  date constructed with no args
   Don't encode toString as $toString_
   Unicode in strings
     including surrogate pairs: "\uD835\uDFD8"

@@ -78,13 +78,16 @@ class Object {
   //determine if the given property exists (don't walk proto)
   function hasOwnProperty($key) {
     $key = (string)$key;
+    if (method_exists($this, 'get_' . $key)) {
+      return true;
+    }
     return array_key_exists($key, $this->data);
   }
 
   //determine if the given property exists (walk proto)
   function hasProperty($key) {
     $key = (string)$key;
-    if (array_key_exists($key, $this->data)) {
+    if ($this->hasOwnProperty($key)) {
       return true;
     }
     $proto = $this->proto;
@@ -143,7 +146,7 @@ class Object {
     } else {
       $result = new Descriptor(true, true, true);
     }
-    //we don't care to check if it is configurable because we only use this method internally
+    //here we do NOT check if it is configurable (this method is only used internally)
     if ($writable !== null) {
       $result->writable = !!$writable;
     }
@@ -157,7 +160,7 @@ class Object {
     if (!$result->writable || !$result->enumerable || !$result->configurable) {
       $this->dscr[$key] = $result;
     }
-    //todo: check for set_x method
+    //here we do NOT check for a setter (this method is only used internally)
     $this->data[$key] = $value;
     return $value;
   }
@@ -309,11 +312,16 @@ Object::$classMethods = array(
       if (!($obj instanceof Object)) {
         throw new Ex(Error::create('Object.getOwnPropertyDescriptor called on non-object'));
       }
-      //todo: get value (use get_x method when present)
-      $value = array_key_exists($key, $obj->data) ? $obj->data[$key] : null;
+      if (method_exists($obj, 'get_' . $key)) {
+        $hasProperty = true;
+        $value = $obj->{'get_' . $key}();
+      } else {
+        $hasProperty = array_key_exists($key, $obj->data);
+        $value = $hasProperty ? $obj->data[$key] : null;
+      }
       if (array_key_exists($key, $obj->dscr)) {
         return $obj->dscr[$key]->toObject($value);
-      } else if (array_key_exists($key, $obj->data)) {
+      } else if ($hasProperty) {
         return Descriptor::getDefault($value);
       } else {
         return null;
@@ -362,8 +370,11 @@ Object::$classMethods = array(
         $updateValue = true;
       }
       if ($updateValue) {
-        //todo: check for set_x method
-        $obj->data[$key] = $value;
+        if (method_exists($obj, 'set_' . $key)) {
+          $obj->{'set_' . $key}($value);
+        } else {
+          $obj->data[$key] = $value;
+        }
       }
     },
   'defineProperties' => function($obj, $items) {

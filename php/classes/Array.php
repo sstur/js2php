@@ -12,6 +12,8 @@ class Arr extends Object {
   function __construct() {
     parent::__construct();
     $this->proto = self::$protoObject;
+    //set a non-enumerable, non-configurable property descriptor for length
+    $this->setProp('length', null, true, false, false);
     if (func_num_args() > 0) {
       $this->init(func_get_args());
     } else {

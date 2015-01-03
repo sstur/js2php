@@ -3,7 +3,11 @@ testSuite('array', function(assert) {
 
   testSuite('constructor', function() {
     var a = new Array(5);
-    assert('specify length', a.length === 5);
+    assert('length', a.length === 5);
+    assert('length property exists', 'length' in a);
+    var d = Object.getOwnPropertyDescriptor(a, 'length');
+    assert('length property exists', d.value === 5 && d.writable === true && d.enumerable === false && d.configurable === false);
+    assert('property names', Object.getOwnPropertyNames(a).join(',') === 'length');
     assert('is empty', a.join('').length === 0);
     var b = new Array('5');
     assert('specify element', b.length === 1);
