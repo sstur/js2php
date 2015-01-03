@@ -1,13 +1,13 @@
 use node-commander instead of yargs
 json parse reviver
-object data to use array instead of ArrayObject
-  keep in mind array implicitly converts string keys to int
-  keep in mind Objects don't allow empty string keys
 get/setters
-  'length' in []
+  'length' in [] even though it is a "computed property" in php-land
   Object.getOwnPropertyDescriptor(array, 'length') //{value: 0, writable: true, enumerable: false, configurable: false}
 new Func(function() {}) should use name where possible
 fs: readStream encoding; createReadStream(directory) should throw
+
+Update readme:
+  http://php.net/manual/en/datetime.configuration.php#ini.date.timezone
 
 Transform:
   nested expressions: wrap all then conditionally unwrap?

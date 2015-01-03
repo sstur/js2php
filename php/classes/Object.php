@@ -1,6 +1,7 @@
 <?php
 class Object {
   public $data = array();
+  /* @var Descriptor[] */
   public $dscr = array();
   public $proto = null;
   public $className = "Object";
@@ -136,15 +137,27 @@ class Object {
    */
   function setProperty($key, $value, $writable = null, $enumerable = null, $configurable = null) {
     $key = (string)$key;
-    //todo: do we need to check configurable/writable for existing descriptors?
     if (array_key_exists($key, $this->dscr)) {
-      $dscr = $this->dscr[$key];
-      if ($writable !== null) $dscr->writable = $writable;
-      if ($enumerable !== null) $dscr->enumerable = $enumerable;
-      if ($configurable !== null) $dscr->configurable = $configurable;
+      $result = $this->dscr[$key];
+      unset($this->dscr[$key]);
     } else {
-      $this->dscr[$key] = new Descriptor($writable, $enumerable, $configurable);
+      $result = new Descriptor(true, true, true);
     }
+    //we don't care to check if it is configurable because we only use this method internally
+    if ($writable !== null) {
+      $result->writable = !!$writable;
+    }
+    if ($enumerable !== null) {
+      $result->enumerable = !!$enumerable;
+    }
+    if ($configurable !== null) {
+      $result->configurable = !!$configurable;
+    }
+    //if all are true don't bother creating a descriptor
+    if (!$result->writable || !$result->enumerable || !$result->configurable) {
+      $this->dscr[$key] = $result;
+    }
+    //todo: check for set_x method
     $this->data[$key] = $value;
     return $value;
   }
@@ -243,21 +256,26 @@ class Descriptor {
   public $enumerable = true;
   public $configurable = true;
 
-  function __construct($writable = true, $enumerable = true, $configurable = true) {
-    $this->writable = $writable;
-    $this->enumerable = $enumerable;
-    $this->configurable = $configurable;
+  function __construct($writable = null, $enumerable = null, $configurable = null) {
+    $this->writable = ($writable === null) ? true : !!$writable;
+    $this->enumerable = ($enumerable === null) ? true : !!$enumerable;
+    $this->configurable = ($configurable === null) ? true : !!$configurable;
   }
 
   /**
    * @return Object
    */
-  function toObject() {
+  function toObject($value = null) {
     $result = new Object();
+    $result->set('value', $value);
     $result->set('writable', $this->writable);
     $result->set('enumerable', $this->enumerable);
     $result->set('configurable', $this->configurable);
     return $result;
+  }
+
+  static function getDefault($value = null) {
+    return new Object('value', $value, 'writable', true, 'enumerable', true, 'configurable', true);
   }
 }
 
@@ -291,38 +309,70 @@ Object::$classMethods = array(
       if (!($obj instanceof Object)) {
         throw new Ex(Error::create('Object.getOwnPropertyDescriptor called on non-object'));
       }
+      //todo: get value (use get_x method when present)
+      $value = array_key_exists($key, $obj->data) ? $obj->data[$key] : null;
       if (array_key_exists($key, $obj->dscr)) {
-        return $obj->dscr[$key]->toObject();
+        return $obj->dscr[$key]->toObject($value);
       } else if (array_key_exists($key, $obj->data)) {
-        return Descriptor::getDefault();
+        return Descriptor::getDefault($value);
       } else {
         return null;
       }
     },
   'defineProperty' => function($obj, $key, $desc) {
-      //todo: ensure configurable
       if (!($obj instanceof Object)) {
         throw new Ex(Error::create('Object.defineProperty called on non-object'));
       }
-      $value = $desc->get('value');
       $writable = $desc->get('writable');
-      if ($writable === null) $writable = true;
       $enumerable = $desc->get('enumerable');
-      if ($enumerable === null) $enumerable = true;
       $configurable = $desc->get('configurable');
-      if ($configurable === null) $configurable = true;
-      //todo: if all values are "default" then don't bother creating a descriptor
-      $obj->dscr[$key] = new Descriptor($writable, $enumerable, $configurable);
-      $obj->data[$key] = $value;
+      $updateValue = false;
+      if (array_key_exists($key, $obj->data)) {
+        if (array_key_exists($key, $obj->dscr)) {
+          $result = $obj->dscr[$key];
+        } else {
+          $result = $obj->dscr[$key] = new Descriptor(true, true, true);
+        }
+        if (!$result->configurable) {
+          throw new Ex(TypeError::create('Cannot redefine property: ' . $key));
+        }
+        if ($writable !== null) {
+          $result->writable = !!$writable;
+        }
+        if ($enumerable !== null) {
+          $result->enumerable = !!$enumerable;
+        }
+        if ($configurable !== null) {
+          $result->configurable = !!$configurable;
+        }
+        if ($desc->hasProperty('value')) {
+          $value = $desc->get('value');
+          $updateValue = true;
+        }
+      } else {
+        $writable = ($writable === null) ? false : !!$writable;
+        $enumerable = ($enumerable === null) ? false : !!$enumerable;
+        $configurable = ($configurable === null) ? false : !!$configurable;
+        //if all are true don't bother creating a descriptor
+        if (!$writable || !$enumerable || !$configurable) {
+          $result = new Descriptor($writable, $enumerable, $configurable);
+          $obj->dscr[$key] = $result;
+        }
+        $value = $desc->get('value');
+        $updateValue = true;
+      }
+      if ($updateValue) {
+        //todo: check for set_x method
+        $obj->data[$key] = $value;
+      }
     },
   'defineProperties' => function($obj, $items) {
       if (!($obj instanceof Object)) {
         throw new Ex(Error::create('Object.defineProperties called on non-object'));
       }
-      //todo
-//      if (!($items instanceof Object)) {
-//        throw new Ex(Error::create('Object.defineProperties called with invalid list of properties'));
-//      }
+      if (!($items instanceof Object)) {
+        throw new Ex(Error::create('Object.defineProperties called with invalid list of properties'));
+      }
       $defineProperty = Object::$classMethods['defineProperty'];
       foreach ($items->data as $key => $value) {
         $dscr = isset($items->dscr[$key]) ? $items->dscr[$key] : null;

@@ -112,7 +112,7 @@ Test::suite(
       'descriptors not present',
       join(',', array_keys($o->dscr)) === ''
     );
-    $o->setProperty('c', 3.0, true, true, true);
+    $o->setProperty('c', 3.0, true, false, true);
     Test::assert(
       'three keys',
       join(',', array_keys($o->data)) === 'a,b,c'

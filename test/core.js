@@ -37,6 +37,22 @@ testSuite('core', function(assert) {
     assert('key coercion float', o[2] === 1);
     o['2'] = 3;
     assert('key coercion string', o[2] === 3);
+    o = {};
+    Object.defineProperty(o, 'a', {value: 1, writable: false, enumerable: true, configurable: true});
+    o.a = 2;
+    assert('non-writable property', o.a === 1);
+    Object.defineProperty(o, 'b', {value: 1, writable: true, enumerable: false, configurable: true});
+    assert('non-enumerable property', Object.keys(o).join('') === 'a');
+    Object.defineProperty(o, 'c', {value: 1, writable: true, enumerable: true, configurable: false});
+    delete o.c;
+    assert('non-configurable property: cannot delete', o.c === 1);
+    assert.shouldThrow('non-configurable property: throws', function() {
+      Object.defineProperty(o, 'c', {value: 1, writable: true, enumerable: true, configurable: true});
+    });
+    o = {a: 1};
+    Object.defineProperty(o, 'a', {enumerable: false});
+    var d = Object.getOwnPropertyDescriptor(o, 'a');
+    assert('can update property descriptor defined in object literal', d.value === 1 && d.writable === true && d.enumerable === false && d.configurable === true);
   });
 
   testSuite('in operator', function() {
