@@ -135,7 +135,7 @@ class Object {
    * @param bool $configurable
    * @return mixed
    */
-  function setProperty($key, $value, $writable = null, $enumerable = null, $configurable = null) {
+  function setProp($key, $value, $writable = null, $enumerable = null, $configurable = null) {
     $key = (string)$key;
     if (array_key_exists($key, $this->dscr)) {
       $result = $this->dscr[$key];
@@ -170,7 +170,7 @@ class Object {
    */
   function setProps($props, $writable = null, $enumerable = null, $configurable = null) {
     foreach ($props as $key => $value) {
-      $this->setProperty($key, $value, $writable, $enumerable, $configurable);
+      $this->setProp($key, $value, $writable, $enumerable, $configurable);
     }
   }
 
@@ -184,7 +184,7 @@ class Object {
     foreach ($methods as $name => $fn) {
       $func = new Func((string)$name, $fn);
       $func->strict = true;
-      $this->setProperty($name, $func, $writable, $enumerable, $configurable);
+      $this->setProp($name, $func, $writable, $enumerable, $configurable);
     }
   }
 

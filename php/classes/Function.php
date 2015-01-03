@@ -48,9 +48,9 @@ class Func extends Object {
     $this->meta = isset($args[0]) ? $args[0] : array();
     $this->strict = isset($this->meta['strict']);
     $prototype = new Object();
-    $prototype->setProperty('constructor', $this, true, false, true);
-    $this->setProperty('prototype', $prototype, true, false, true);
-    $this->setProperty('name', $this->name, false, false, false);
+    $prototype->setProp('constructor', $this, true, false, true);
+    $this->setProp('prototype', $prototype, true, false, true);
+    $this->setProp('name', $this->name, false, false, false);
   }
 
   function construct() {
