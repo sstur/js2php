@@ -50,6 +50,7 @@ class Func extends Object {
     $prototype = new Object();
     $prototype->setProperty('constructor', $this, true, false, true);
     $this->setProperty('prototype', $prototype, true, false, true);
+    $this->setProperty('name', $this->name, false, false, false);
   }
 
   function construct() {
@@ -96,14 +97,6 @@ class Func extends Object {
     $this->arguments = $oldArguments;
     $this->context = $oldContext;
     return $result;
-  }
-
-  function get_name() {
-    return $this->name;
-  }
-
-  function set_name($value) {
-    return $value;
   }
 
   function get_arguments() {
