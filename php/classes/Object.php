@@ -399,22 +399,25 @@ Object::$classMethods = array(
       throw new Ex(Error::create('Object.getPrototypeOf not implemented'));
     },
   'preventExtensions' => function() {
-      throw new Ex(Error::create('Object.preventExtensions not implemented'));
+      //throw new Ex(Error::create('Object.preventExtensions not implemented'));
     },
   'isExtensible' => function() {
-      throw new Ex(Error::create('Object.isExtensible not implemented'));
+      //throw new Ex(Error::create('Object.isExtensible not implemented'));
+      return false;
     },
   'seal' => function() {
-      throw new Ex(Error::create('Object.seal not implemented'));
+      //throw new Ex(Error::create('Object.seal not implemented'));
     },
   'isSealed' => function() {
-      throw new Ex(Error::create('Object.isSealed not implemented'));
+      //throw new Ex(Error::create('Object.isSealed not implemented'));
+      return false;
     },
   'freeze' => function() {
-      throw new Ex(Error::create('Object.freeze not implemented'));
+      //throw new Ex(Error::create('Object.freeze not implemented'));
     },
   'isFrozen' => function() {
-      throw new Ex(Error::create('Object.isFrozen not implemented'));
+      //throw new Ex(Error::create('Object.isFrozen not implemented'));
+      return false;
     }
 );
 
