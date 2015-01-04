@@ -52,7 +52,7 @@ $x = to_number($a) * to_number($b);
 ----
 x = a - 1 - 2;
 ====
-$x = (to_number($a) - 1.0) - 2.0;
+$x = to_number($a) - 1.0 - 2.0;
 
 ----
 true ? 'true' : false ? 't' : 'f';
@@ -172,6 +172,12 @@ if (a != b) c();
 ====
 if (!eq($a, $b)) {
   call($c);
+}
+
+----
+if (a && (b || c)) {}
+====
+if (is($a) && (is($b) || is($c))) {
 }
 
 ----

@@ -5,6 +5,57 @@
   var toString = Object.prototype.toString;
   var hasOwnProperty = Object.prototype.hasOwnProperty;
 
+  var PRECEDENCE = {
+    SEQUENCE: 0,
+    YIELD: 1,
+    ASSIGNMENT: 1,
+    CONDITIONAL: 2,
+    ARROW_FUNCTION: 2,
+    LOGICAL_OR: 3,
+    LOGICAL_AND: 4,
+    BITWISE_OR: 5,
+    BITWISE_XOR: 6,
+    BITWISE_AND: 7,
+    EQUALITY: 8,
+    RELATIONAL: 9,
+    BITWISE_SHIFT: 10,
+    ADDITIVE: 11,
+    MULTIPLICATIVE: 12,
+    UNARY: 13,
+    POSTFIX: 14,
+    CALL: 15,
+    NEW: 16,
+    TAGGED_TEMPLATE: 17,
+    MEMBER: 18,
+    PRIMARY: 19
+  };
+
+  var BINARY_PRECEDENCE = {
+    '||': PRECEDENCE.LOGICAL_OR,
+    '&&': PRECEDENCE.LOGICAL_AND,
+    '|': PRECEDENCE.BITWISE_OR,
+    '^': PRECEDENCE.BITWISE_XOR,
+    '&': PRECEDENCE.BITWISE_AND,
+    '==': PRECEDENCE.EQUALITY,
+    '!=': PRECEDENCE.EQUALITY,
+    '===': PRECEDENCE.EQUALITY,
+    '!==': PRECEDENCE.EQUALITY,
+    '<': PRECEDENCE.RELATIONAL,
+    '>': PRECEDENCE.RELATIONAL,
+    '<=': PRECEDENCE.RELATIONAL,
+    '>=': PRECEDENCE.RELATIONAL,
+    'in': PRECEDENCE.RELATIONAL,
+    'instanceof': PRECEDENCE.RELATIONAL,
+    '<<': PRECEDENCE.BITWISE_SHIFT,
+    '>>': PRECEDENCE.BITWISE_SHIFT,
+    '>>>': PRECEDENCE.BITWISE_SHIFT,
+    '+': PRECEDENCE.ADDITIVE,
+    '-': PRECEDENCE.ADDITIVE,
+    '*': PRECEDENCE.MULTIPLICATIVE,
+    '%': PRECEDENCE.MULTIPLICATIVE,
+    '/': PRECEDENCE.MULTIPLICATIVE
+  };
+
   //these operators expect numbers
   var UNARY_NUM_OPS = {
     '-': '_negate',
@@ -396,7 +447,11 @@
     LogicalExpression: function(node) {
       var op = node.operator;
       if (isBooleanExpr(node)) {
-        return this.generate(node.left) + ' ' + op + ' ' + this.generate(node.right);
+        var result = this.generate(node.left) + ' ' + op + ' ' + this.generate(node.right);
+        if (opPrecedence(op) < opPrecedence(node.parent.operator)) {
+          result = '(' + result + ')';
+        }
+        return result;
       }
       if (op === '&&') {
         return this.genAnd(node);
@@ -478,8 +533,7 @@
       if (castFloat) {
         result = '(float)(' + result + ')';
       } else
-      //todo: is this really needed?
-      if (node.parent.type === 'BinaryExpression') {
+      if (opPrecedence(node.operator) < opPrecedence(node.parent.operator)) {
         return '(' + result + ')';
       }
       return result;
@@ -544,7 +598,11 @@
       var type = node.type;
       if (type === 'LogicalExpression') {
         if (op === '&&' || op === '||') {
-          return this.truthyWrap(node.left) + ' ' + op + ' ' + this.truthyWrap(node.right);
+          var result = this.truthyWrap(node.left) + ' ' + op + ' ' + this.truthyWrap(node.right);
+          if (opPrecedence(op) < opPrecedence(node.parent.operator)) {
+            result = '(' + result + ')';
+          }
+          return result;
         }
       }
       if (isBooleanExpr(node)) {
@@ -774,6 +832,11 @@
   function isWord(str) {
     return str.match(/^[a-z_]+$/) ? true : false;
   }
+
+  function opPrecedence(op) {
+    return BINARY_PRECEDENCE[op];
+  }
+
   exports.generate = function(ast, opts) {
     var generator = new Generator(opts);
     return generator.generate(ast);
