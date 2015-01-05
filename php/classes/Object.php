@@ -328,6 +328,7 @@ Object::$classMethods = array(
       }
     },
   'defineProperty' => function($obj, $key, $desc) {
+      $key = (string)$key;
       if (!($obj instanceof Object)) {
         throw new Ex(Error::create('Object.defineProperty called on non-object'));
       }
@@ -352,6 +353,10 @@ Object::$classMethods = array(
         }
         if ($configurable !== null) {
           $result->configurable = !!$configurable;
+        }
+        //if all are true don't bother creating a descriptor
+        if ($result->writable && $result->enumerable && $result->configurable) {
+          unset($obj->dscr[$key]);
         }
         if ($desc->hasProperty('value')) {
           $value = $desc->get('value');

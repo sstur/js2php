@@ -85,10 +85,9 @@ class Arr extends Object {
   }
 
   static function checkInt($s) {
-    if (is_int($s) && $s >= 0) return (float)$s;
+    if (is_int($s) && $s >= 0) return $s;
     $s = to_string($s);
-    $match = preg_match('/^\d+$/', $s);
-    return ($match !== false) ? (float)$s : null;
+    return ((string)(int)$s === $s) ? (int)$s : null;
   }
 
   function set($key, $value) {
@@ -112,6 +111,7 @@ class Arr extends Object {
     $oldLen = $this->length;
     if ($oldLen > $len) {
       for ($i = $len; $i < $oldLen; $i++) {
+        //todo: directly access $this->data and $this->dscr?
         $this->remove($i);
       }
     }
@@ -325,8 +325,37 @@ Arr::$protoMethods = array(
       $arr->init($items);
       return $arr;
     },
-  'splice' => function() {
-      throw new Ex(Error::create('array.splice not implemented'));
+  'splice' => function($offset, $deleteCount) {
+      $offset = (int)$offset;
+      $deleteCount = (int)$deleteCount;
+      $elements = array_slice(func_get_args(), 2);
+      $self = Func::getContext();
+      $data = &$self->data;
+      unset($data['length']);
+      //array is considered simple if:
+      //  - array has no holes
+      //  - array has no non-numeric keys
+      //  - array has no property descriptors
+      $isSimpleArray = false;
+      $len = $self->length;
+      if (count($data) === $len) {
+        $isSimpleArray = true;
+        for ($i = 0; $i < $len; $i++) {
+          if (!array_key_exists($i, $data) || array_key_exists($i, $self->dscr)) {
+            $isSimpleArray = false;
+            break;
+          }
+        }
+      }
+      if ($isSimpleArray) {
+        array_splice($data, $offset, $deleteCount, $elements);
+        $newLength = count($data);
+      } else {
+        throw new Ex(Error::create('splice not implemented for non-simple arrays'));
+        //$newLength = $len - $deleteCount + count($elements)
+      }
+      $data['length'] = null;
+      $self->length = $newLength;
     },
   'reverse' => function() {
       throw new Ex(Error::create('array.reverse not implemented'));

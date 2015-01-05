@@ -1,4 +1,5 @@
 use node-commander instead of yargs
+don't use $arr->init() outside of Arr class
 json parse reviver
 new Func(function() {}) should use name where possible
 fs: readStream encoding; createReadStream(directory) should throw

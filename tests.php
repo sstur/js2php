@@ -155,17 +155,20 @@ Test::suite(
 Test::suite(
   'Array: init, push and join',
   function() use ($Array) {
-    $arr = $Array->construct(1);
+    $arr = $Array->construct();
+    $arr->set(0.0, 'a');
     Test::assert('proto exists', $arr->proto instanceof Object);
     Test::assert('proto is set correctly', $arr->proto === $Array->get('prototype'));
     Test::assert('proto chain', $arr->proto->proto === Object::$protoObject);
+    Test::assert('is_int length', is_int($arr->length));
+    $arr->remove('0');
     Test::assert('length', $arr->get('length') === 1.0);
     Test::assert('get', $arr->get(0) === null);
     Test::assert('push', call_method($arr, 'push', 9.0) === 2.0);
     Test::assert('length 2', $arr->get('length') === 2.0);
     Test::assert('join', call_method($arr, 'join', ';') === ';9');
     //implicit push
-    $arr->set(2, 'x');
+    $arr->set(2.0, 'x');
     Test::assert('length 3', $arr->get('length') === 3.0);
     Test::assert('join default', call_method($arr, 'join') === ',9,x');
   }
