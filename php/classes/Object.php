@@ -312,6 +312,7 @@ Object::$classMethods = array(
       if (!($obj instanceof Object)) {
         throw new Ex(Error::create('Object.getOwnPropertyDescriptor called on non-object'));
       }
+      $key = (string)$key;
       if (method_exists($obj, 'get_' . $key)) {
         $hasProperty = true;
         $value = $obj->{'get_' . $key}();
