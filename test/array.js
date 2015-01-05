@@ -99,10 +99,16 @@ testSuite('array', function(assert) {
     var a = 'abcdef'.split('');
     a[6] = 1;
     a.splice(1, 1, 'x', 'x');
-    assert('one', a.join(',') === 'a,x,x,c,d,e,f,1');
-    //delete a[2];
-    //Object.defineProperty(a, 5, {value: 'g', enumerable: false});
-    //a.foo = undefined;
+    assert('simple way', a.join(',') === 'a,x,x,c,d,e,f,1');
+    delete a[2];
+    Object.defineProperty(a, 5, {value: 'g', enumerable: false});
+    a.foo = 'bar';
+    a.splice(3, 2);
+    assert('hard way', a.join(',') === 'a,x,,g,f,1');
+    assert('hole still present', (2 in a) === false);
+    var dscr = Object.getOwnPropertyDescriptor(a, 3);
+    assert('shifted with descriptor', dscr.value === 'g' && dscr.writable === true && dscr.enumerable === false);
+    assert('named property still present', a.foo === 'bar');
   });
 
 

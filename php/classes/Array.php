@@ -44,29 +44,50 @@ class Arr extends Object {
 
   function shift() {
     $el = $this->get(0);
-    //shift all elements
+    $this->shiftElementsBackward(1);
+    return $el;
+  }
+
+  function unshift($value) {
+    $num = func_num_args();
+    $this->shiftElementsForward($num);
+    //add new element(s)
+    foreach (func_get_args() as $i => $value) {
+      $this->set($i, $value);
+    }
+    //we don't need to return a float here because this is an internal method
+    return $this->length;
+  }
+
+  function shiftElementsBackward($num, $startIndex = null) {
+    if ($startIndex === null) {
+      $startIndex = $num;
+    }
     $len = $this->length;
-    //todo: descriptors
-    for ($pos = 1; $pos < $len; $pos ++) {
-      $newPos = $pos - 1;
+    for ($pos = $startIndex; $pos < $len; $pos++) {
+      $newPos = $pos - $num;
       if (array_key_exists($pos, $this->data)) {
         $this->data[$newPos] = $this->data[$pos];
       } else if (array_key_exists($newPos, $this->data)) {
         unset($this->data[$newPos]);
       }
+      if (array_key_exists($pos, $this->dscr)) {
+        $this->dscr[$newPos] = $this->dscr[$pos];
+      } else if (array_key_exists($newPos, $this->dscr)) {
+        unset($this->dscr[$newPos]);
+      }
     }
-    //remove what was previously the last element
-    unset($this->data[$len - 1]);
-    $this->length = $len - 1;
-    return $el;
+    //remove what was previously at the end
+    for ($pos = $len - $num; $pos < $len; $pos++) {
+      unset($this->data[$pos]);
+      unset($this->dscr[$pos]);
+    }
+    $this->length = $len - $num;
   }
 
-  function unshift($value) {
-    $len = $this->length;
-    $num = func_num_args();
-    //shift all elements
-    $pos = $len;
-    while ($pos--) {
+  function shiftElementsForward($num, $startIndex = 0) {
+    $pos = $this->length;
+    while (($pos--) > $startIndex) {
       $newPos = $pos + $num;
       if (array_key_exists($pos, $this->data)) {
         $this->data[$newPos] = $this->data[$pos];
@@ -74,14 +95,14 @@ class Arr extends Object {
       } else if (array_key_exists($newPos, $this->data)) {
         unset($this->data[$newPos]);
       }
+      if (array_key_exists($pos, $this->dscr)) {
+        $this->dscr[$newPos] = $this->dscr[$pos];
+        unset($this->dscr[$pos]);
+      } else if (array_key_exists($newPos, $this->dscr)) {
+        unset($this->dscr[$newPos]);
+      }
     }
-    $this->length = $len + $num;
-    //add new element(s)
-    foreach (func_get_args() as $i => $value) {
-      $this->set($i, $value);
-    }
-    //we don't need to return a float here because this is an internal method
-    return $this->length;
+    $this->length += $num;
   }
 
   static function checkInt($s) {
@@ -351,8 +372,19 @@ Arr::$protoMethods = array(
         array_splice($data, $offset, $deleteCount, $elements);
         $newLength = count($data);
       } else {
-        throw new Ex(Error::create('splice not implemented for non-simple arrays'));
-        //$newLength = $len - $deleteCount + count($elements)
+        $addCount = count($elements);
+        $countChange = $addCount - $deleteCount;
+        $nextOffset = $offset + $deleteCount;
+        if ($countChange < 0) {
+          $self->shiftElementsBackward(abs($countChange), $nextOffset);
+        } else if ($countChange > 0) {
+          $self->shiftElementsForward($countChange, $nextOffset);
+        }
+        foreach ($elements as $i => $el) {
+          $data[$offset + $i] = $el;
+          unset($self->dscr[$offset + $i]);
+        }
+        $newLength = $len + $countChange;
       }
       $data['length'] = null;
       $self->length = $newLength;
