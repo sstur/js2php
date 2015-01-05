@@ -414,11 +414,33 @@ Arr::$protoMethods = array(
       $self->data = &$newData;
       $self->dscr = &$newDscr;
     },
-  'some' => function() {
-      throw new Ex(Error::create('array.some not implemented'));
+  'some' => function($fn, $context = null) {
+      $self = Func::getContext();
+      $len = $self->length;
+      for ($i = 0; $i < $len; $i++) {
+        if ($self->hasOwnProperty($i)) {
+          $item = $self->get($i);
+          $result = $fn->call($context, $item, (float)$i, $self);
+          if (is($result)) {
+            return true;
+          }
+        }
+      }
+      return false;
     },
-  'every' => function() {
-      throw new Ex(Error::create('array.every not implemented'));
+  'every' => function($fn, $context = null) {
+      $self = Func::getContext();
+      $len = $self->length;
+      for ($i = 0; $i < $len; $i++) {
+        if ($self->hasOwnProperty($i)) {
+          $item = $self->get($i);
+          $result = $fn->call($context, $item, (float)$i, $self);
+          if (!is($result)) {
+            return false;
+          }
+        }
+      }
+      return true;
     },
   'reduce' => function() {
       throw new Ex(Error::create('array.reduce not implemented'));

@@ -180,4 +180,30 @@ testSuite('array', function(assert) {
     assert('contents', c.join() === '5,7');
   });
 
+
+  testSuite('every', function() {
+    var a = [2, 4, 6, 7, 8];
+    delete a[1];
+    var tested = [];
+    var result = a.every(function(n) {
+      tested.push(n);
+      return !(n % 2);
+    });
+    assert('tested', tested.join() === '2,6,7');
+    assert('result', result === false);
+  });
+
+
+  testSuite('some', function() {
+    var a = [2, 4, 6, 7, 8];
+    delete a[1];
+    var tested = [];
+    var result = a.some(function(n) {
+      tested.push(n);
+      return n % 2;
+    });
+    assert('tested', tested.join() === '2,6,7');
+    assert('result', result === true);
+  });
+
 });

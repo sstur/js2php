@@ -33,7 +33,7 @@ String.prototype
   concat, search
 
 Array.prototype
-  some, every, reduce, reduceRight
+  reduce, reduceRight
 
 Object
   getPrototypeOf, setPrototypeOf
