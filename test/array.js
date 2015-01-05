@@ -206,4 +206,15 @@ testSuite('array', function(assert) {
     assert('result', result === true);
   });
 
+
+  testSuite('reduce', function() {
+    var a = [2, 4, 6, 7];
+    delete a[1];
+    var result = a.reduce(function(sum, n) {
+      sum += n;
+      return sum;
+    }, 0);
+    assert('tested', result === 15);
+  });
+
 });

@@ -442,11 +442,29 @@ Arr::$protoMethods = array(
       }
       return true;
     },
-  'reduce' => function() {
-      throw new Ex(Error::create('array.reduce not implemented'));
+  'reduce' => function($fn, $initValue = null) {
+      $self = Func::getContext();
+      $value = $initValue;
+      $len = $self->length;
+      for ($i = 0; $i < $len; $i++) {
+        if ($self->hasOwnProperty($i)) {
+          $item = $self->get($i);
+          $value = $fn->call(null, $value, $item, (float)$i, $self);
+        }
+      }
+      return $value;
     },
-  'reduceRight' => function() {
-      throw new Ex(Error::create('array.reduceRight not implemented'));
+  'reduceRight' => function($fn, $initValue = null) {
+      $self = Func::getContext();
+      $value = $initValue;
+      $len = $self->length;
+      for ($i = $len - 1; $i >= 0; $i--) {
+        if ($self->hasOwnProperty($i)) {
+          $item = $self->get($i);
+          $value = $fn->call(null, $value, $item, (float)$i, $self);
+        }
+      }
+      return $value;
     },
   'toString' => function() {
       $self = Func::getContext();

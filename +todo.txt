@@ -20,6 +20,7 @@ Transform:
     `a + 'b'` => `to_string($a) . "b"`
 
 Test:
+  Object.create(null)
   function scope stuff including named function expression
   Unicode in strings
     including surrogate pairs: "\uD835\uDFD8"
@@ -31,9 +32,6 @@ Object.getOwnPropertyDescriptor(s, '1')
 
 String.prototype
   concat, search
-
-Array.prototype
-  reduce, reduceRight
 
 Object
   getPrototypeOf, setPrototypeOf
