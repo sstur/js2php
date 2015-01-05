@@ -271,7 +271,12 @@ Str::$protoMethods = array(
       }
     },
   'concat' => function() {
-      throw new Ex(Error::create('string.concat not implemented'));
+      $self = Func::getContext();
+      $result = array($self->value);
+      foreach (func_get_args() as $arg) {
+        $result[] = to_string($arg);
+      }
+      return implode('', $result);
     },
   'search' => function() {
       throw new Ex(Error::create('string.search not implemented'));

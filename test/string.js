@@ -48,6 +48,11 @@ testSuite('strings', function(assert) {
     //todo
   });
 
+  testSuite('concat', function() {
+    assert('single', 'a'.concat('b') === 'ab');
+    assert('multiple', 'ab'.concat('cd', 1, null) === 'abcd1null');
+  });
+
   testSuite('indexOf', function() {
     var s = 'abcdabCd';
     assert('at start', s.indexOf('ab') === 0);
