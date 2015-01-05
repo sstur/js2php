@@ -95,6 +95,17 @@ testSuite('array', function(assert) {
   });
 
 
+  testSuite('splice', function() {
+    var a = 'abcdef'.split('');
+    a[6] = 1;
+    a.splice(1, 1, 'x', 'x');
+    assert('one', a.join(',') === 'a,x,x,c,d,e,f,1');
+    //delete a[2];
+    //Object.defineProperty(a, 5, {value: 'g', enumerable: false});
+    //a.foo = undefined;
+  });
+
+
   testSuite('indexOf', function() {
     var a = '123123'.split('');
     assert('finds first', a.indexOf('2') === 1);
