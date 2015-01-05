@@ -30,9 +30,6 @@ s = new String('abc')
 Object.getOwnPropertyDescriptor(s, '1')
 //{value: "b", writable: false, enumerable: true, configurable: false}
 
-String.prototype
-  concat, search
-
 Object
   getPrototypeOf, setPrototypeOf
   preventExtensions, isExtensible, seal, isSealed, freeze, isFrozen

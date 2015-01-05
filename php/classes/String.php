@@ -278,8 +278,19 @@ Str::$protoMethods = array(
       }
       return implode('', $result);
     },
-  'search' => function() {
-      throw new Ex(Error::create('string.search not implemented'));
+  'search' => function($regex) use (&$RegExp) {
+      $self = Func::getContext();
+      if (!($regex instanceof RegExp)) {
+        $regex = $RegExp->construct($regex);
+      }
+      $preg = $regex->toString(true);
+      $success = preg_match($preg, $self->value, $matches, PREG_OFFSET_CAPTURE);
+      if (!$success) {
+        return -1;
+      }
+      $start = substr($self->value, 0, $matches[0][1]);
+      $startLen = mb_strlen($start);
+      return (float)$startLen;
     },
   'toLowerCase' => function() {
       $self = Func::getContext();
