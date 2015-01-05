@@ -29,14 +29,11 @@ s = new String('abc')
 Object.getOwnPropertyDescriptor(s, '1')
 //{value: "b", writable: false, enumerable: true, configurable: false}
 
-Performance:
-  Array::checkInt
-
 String.prototype
   concat, search
 
 Array.prototype
-  splice, reverse, some, every, reduce, reduceRight
+  reverse, some, every, reduce, reduceRight
 
 Object
   getPrototypeOf, setPrototypeOf
