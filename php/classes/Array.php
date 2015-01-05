@@ -182,7 +182,6 @@ Arr::$classMethods = array(
     }
 );
 
-// splice, reverse, some, every, reduce, reduceRight
 Arr::$protoMethods = array(
   'push' => function($value) {
       $self = Func::getContext();
@@ -390,7 +389,30 @@ Arr::$protoMethods = array(
       $self->length = $newLength;
     },
   'reverse' => function() {
-      throw new Ex(Error::create('array.reverse not implemented'));
+      $self = Func::getContext();
+      $data = &$self->data;
+      $newData = array();
+      $dscr = &$self->dscr;
+      $newDscr = array();
+      $len = $self->length;
+      for ($i = 0; $i < $len; $i++) {
+        if (array_key_exists($i, $data)) {
+          $newData[$len - $i - 1] = $data[$i];
+          unset($data[$i]);
+        }
+        if (array_key_exists($i, $dscr)) {
+          $newDscr[$len - $i - 1] = $dscr[$i];
+        }
+      }
+      //copy named (remaining) keys
+      foreach ($data as $name => $value) {
+        $newData[$name] = $value;
+        if (array_key_exists($name, $dscr)) {
+          $newDscr[$name] = $dscr[$name];
+        }
+      }
+      $self->data = &$newData;
+      $self->dscr = &$newDscr;
     },
   'some' => function() {
       throw new Ex(Error::create('array.some not implemented'));

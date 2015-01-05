@@ -142,6 +142,18 @@ testSuite('array', function(assert) {
   });
 
 
+  testSuite('reverse', function() {
+    var a = 'abcdef'.split('');
+    a.foo = 'bar';
+    a.reverse();
+    assert('order', a.join('') === 'fedcba');
+    assert('property', a.foo === 'bar');
+    delete a[1];
+    a.reverse();
+    assert('preserve holes', a.join(',') === 'a,b,c,d,,f');
+  });
+
+
   testSuite('map', function() {
     var a = [2, 3, 4, 5, 6];
     delete a[1];
