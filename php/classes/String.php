@@ -117,9 +117,7 @@ Str::$protoMethods = array(
           $arr = explode($delim, $str);
         }
       }
-      $result = new Arr();
-      $result->init($arr);
-      return $result;
+      return Arr::fromArray($arr);
     },
   'substr' => function($start, $num = null) {
       $self = Func::getContext();

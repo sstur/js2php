@@ -296,17 +296,13 @@ Object::$classMethods = array(
       if (!($obj instanceof Object)) {
         throw new Ex(Error::create('Object.keys called on non-object'));
       }
-      $results = new Arr();
-      $results->init($obj->getOwnKeys(true));
-      return $results;
+      return Arr::fromArray($obj->getOwnKeys(true));
     },
   'getOwnPropertyNames' => function($obj) {
       if (!($obj instanceof Object)) {
         throw new Ex(Error::create('Object.getOwnPropertyNames called on non-object'));
       }
-      $results = new Arr();
-      $results->init($obj->getOwnKeys(false));
-      return $results;
+      return Arr::fromArray($obj->getOwnKeys(false));
     },
   'getOwnPropertyDescriptor' => function($obj, $key) {
       if (!($obj instanceof Object)) {
