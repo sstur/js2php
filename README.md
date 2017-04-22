@@ -1,4 +1,4 @@
-##JavaScript to PHP
+## JavaScript to PHP
 
 This tool transforms JavaScript to PHP. Just for fun.
 
