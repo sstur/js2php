@@ -12,7 +12,7 @@ $process->set('exit', new Func(function($code = 0) {
 $process->set('binding', new Func(function($name) {
   $module = Module::get($name);
   if ($module === null) {
-    throw new Ex(Error::create("Binding `$name` not found."));
+    throw new Ex(Err::create("Binding `$name` not found."));
   }
   return $module;
 }));

@@ -11,11 +11,11 @@ $Boolean = Bln::getGlobalConstructor();
 $Number = Number::getGlobalConstructor();
 $String = Str::getGlobalConstructor();
 $Date = Date::getGlobalConstructor();
-$Error = Error::getGlobalConstructor();
+$Error = Err::getGlobalConstructor();
 $RangeError = RangeError::getGlobalConstructor();
 $ReferenceError = ReferenceError::getGlobalConstructor();
 $SyntaxError = SyntaxError::getGlobalConstructor();
-$TypeError = TypeError::getGlobalConstructor();
+$TypeError = TypeErr::getGlobalConstructor();
 $RegExp = RegExp::getGlobalConstructor();
 $Buffer = Buffer::getGlobalConstructor();
 
