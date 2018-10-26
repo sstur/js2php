@@ -14,7 +14,7 @@ Last Note: This does not work with ES6+ JavaScript features (which were not wide
 
 ### Why?
 
-This is a proof-of-concept and a hobby project, mostly just for fun. There are various aspects of the two languages that make this a really interesting challenge: lexical scope, lambdas, prototypal inheritance, PHP's implicit variable declaration, etc. Some amount code is implemented as runtime helpers, including operations which require type checking and "standard library" features such as Date functions. But it turns out JavaScript and PHP are similar enough to do most everything as a source transformation, and the PHP code produced is still readable.
+This is a proof-of-concept and a hobby project, mostly just for fun. There are various aspects of the two languages that make this a really interesting challenge: lexical scope, lambdas, prototypal inheritance, PHP's implicit variable declaration, etc. Some amount of code is implemented as runtime helpers, including operations which require type checking and "standard library" features such as Date functions. But it turns out JavaScript and PHP are similar enough to do most everything as a source transformation, and the PHP code produced is still readable.
 
 ### What could this possibly be used for?
 
@@ -24,7 +24,7 @@ There are plenty of ["compile to JS"][3] languages available (ReasonML, TypeScri
 
 Maybe so. But if you wanted a compile-to-PHP language, that's widely familiar to devs, with plenty of existing tooling, libraries and community, then maybe JS is such a language. Plus, I think there's an unwritten rule that JS must be able to run on every surface in existence.
 
-We're not at a place where you can use this stuff to production, but in theory there's nothing preventing JS compiled to PHP from being viable.
+We're not at a place where you can use this stuff in production, but in theory there's nothing preventing JS compiled to PHP from being viable.
 
 One interesting use case might be allowing some user-generated scripting (think plugins) to run in a sandboxed environment on your PHP platform. User-generated JS can be safely compiled to PHP because none of the usual [dangerous] PHP features are exposed to JS land (such as disk/network access). Actually, you can choose a carefully defined set of functions to expose to JS.
 
