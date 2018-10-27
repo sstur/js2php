@@ -47,15 +47,15 @@ class Err extends Object {
   }
 }
 
-class RangeError extends Err {
+class RangeErr extends Err {
   public $className = "RangeError";
 }
 
-class ReferenceError extends Err {
+class ReferenceErr extends Err {
   public $className = "ReferenceError";
 }
 
-class SyntaxError extends Err {
+class SyntaxErr extends Err {
   public $className = "SyntaxError";
 }
 
