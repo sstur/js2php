@@ -11,7 +11,7 @@ function _void() {
  */
 function _new($fn) {
   if (!($fn instanceof Func)) {
-    throw new Ex(Error::create(_typeof($fn) . " is not a function"));
+    throw new Ex(Err::create(_typeof($fn) . " is not a function"));
   }
   $args = array_slice(func_get_args(), 1);
   return call_user_func_array(array($fn, 'construct'), $args);
@@ -27,7 +27,7 @@ function _instanceof($obj, $fn) {
     return false;
   }
   if (!($fn instanceof Func)) {
-    throw new Ex(Error::create('Expecting a function in instanceof check'));
+    throw new Ex(Err::create('Expecting a function in instanceof check'));
   }
   $proto = $obj->proto;
   $prototype = get($fn, 'prototype');
@@ -98,7 +98,7 @@ function _delete($obj, $key = null) {
     return false;
   }
   if ($obj === null || $obj === Object::$null) {
-    throw new Ex(Error::create("Cannot convert undefined or null to object"));
+    throw new Ex(Err::create("Cannot convert undefined or null to object"));
   }
   $obj = objectify($obj);
   $obj->remove($key);
@@ -113,7 +113,7 @@ function _delete($obj, $key = null) {
  */
 function _in($key, $obj) {
   if (!($obj instanceof Object)) {
-    throw new Ex(Error::create("Cannot use 'in' operator to search for '" . $key . "' in " . to_string($obj)));
+    throw new Ex(Err::create("Cannot use 'in' operator to search for '" . $key . "' in " . to_string($obj)));
   }
   return $obj->hasProperty($key);
 }

@@ -213,7 +213,7 @@ class Object {
     $fn = $this->get($name);
     if (!($fn instanceof Func)) {
       Debug::log($this, $name, $fn);
-      throw new Ex(Error::create('Invalid method called'));
+      throw new Ex(Err::create('Invalid method called'));
     }
     $args = array_slice(func_get_args(), 1);
     return $fn->apply($this, $args);
@@ -232,7 +232,7 @@ class Object {
     if (isset($this->{$name})) {
       return call_user_func_array($this->{$name}, $args);
     } else {
-      throw new Ex(Error::create('Internal method `' . $name . '` not found on ' . gettype($this)));
+      throw new Ex(Err::create('Internal method `' . $name . '` not found on ' . gettype($this)));
     }
   }
 
@@ -286,7 +286,7 @@ Object::$classMethods = array(
   //todo: getPrototypeOf, seal, freeze, preventExtensions, isSealed, isFrozen, isExtensible
   'create' => function($proto) {
       if (!($proto instanceof Object) && $proto !== Object::$null) {
-        throw new Ex(Error::create('Object prototype may only be an Object or null'));
+        throw new Ex(Err::create('Object prototype may only be an Object or null'));
       }
       $obj = new Object();
       $obj->proto = $proto;
@@ -294,19 +294,19 @@ Object::$classMethods = array(
     },
   'keys' => function($obj) {
       if (!($obj instanceof Object)) {
-        throw new Ex(Error::create('Object.keys called on non-object'));
+        throw new Ex(Err::create('Object.keys called on non-object'));
       }
       return Arr::fromArray($obj->getOwnKeys(true));
     },
   'getOwnPropertyNames' => function($obj) {
       if (!($obj instanceof Object)) {
-        throw new Ex(Error::create('Object.getOwnPropertyNames called on non-object'));
+        throw new Ex(Err::create('Object.getOwnPropertyNames called on non-object'));
       }
       return Arr::fromArray($obj->getOwnKeys(false));
     },
   'getOwnPropertyDescriptor' => function($obj, $key) {
       if (!($obj instanceof Object)) {
-        throw new Ex(Error::create('Object.getOwnPropertyDescriptor called on non-object'));
+        throw new Ex(Err::create('Object.getOwnPropertyDescriptor called on non-object'));
       }
       $key = (string)$key;
       if (method_exists($obj, 'get_' . $key)) {
@@ -327,7 +327,7 @@ Object::$classMethods = array(
   'defineProperty' => function($obj, $key, $desc) {
       $key = (string)$key;
       if (!($obj instanceof Object)) {
-        throw new Ex(Error::create('Object.defineProperty called on non-object'));
+        throw new Ex(Err::create('Object.defineProperty called on non-object'));
       }
       $writable = $desc->get('writable');
       $enumerable = $desc->get('enumerable');
@@ -340,7 +340,7 @@ Object::$classMethods = array(
           $result = $obj->dscr[$key] = new Descriptor(true, true, true);
         }
         if (!$result->configurable) {
-          throw new Ex(TypeError::create('Cannot redefine property: ' . $key));
+          throw new Ex(TypeErr::create('Cannot redefine property: ' . $key));
         }
         if ($writable !== null) {
           $result->writable = !!$writable;
@@ -381,10 +381,10 @@ Object::$classMethods = array(
     },
   'defineProperties' => function($obj, $items) {
       if (!($obj instanceof Object)) {
-        throw new Ex(Error::create('Object.defineProperties called on non-object'));
+        throw new Ex(Err::create('Object.defineProperties called on non-object'));
       }
       if (!($items instanceof Object)) {
-        throw new Ex(Error::create('Object.defineProperties called with invalid list of properties'));
+        throw new Ex(Err::create('Object.defineProperties called with invalid list of properties'));
       }
       $defineProperty = Object::$classMethods['defineProperty'];
       foreach ($items->data as $key => $value) {
@@ -395,30 +395,30 @@ Object::$classMethods = array(
       }
     },
   'getPrototypeOf' => function() {
-      throw new Ex(Error::create('Object.getPrototypeOf not implemented'));
+      throw new Ex(Err::create('Object.getPrototypeOf not implemented'));
     },
   'setPrototypeOf' => function() {
-      throw new Ex(Error::create('Object.getPrototypeOf not implemented'));
+      throw new Ex(Err::create('Object.getPrototypeOf not implemented'));
     },
   'preventExtensions' => function() {
-      //throw new Ex(Error::create('Object.preventExtensions not implemented'));
+      //throw new Ex(Err::create('Object.preventExtensions not implemented'));
     },
   'isExtensible' => function() {
-      //throw new Ex(Error::create('Object.isExtensible not implemented'));
+      //throw new Ex(Err::create('Object.isExtensible not implemented'));
       return false;
     },
   'seal' => function() {
-      //throw new Ex(Error::create('Object.seal not implemented'));
+      //throw new Ex(Err::create('Object.seal not implemented'));
     },
   'isSealed' => function() {
-      //throw new Ex(Error::create('Object.isSealed not implemented'));
+      //throw new Ex(Err::create('Object.isSealed not implemented'));
       return false;
     },
   'freeze' => function() {
-      //throw new Ex(Error::create('Object.freeze not implemented'));
+      //throw new Ex(Err::create('Object.freeze not implemented'));
     },
   'isFrozen' => function() {
-      //throw new Ex(Error::create('Object.isFrozen not implemented'));
+      //throw new Ex(Err::create('Object.isFrozen not implemented'));
       return false;
     }
 );
@@ -446,9 +446,9 @@ Object::$protoMethods = array(
     }
 );
 
-class Null {}
+class NullClass {}
 
-Object::$null = new Null();
+Object::$null = new NullClass();
 //the methods are not set on Object.prototype until *after* Func class is defined
 Object::$protoObject = new Object();
 Object::$protoObject->proto = Object::$null;

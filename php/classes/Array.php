@@ -126,7 +126,7 @@ class Arr extends Object {
   function set_length($len) {
     $len = self::checkInt($len);
     if ($len === null) {
-      throw new Ex(Error::create('Invalid array length'));
+      throw new Ex(Err::create('Invalid array length'));
     }
     //when setting the length smaller than before, we need to delete elements
     $oldLen = $this->length;

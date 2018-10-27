@@ -113,7 +113,7 @@ $JSON = call_user_func(function() {
         $string = '{"_":' . $string . '}';
         $value = json_decode($string);
         if ($value === null) {
-          throw new Ex(SyntaxError::create('Unexpected end of input'));
+          throw new Ex(SyntaxErr::create('Unexpected end of input'));
         }
         return $decode($value->_);
       },

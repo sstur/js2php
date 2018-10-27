@@ -1,5 +1,5 @@
 <?php
-class Error extends Object {
+class Err extends Object {
   public $className = "Error";
   public $stack = null;
 
@@ -22,7 +22,7 @@ class Error extends Object {
 
   //this is used in class/helper code only
   static function create($str, $framesToPop = 0) {
-    $error = new Error($str);
+    $error = new Err($str);
     $stack = debug_backtrace();
     while ($framesToPop--) {
       array_shift($stack);
@@ -37,40 +37,40 @@ class Error extends Object {
    */
   static function getGlobalConstructor() {
     $Error = new Func(function($str = null) {
-      $error = new Error($str);
+      $error = new Err($str);
       $error->stack = debug_backtrace();
       return $error;
     });
-    $Error->set('prototype', Error::$protoObject);
-    $Error->setMethods(Error::$classMethods, true, false, true);
+    $Error->set('prototype', Err::$protoObject);
+    $Error->setMethods(Err::$classMethods, true, false, true);
     return $Error;
   }
 }
 
-class RangeError extends Error {
+class RangeErr extends Err {
   public $className = "RangeError";
 }
 
-class ReferenceError extends Error {
+class ReferenceErr extends Err {
   public $className = "ReferenceError";
 }
 
-class SyntaxError extends Error {
+class SyntaxErr extends Err {
   public $className = "SyntaxError";
 }
 
-class TypeError extends Error {
+class TypeErr extends Err {
   public $className = "TypeError";
 }
 
-Error::$classMethods = array();
+Err::$classMethods = array();
 
-Error::$protoMethods = array(
+Err::$protoMethods = array(
   'toString' => function() {
       $self = Func::getContext();
       return $self->get('message');
     }
 );
 
-Error::$protoObject = new Object();
-Error::$protoObject->setMethods(Error::$protoMethods, true, false, true);
+Err::$protoObject = new Object();
+Err::$protoObject->setMethods(Err::$protoMethods, true, false, true);

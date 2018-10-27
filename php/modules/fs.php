@@ -339,7 +339,7 @@ Module::define('fs', function() {
         foreach ($paths as $path) {
           $message .= " '" . $helpers['reverseMapPath']($path) . "'";
         }
-        $err = Error::create($message, $framesToPop + 1);
+        $err = Err::create($message, $framesToPop + 1);
         $err->set('code', $code);
         throw new Ex($err);
       },

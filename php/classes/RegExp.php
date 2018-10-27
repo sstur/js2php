@@ -125,7 +125,7 @@ RegExp::$protoMethods = array(
       $offset = 0;
       $result = preg_match($self->toString(true), $str, $matches, PREG_OFFSET_CAPTURE, $offset);
       if ($result === false) {
-        throw new Ex(Error::create('Error executing Regular Expression: ' . $self->toString()));
+        throw new Ex(Err::create('Error executing Regular Expression: ' . $self->toString()));
       }
       if ($result === 0) {
         return Object::$null;

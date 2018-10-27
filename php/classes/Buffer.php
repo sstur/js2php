@@ -40,7 +40,7 @@ class Buffer extends Object {
     } else if ($subject instanceof Arr) {
       $this->raw = $util['arrToRaw']($subject);
     } else {
-      throw new Ex(Error::create('Invalid parameters to construct Buffer'));
+      throw new Ex(Err::create('Invalid parameters to construct Buffer'));
     }
     $len = strlen($this->raw);
     //save an integer copy of length for performance
@@ -80,13 +80,13 @@ Buffer::$classMethods = array(
     },
   'concat' => function(/*Arr*/ $list, $totalLength = null) {
       if (!($list instanceof Arr)) {
-        throw new Ex(Error::create('Usage: Buffer.concat(array, [length])'));
+        throw new Ex(Err::create('Usage: Buffer.concat(array, [length])'));
       }
       $rawList = array();
       $length = 0;
       foreach ($list->toArray() as $buffer) {
         if (!($buffer instanceof Buffer)) {
-          throw new Ex(Error::create('Usage: Buffer.concat(array, [length])'));
+          throw new Ex(Err::create('Usage: Buffer.concat(array, [length])'));
         }
         $rawList[] = $buffer->raw;
         $length += $buffer->length;
@@ -118,7 +118,7 @@ Buffer::$protoMethods = array(
       $self = Func::getContext();
       $i = (int)$index;
       if ($i < 0 || $i >= $self->length) {
-        throw new Ex(Error::create('offset is out of bounds'));
+        throw new Ex(Err::create('offset is out of bounds'));
       }
       return (float)ord($self->raw[$i]);
     },
@@ -126,7 +126,7 @@ Buffer::$protoMethods = array(
       $self = Func::getContext();
       $i = (int)$index;
       if ($i < 0 || $i >= $self->length) {
-        throw new Ex(Error::create('offset is out of bounds'));
+        throw new Ex(Err::create('offset is out of bounds'));
       }
       $old = $self->raw;
       $self->raw = substr($old, 0, $i) . chr($byte) . substr($old, $i + 1);

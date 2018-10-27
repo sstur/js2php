@@ -244,7 +244,7 @@ Str::$protoMethods = array(
           }
           if ($success === false) {
             //this can happen in the case of invalid utf8 sequences
-            throw new Ex(Error::create('String.prototype.replace() failed'));
+            throw new Ex(Err::create('String.prototype.replace() failed'));
           }
           $result[] = substr($str, $offset);
           return join('', $result);

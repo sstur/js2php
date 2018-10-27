@@ -5,7 +5,7 @@ class Ex extends Exception {
   static $errorOutputHandlers = array();
 
   function __construct($value) {
-    if ($value instanceof Error) {
+    if ($value instanceof Err) {
       $message = $value->getMessage();
     } else {
       $message = to_string($value);
@@ -23,7 +23,7 @@ class Ex extends Exception {
     if ($level === E_NOTICE) {
       return false;
     }
-    $err = Error::create($message, 1);
+    $err = Err::create($message, 1);
     $err->set('level', $level);
     throw new Ex($err);
   }
@@ -38,7 +38,7 @@ class Ex extends Exception {
     $output = array();
     if ($ex instanceof Ex) {
       $value = $ex->value;
-      if ($value instanceof Error) {
+      if ($value instanceof Err) {
         $stack = $value->stack;
         $frame = array_shift($stack);
         if (isset($frame['file'])) {

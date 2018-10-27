@@ -167,7 +167,7 @@ class Func extends Object {
    */
   static function getGlobalConstructor() {
     $Function = new Func(function($fn) {
-      throw new Ex(Error::create('Cannot construct function at runtime.'));
+      throw new Ex(Err::create('Cannot construct function at runtime.'));
     });
     $Function->set('prototype', Func::$protoObject);
     $Function->setMethods(Func::$classMethods, true, false, true);
@@ -253,7 +253,7 @@ Func::$protoMethods = array(
       if ($args instanceof Args || $args instanceof Arr) {
         $args = $args->toArray();
       } else {
-        throw new Ex(Error::create('Function.prototype.apply: Arguments list has wrong type'));
+        throw new Ex(Err::create('Function.prototype.apply: Arguments list has wrong type'));
       }
       return $self->apply($context, $args);
     },
