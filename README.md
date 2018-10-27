@@ -8,9 +8,7 @@ This tool transforms JavaScript to PHP.
 
 Note: This was a hobby project from a number of years ago and is _not actively maintained_, however PRs are welcome.
 
-Also Note: It is working and tested against PHP 5.4+ however users have reported that it does _NOT_ work with PHP 7 due to some naming collisions.
-
-Last Note: This does not work with ES6+ JavaScript features (which were not widely available at the time this project was written). If you want to use next-generation JS features you should first pre-process your code using [babel][20].
+Also Note: This does not work with ES6+ JavaScript features (which were not widely available at the time this project was written). If you want to use next-generation JS features you should first pre-process your code using [babel][20]. PR to support ES6+ would be welcome.
 
 ### Why?
 
