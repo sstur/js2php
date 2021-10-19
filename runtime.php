@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 require_once('php/helpers/operators.php');
 require_once('php/helpers/helpers.php');
 
-require_once('php/classes/Object.php');
+require_once('php/classes/ObjectClass.php');
 require_once('php/classes/Function.php');
 require_once('php/classes/Global.php');
 require_once('php/classes/Array.php');

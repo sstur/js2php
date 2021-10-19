@@ -1,5 +1,5 @@
 <?php
-class Object {
+class ObjectClass {
   public $data = array();
   /* @var Descriptor[] */
   public $dscr = array();
@@ -43,7 +43,7 @@ class Object {
       return $this->{'get_' . $key}();
     }
     $obj = $this;
-    while ($obj !== Object::$null) {
+    while ($obj !== ObjectClass::$null) {
       if (array_key_exists($key, $obj->data)) {
         return $obj->data[$key];
       }
@@ -91,7 +91,7 @@ class Object {
       return true;
     }
     $proto = $this->proto;
-    if ($proto instanceof Object) {
+    if ($proto instanceof ObjectClass) {
       return $proto->hasProperty($key);
     }
     return false;
@@ -124,7 +124,7 @@ class Object {
       }
     }
     $proto = $this->proto;
-    if ($proto instanceof Object) {
+    if ($proto instanceof ObjectClass) {
       $proto->getKeys($arr);
     }
     return $arr;
@@ -242,14 +242,14 @@ class Object {
    */
   static function getGlobalConstructor() {
     $Object = new Func(function($value = null) {
-      if ($value === null || $value === Object::$null) {
-        return new Object();
+      if ($value === null || $value === ObjectClass::$null) {
+        return new ObjectClass();
       } else {
         return objectify($value);
       }
     });
-    $Object->set('prototype', Object::$protoObject);
-    $Object->setMethods(Object::$classMethods, true, false, true);
+    $Object->set('prototype', ObjectClass::$protoObject);
+    $Object->setMethods(ObjectClass::$classMethods, true, false, true);
     return $Object;
   }
 }
@@ -266,10 +266,10 @@ class Descriptor {
   }
 
   /**
-   * @return Object
+   * @return ObjectClass
    */
   function toObject($value = null) {
-    $result = new Object();
+    $result = new ObjectClass();
     $result->set('value', $value);
     $result->set('writable', $this->writable);
     $result->set('enumerable', $this->enumerable);
@@ -278,34 +278,34 @@ class Descriptor {
   }
 
   static function getDefault($value = null) {
-    return new Object('value', $value, 'writable', true, 'enumerable', true, 'configurable', true);
+    return new ObjectClass('value', $value, 'writable', true, 'enumerable', true, 'configurable', true);
   }
 }
 
-Object::$classMethods = array(
+ObjectClass::$classMethods = array(
   //todo: getPrototypeOf, seal, freeze, preventExtensions, isSealed, isFrozen, isExtensible
   'create' => function($proto) {
-      if (!($proto instanceof Object) && $proto !== Object::$null) {
+      if (!($proto instanceof ObjectClass) && $proto !== ObjectClass::$null) {
         throw new Ex(Err::create('Object prototype may only be an Object or null'));
       }
-      $obj = new Object();
+      $obj = new ObjectClass();
       $obj->proto = $proto;
       return $obj;
     },
   'keys' => function($obj) {
-      if (!($obj instanceof Object)) {
+      if (!($obj instanceof ObjectClass)) {
         throw new Ex(Err::create('Object.keys called on non-object'));
       }
       return Arr::fromArray($obj->getOwnKeys(true));
     },
   'getOwnPropertyNames' => function($obj) {
-      if (!($obj instanceof Object)) {
+      if (!($obj instanceof ObjectClass)) {
         throw new Ex(Err::create('Object.getOwnPropertyNames called on non-object'));
       }
       return Arr::fromArray($obj->getOwnKeys(false));
     },
   'getOwnPropertyDescriptor' => function($obj, $key) {
-      if (!($obj instanceof Object)) {
+      if (!($obj instanceof ObjectClass)) {
         throw new Ex(Err::create('Object.getOwnPropertyDescriptor called on non-object'));
       }
       $key = (string)$key;
@@ -326,7 +326,7 @@ Object::$classMethods = array(
     },
   'defineProperty' => function($obj, $key, $desc) {
       $key = (string)$key;
-      if (!($obj instanceof Object)) {
+      if (!($obj instanceof ObjectClass)) {
         throw new Ex(Err::create('Object.defineProperty called on non-object'));
       }
       $writable = $desc->get('writable');
@@ -380,13 +380,13 @@ Object::$classMethods = array(
       }
     },
   'defineProperties' => function($obj, $items) {
-      if (!($obj instanceof Object)) {
+      if (!($obj instanceof ObjectClass)) {
         throw new Ex(Err::create('Object.defineProperties called on non-object'));
       }
-      if (!($items instanceof Object)) {
+      if (!($items instanceof ObjectClass)) {
         throw new Ex(Err::create('Object.defineProperties called with invalid list of properties'));
       }
-      $defineProperty = Object::$classMethods['defineProperty'];
+      $defineProperty = ObjectClass::$classMethods['defineProperty'];
       foreach ($items->data as $key => $value) {
         $dscr = isset($items->dscr[$key]) ? $items->dscr[$key] : null;
         if (!$dscr || $dscr->enumerable) {
@@ -423,7 +423,7 @@ Object::$classMethods = array(
     }
 );
 
-Object::$protoMethods = array(
+ObjectClass::$protoMethods = array(
   'hasOwnProperty' => function($key) {
       $self = Func::getContext();
       //this should implicitly ensure $key is a string
@@ -433,7 +433,7 @@ Object::$protoMethods = array(
       $self = Func::getContext();
       if ($self === null) {
         $className = 'Undefined';
-      } else if ($self === Object::$null) {
+      } else if ($self === ObjectClass::$null) {
         $className = 'Null';
       } else {
         $obj = objectify($self);
@@ -448,7 +448,7 @@ Object::$protoMethods = array(
 
 class NullClass {}
 
-Object::$null = new NullClass();
+ObjectClass::$null = new NullClass();
 //the methods are not set on Object.prototype until *after* Func class is defined
-Object::$protoObject = new Object();
-Object::$protoObject->proto = Object::$null;
+ObjectClass::$protoObject = new ObjectClass();
+ObjectClass::$protoObject->proto = ObjectClass::$null;

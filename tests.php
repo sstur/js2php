@@ -20,15 +20,15 @@ Test::suite(
   function() {
     Test::assert(
       'is falsy',
-      is(Object::$null) ? false : true
+      is(ObjectClass::$null) ? false : true
     );
     Test::assert(
       'check typeof',
-      _typeof(Object::$null) === 'object'
+      _typeof(ObjectClass::$null) === 'object'
     );
     Test::assert(
       'check to_string',
-      to_string(Object::$null) === 'null'
+      to_string(ObjectClass::$null) === 'null'
     );
   }
 );
@@ -38,29 +38,29 @@ Test::suite(
   function() {
     Test::assert(
       'props reflect global vars',
-      Object::$global->get('foo') === 'test'
+      ObjectClass::$global->get('foo') === 'test'
     );
-    Object::$global->set('foo', 'test2');
+    ObjectClass::$global->set('foo', 'test2');
     Test::assert(
       'can set global',
-      Object::$global->get('foo') === 'test2'
+      ObjectClass::$global->get('foo') === 'test2'
     );
-    Object::$global->set('foo2', 'bar');
+    ObjectClass::$global->set('foo2', 'bar');
     Test::assert(
       'can set global which was previously not set',
-      Object::$global->get('foo2') === 'bar'
+      ObjectClass::$global->get('foo2') === 'bar'
     );
     Test::assert(
       'has circular ref',
-      Object::$global->get('global') === Object::$global
+      ObjectClass::$global->get('global') === ObjectClass::$global
     );
     Test::assert(
       'can access escaped vars',
-      Object::$global->get('$') === $GLOBALS['«24»']
+      ObjectClass::$global->get('$') === $GLOBALS['«24»']
     );
     Test::assert(
       'can access escaped vars unicode',
-      Object::$global->get('ür') === 'ür'
+      ObjectClass::$global->get('ür') === 'ür'
     );
   }
 );
@@ -70,15 +70,15 @@ Test::suite(
   function() use ($Object) {
     Test::assert(
       'has method valueOf',
-      Object::$protoObject->get('valueOf') instanceof Func
+      ObjectClass::$protoObject->get('valueOf') instanceof Func
     );
     Test::assert(
       '__proto__ is null',
-      Object::$protoObject->proto === Object::$null
+      ObjectClass::$protoObject->proto === ObjectClass::$null
     );
     Test::assert(
       'check toString',
-      $Object->get('prototype')->get('toString') === Object::$protoObject->get('toString')
+      $Object->get('prototype')->get('toString') === ObjectClass::$protoObject->get('toString')
     );
   }
 );
@@ -103,7 +103,7 @@ Test::suite(
 Test::suite(
   'Object',
   function() use ($Object) {
-    $o = new Object("a", 1.0, "b", 2.0);
+    $o = new ObjectClass("a", 1.0, "b", 2.0);
     Test::assert(
       'data present',
       join(',', array_keys($o->data)) === 'a,b'
@@ -130,7 +130,7 @@ Test::suite(
       'keys now two',
       join(',', array_keys($o->data)) === 'a,b'
     );
-    $o = new Object("a", 1.0, "b", 2.0);
+    $o = new ObjectClass("a", 1.0, "b", 2.0);
     Test::assert(
       'for..in helper',
       join(',', keys($o)) === 'a,b'
@@ -157,9 +157,9 @@ Test::suite(
   function() use ($Array) {
     $arr = $Array->construct();
     $arr->set(0.0, 'a');
-    Test::assert('proto exists', $arr->proto instanceof Object);
+    Test::assert('proto exists', $arr->proto instanceof ObjectClass);
     Test::assert('proto is set correctly', $arr->proto === $Array->get('prototype'));
-    Test::assert('proto chain', $arr->proto->proto === Object::$protoObject);
+    Test::assert('proto chain', $arr->proto->proto === ObjectClass::$protoObject);
     Test::assert('is_int length', is_int($arr->length));
     $arr->remove('0');
     Test::assert('length', $arr->get('length') === 1.0);
@@ -214,10 +214,10 @@ Test::suite(
       $arguments = Func::getArguments();
       Test::assert('arguments', $arguments instanceof Args);
       Test::assert('arguments.callee', $arguments->get('callee') === $fn);
-      Test::assert('arguments is object', $arguments instanceof Object);
+      Test::assert('arguments is object', $arguments instanceof ObjectClass);
       Test::assert('arguments is not array', !($arguments instanceof Arr));
       Test::assert('arguments has length', $arguments->get('length') === 0.0);
-      Test::assert('this is global', $self === Object::$global);
+      Test::assert('this is global', $self === ObjectClass::$global);
     });
     $fn->call();
     $fn = new Func('foo', function() use ($fn, $Array) {
@@ -276,11 +276,11 @@ Test::suite(
   function() use ($Object) {
     $obj = $Object->construct();
     $obj->set('a', 1.0);
-    $descriptor = new Object('enumerable', false);
+    $descriptor = new ObjectClass('enumerable', false);
     $Object->callMethod('defineProperty', $obj, 'foo', $descriptor);
     $keys = $Object->callMethod('keys', $obj);
     Test::assert('key is not enumerable', $keys->callMethod('toString') === 'a');
-    $props = new Object('bar', $descriptor, 'baz', $descriptor);
+    $props = new ObjectClass('bar', $descriptor, 'baz', $descriptor);
     $Object->callMethod('defineProperties', $obj, $props);
     $keys = $Object->callMethod('keys', $obj);
     Test::assert('defineProperties worked', $keys->callMethod('toString') === 'a');

@@ -1,5 +1,5 @@
 <?php
-class Number extends Object {
+class Number extends ObjectClass {
   public $className = "Number";
   public $value = null;
 
@@ -127,5 +127,5 @@ Number::$protoMethods = array(
     }
 );
 
-Number::$protoObject = new Object();
+Number::$protoObject = new ObjectClass();
 Number::$protoObject->setMethods(Number::$protoMethods, true, false, true);

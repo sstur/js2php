@@ -1,10 +1,10 @@
 <?php
-$global = Object::$global;
+$global = ObjectClass::$global;
 $undefined = null;
 $Infinity = INF;
 $NaN = NAN;
 
-$Object = Object::getGlobalConstructor();
+$Object = ObjectClass::getGlobalConstructor();
 $Function = Func::getGlobalConstructor();
 $Array = Arr::getGlobalConstructor();
 $Boolean = Bln::getGlobalConstructor();

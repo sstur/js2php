@@ -1,5 +1,5 @@
 <?php
-class Buffer extends Object {
+class Buffer extends ObjectClass {
 
   public $raw = '';
   public $length = 0;
@@ -227,5 +227,5 @@ Buffer::$protoMethods = array(
     }
 );
 
-Buffer::$protoObject = new Object();
+Buffer::$protoObject = new ObjectClass();
 Buffer::$protoObject->setMethods(Buffer::$protoMethods, true, false, true);
