@@ -1,5 +1,5 @@
 <?php
-class RegExp extends Object {
+class RegExp extends ObjectClass {
   public $className = "RegExp";
 
   public $source = '';
@@ -128,7 +128,7 @@ RegExp::$protoMethods = array(
         throw new Ex(Err::create('Error executing Regular Expression: ' . $self->toString()));
       }
       if ($result === 0) {
-        return Object::$null;
+        return ObjectClass::$null;
       }
       $index = $matches[0][1];
       $self->set('lastIndex', (float)($index + strlen($matches[0][0])));
@@ -151,5 +151,5 @@ RegExp::$protoMethods = array(
     }
 );
 
-RegExp::$protoObject = new Object();
+RegExp::$protoObject = new ObjectClass();
 RegExp::$protoObject->setMethods(RegExp::$protoMethods, true, false, true);

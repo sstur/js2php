@@ -8,7 +8,7 @@
  * @return bool
  */
 function is($x) {
-  return $x !== false && $x !== 0.0 && $x !== '' && $x !== null && $x !== Object::$null && $x === $x /* NaN check */;
+  return $x !== false && $x !== 0.0 && $x !== '' && $x !== null && $x !== ObjectClass::$null && $x === $x /* NaN check */;
 }
 
 /**
@@ -17,7 +17,7 @@ function is($x) {
  * @return bool
  */
 function not($x) {
-  return $x === false || $x === 0.0 || $x === '' || $x === null || $x === Object::$null || $x !== $x /* NaN check */;
+  return $x === false || $x === 0.0 || $x === '' || $x === null || $x === ObjectClass::$null || $x !== $x /* NaN check */;
 }
 
 /**
@@ -28,8 +28,8 @@ function not($x) {
  * @return bool
  */
 function eq($a, $b) {
-  $typeA = ($a === null || $a === Object::$null ? 'null' : ($a instanceof Object ? 'object' : gettype($a)));
-  $typeB = ($b === null || $b === Object::$null ? 'null' : ($b instanceof Object ? 'object' : gettype($b)));
+  $typeA = ($a === null || $a === ObjectClass::$null ? 'null' : ($a instanceof ObjectClass ? 'object' : gettype($a)));
+  $typeB = ($b === null || $b === ObjectClass::$null ? 'null' : ($b instanceof ObjectClass ? 'object' : gettype($b)));
   if ($typeA === 'null' && $typeB === 'null') {
     return true;
   }
@@ -67,19 +67,19 @@ function eq($a, $b) {
 
 /**
  * Used in `for..in` to get keys (including up the proto chain)
- * @param Object $obj
+ * @param ObjectClass $obj
  * @param array $arr
  * @return array
  */
 function keys($obj, &$arr = array()) {
-  if (!($obj instanceof Object)) {
+  if (!($obj instanceof ObjectClass)) {
     return $arr;
   }
   return $obj->getKeys($arr);
 }
 
 function is_primitive($value) {
-  return ($value === null || $value === Object::$null || is_scalar($value));
+  return ($value === null || $value === ObjectClass::$null || is_scalar($value));
 }
 
 function is_int_or_float($value) {
@@ -90,7 +90,7 @@ function to_string($value) {
   if ($value === null) {
     return 'undefined';
   }
-  if ($value === Object::$null) {
+  if ($value === ObjectClass::$null) {
     return 'null';
   }
   $type = gettype($value);
@@ -106,7 +106,7 @@ function to_string($value) {
     if ($value === -INF) return '-Infinity';
     return $value . '';
   }
-  if ($value instanceof Object) {
+  if ($value instanceof ObjectClass) {
     $fn = $value->get('toString');
     if ($fn instanceof Func) {
       return $fn->call($value);
@@ -121,7 +121,7 @@ function to_number($value) {
   if ($value === null) {
     return NAN;
   }
-  if ($value === Object::$null) {
+  if ($value === ObjectClass::$null) {
     return 0.0;
   }
   if (is_float($value)) {
@@ -133,7 +133,7 @@ function to_number($value) {
   if (is_bool($value)) {
     return ($value ? 1.0 : 0.0);
   }
-  if ($value instanceof Object) {
+  if ($value instanceof ObjectClass) {
     return to_number(to_primitive($value));
   }
   //trim whitespace
@@ -161,12 +161,12 @@ function to_number($value) {
 
 /**
  * Used in to_number/eq to handle objects
- * @param Object $obj
+ * @param ObjectClass $obj
  * @return mixed
  */
 function to_primitive($obj) {
   $value = $obj->callMethod('valueOf');
-  if ($value instanceof Object) {
+  if ($value instanceof ObjectClass) {
     $value = to_string($value);
   }
   return $value;
@@ -175,7 +175,7 @@ function to_primitive($obj) {
 /**
  * Used to get/set properties on primitives
  * @param $value
- * @return Object
+ * @return ObjectClass
  */
 function objectify($value) {
   $type = gettype($value);
@@ -194,13 +194,13 @@ function objectify($value) {
 
 /**
  * get a property from a primitive or Object
- * @param null|string|float|bool|Object|Null $obj
+ * @param null|string|float|bool|ObjectClass|Null $obj
  * @param string $name
  * @return mixed
  * @throws Exception
  */
 function get($obj, $name) {
-  if ($obj === null || $obj === Object::$null) {
+  if ($obj === null || $obj === ObjectClass::$null) {
     throw new Ex(Err::create("Cannot read property '" . $name . "' of " . to_string($obj)));
   }
   $obj = objectify($obj);
@@ -210,7 +210,7 @@ function get($obj, $name) {
 /**
  * Set a property on a primitive or Object (setting on a primitive would
  * normally be useless). The operator specified can be =, +=, *=, etc.
- * @param null|string|float|bool|Object|Null $obj
+ * @param null|string|float|bool|ObjectClass|Null $obj
  * @param string $name
  * @param $value
  * @param string $op
@@ -219,7 +219,7 @@ function get($obj, $name) {
  * @throws Exception
  */
 function set($obj, $name, $value, $op = '=', $returnOld = false) {
-  if ($obj === null || $obj === Object::$null) {
+  if ($obj === null || $obj === ObjectClass::$null) {
     throw new Ex(Err::create("Cannot set property '" . $name . "' of " . to_string($obj)));
   }
   $obj = objectify($obj);
@@ -260,17 +260,17 @@ function call($fn) {
     throw new Ex(Err::create(_typeof($fn) . " is not a function"));
   }
   $args = array_slice(func_get_args(), 1);
-  return $fn->apply(Object::$global, $args);
+  return $fn->apply(ObjectClass::$global, $args);
 }
 
 /**
- * @param Object $obj
+ * @param ObjectClass $obj
  * @param string $name
  * @return mixed
  * @throws Exception
  */
 function call_method($obj, $name) {
-  if ($obj === null || $obj === Object::$null) {
+  if ($obj === null || $obj === ObjectClass::$null) {
     throw new Ex(Err::create("Cannot read property '" . $name . "' of " . to_string($obj)));
   }
   $obj = objectify($obj);

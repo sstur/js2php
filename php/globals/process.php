@@ -1,5 +1,5 @@
 <?php
-$process = new Object();
+$process = new ObjectClass();
 
 // the type of interface between web server and PHP
 $process->set('sapi_name', php_sapi_name());

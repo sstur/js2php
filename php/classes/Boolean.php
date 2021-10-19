@@ -1,5 +1,5 @@
 <?php
-class Bln extends Object {
+class Bln extends ObjectClass {
   public $className = "Boolean";
   public $value = null;
 
@@ -51,5 +51,5 @@ Bln::$protoMethods = array(
     }
 );
 
-Bln::$protoObject = new Object();
+Bln::$protoObject = new ObjectClass();
 Bln::$protoObject->setMethods(Bln::$protoMethods, true, false, true);

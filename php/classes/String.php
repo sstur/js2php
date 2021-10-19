@@ -1,5 +1,5 @@
 <?php
-class Str extends Object {
+class Str extends ObjectClass {
   public $className = "String";
   public $value = null;
 
@@ -322,5 +322,5 @@ Str::$protoMethods = array(
     }
 );
 
-Str::$protoObject = new Object();
+Str::$protoObject = new ObjectClass();
 Str::$protoObject->setMethods(Str::$protoMethods, true, false, true);

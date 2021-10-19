@@ -1,5 +1,5 @@
 <?php
-class GlobalObject extends Object {
+class GlobalObject extends ObjectClass {
   public $className = "global";
 
   //disallow mutating pre-defined globals
@@ -50,7 +50,7 @@ class GlobalObject extends Object {
       return true;
     }
     $proto = $this->proto;
-    if ($proto instanceof Object) {
+    if ($proto instanceof ObjectClass) {
       return $proto->hasProperty($key);
     }
     return false;
@@ -75,7 +75,7 @@ class GlobalObject extends Object {
       }
     }
     $proto = $this->proto;
-    if ($proto instanceof Object) {
+    if ($proto instanceof ObjectClass) {
       $proto->getKeys($arr);
     }
     return $arr;
@@ -126,4 +126,4 @@ class GlobalObject extends Object {
 }
 
 GlobalObject::unsetGlobals();
-Object::$global = new GlobalObject();
+ObjectClass::$global = new GlobalObject();

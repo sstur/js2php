@@ -380,7 +380,7 @@
         items.push(encodeString(keyName));
         items.push(this.generate(node.value));
       }, this);
-      return 'new Object(' + items.join(', ') + ')';
+      return 'new ObjectClass(' + items.join(', ') + ')';
     },
 
     CallExpression: function(node) {
@@ -782,7 +782,7 @@
       return 'null';
     }
     if (type === 'null') {
-      return 'Object::$null';
+      return 'ObjectClass::$null';
     }
     if (type === 'string') {
       return encodeString(value);

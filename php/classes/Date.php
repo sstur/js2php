@@ -1,5 +1,5 @@
 <?php
-class Date extends Object {
+class Date extends ObjectClass {
   public $className = "Date";
   /* @var DateTime - date object; second accuracy only; "local" timezone */
   public $date = null;
@@ -307,7 +307,7 @@ Date::$protoMethods = array(
     }
 );
 
-Date::$protoObject = new Object();
+Date::$protoObject = new ObjectClass();
 Date::$protoObject->setMethods(Date::$protoMethods, true, false, true);
 
 //get the local timezone by looking for environment variable; fallback to constant and then UTC

@@ -323,7 +323,7 @@ $f = new Func("f", function() {
 ----
 a = {a: 1, undefined: undefined, null: null};
 ====
-$a = new Object("a", 1.0, "undefined", $undefined, "null", Object::$null);
+$a = new ObjectClass("a", 1.0, "undefined", $undefined, "null", ObjectClass::$null);
 
 ----
 undefined = 1;
@@ -352,7 +352,7 @@ $«24» = new Func("\$", function() {
 ----
 var a = [1, false, null, undefined, new Date(), a];
 ====
-$a = new Arr(1.0, false, Object::$null, $undefined, _new($Date), $a);
+$a = new Arr(1.0, false, ObjectClass::$null, $undefined, _new($Date), $a);
 
 ----
 var a = function a() {
@@ -400,7 +400,7 @@ call_method($r, "match", $s);
 call(new Func(function() use (&$process, &$Object) {
   $request = get($process, "request");
   $response = get($process, "response");
-  $resHeaders = new Object("Content-Type", "text/plain");
+  $resHeaders = new ObjectClass("Content-Type", "text/plain");
   call_method($response, "writeHead", 200.0, "OK", $resHeaders);
   call_method($response, "write", _concat(call_method($request, "getMethod"), " ", call_method($request, "getURL"), "\n"));
   $reqHeaders = call_method($request, "getHeaders");
