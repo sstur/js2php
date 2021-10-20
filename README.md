@@ -133,16 +133,16 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-[2]: http://sstur.github.io/js2php/demo/
+[2]: https://sstur.github.io/js2php/demo/
 [3]: https://github.com/jashkenas/coffeescript/wiki/List-of-languages-that-compile-to-JS
-[8]: http://esprima.org/
+[8]: https://esprima.org/
 [9]: https://github.com/millermedeiros/rocambole
 [10]: https://github.com/Constellation/escope
-[11]: http://haxe.org/
-[13]: http://scriptor.github.io/pharen/
-[14]: http://mammouth.wamalaka.com/
-[15]: http://cretz.github.io/pratphall/
-[16]: http://hhvm.com/
+[11]: https://haxe.org/
+[13]: https://github.com/scriptor/pharen
+[14]: https://mammouth.boutglay.com/
+[15]: https://github.com/scriptor/pharen
+[16]: https://hhvm.com/
 [18]: https://github.com/endel/js2php
 [19]: https://github.com/c9s/gutscript
 [20]: https://babeljs.io/
