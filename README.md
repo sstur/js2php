@@ -48,7 +48,7 @@ Install from GitHub:
 
 Install from npm:
 
-    npm install -g jstophp
+    npm install -g @sstur/js2php
 
 When you install from npm using the `-g` flag, you can run it from any directory by simply calling `js2php` rather than calling `node path/to/js2php`. The rest of the examples in this readme will call it this way.
 
