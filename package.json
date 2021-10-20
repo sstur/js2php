@@ -1,6 +1,6 @@
 {
   "name": "@sstur/js2php",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "JavaScript to PHP source transformation",
   "main": "js2php.js",
   "bin": {
