@@ -212,7 +212,6 @@ class ObjectClass {
     /** @var Func $fn */
     $fn = $this->get($name);
     if (!($fn instanceof Func)) {
-      Debug::log($this, $name, $fn);
       throw new Ex(Err::create('Invalid method called'));
     }
     $args = array_slice(func_get_args(), 1);
