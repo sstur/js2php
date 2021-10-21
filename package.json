@@ -1,24 +1,25 @@
 {
   "name": "@sstur/js2php",
   "version": "0.3.1",
-  "description": "JavaScript to PHP source transformation",
   "main": "js2php.js",
   "bin": {
     "js2php": "./js2php.js"
   },
   "scripts": {
-    "test": "node js2php --test"
+    "format": "prettier --write \"**/*.js\"",
+    "format:check": "prettier --check \"**/*.js\"",
+    "test:unit": "node js2php --test",
+    "test": "npm run format:check && npm run test:unit"
   },
   "dependencies": {
     "escope": "^1.0.1",
     "rocambole": "^0.7.0",
     "yargs": "^1.3.2"
   },
-  "devDependencies": {},
-  "repository": {
-    "type": "git",
-    "url": "git@github.com:sstur/js2php.git"
+  "devDependencies": {
+    "prettier": "^2.4.1"
   },
+  "repository": "github:sstur/js2php",
   "keywords": [
     "js",
     "php",
@@ -26,11 +27,11 @@
     "source",
     "transform"
   ],
-  "author": "sstur@me.com",
-  "license": "BSD",
-  "bugs": {
-    "url": "https://github.com/sstur/js2php/issues"
+  "license": "ISC",
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "es5",
+    "arrowParens": "always"
   },
-  "homepage": "https://github.com/sstur/js2php",
   "private": false
 }
