@@ -546,7 +546,7 @@
       }
       //special case here: -3 is just a number literal, not negate(3)
       if (op === '-' && node.argument.type === 'Literal' && typeof node.argument.value === 'number') {
-        return '-' + encodeLiteral(node.argument.value);
+        return '-' + encodeLiteral(node.argument.value, node.argument);
       }
       //special case here: `typeof a` can be called on a non-declared variable
       if (op === 'typeof' && node.argument.type === 'Identifier') {
@@ -675,7 +675,7 @@
 
         //EXPRESSIONS
         case 'Literal':
-          result = encodeLiteral(node.value);
+          result = encodeLiteral(node.value, node);
           break;
         case 'Identifier':
           result = encodeVar(node);
@@ -776,7 +776,7 @@
   }
 
 
-  function encodeLiteral(value) {
+  function encodeLiteral(value, node) {
     var type = (value === null) ? 'null' : typeof value;
     if (type === 'undefined') {
       return 'null';
@@ -789,6 +789,20 @@
     }
     if (type === 'boolean') {
       return value.toString();
+    }
+    if (type === 'number'
+        && node
+        && node.startToken
+        && node.startToken.type === 'Numeric'
+        && node.startToken.value.length > 1
+        && node.startToken.value.startsWith('0')) {
+        // preserve numeric literals (e.g. 0xD800)
+      var value = node.startToken.value;
+      if (value.startsWith('0o')) {
+        // Replace octal prefix '0o' with '0' because '0o' is not allowed in PHP
+        value = '0' + value.substr(2);
+      }
+      return '(float)' + value;
     }
     if (type === 'number') {
       value = value.toString();
