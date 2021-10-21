@@ -796,8 +796,8 @@
         && node.raw.startsWith('0')) {
       // Preserve numeric literals (e.g. 0xD800)
       // Replace octal prefix because '0o' is not allowed in PHP
-      var value = node.raw.replace(/^0o/, '0');
-      return '(float)' + value;
+      var rawValue = node.raw.replace(/^0o/, '0');
+      return '(float)' + rawValue;
     }
     if (type === 'number') {
       value = value.toString();
