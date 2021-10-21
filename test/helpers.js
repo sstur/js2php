@@ -1,6 +1,5 @@
 /*global global, process*/
-(function(exports) {
-
+(function (exports) {
   var stack = [];
   var toString = Object.prototype.toString;
 
@@ -18,33 +17,32 @@
     }
   }
 
-  assert.shouldThrow = function(name, fn, message) {
+  assert.shouldThrow = function (name, fn, message) {
     var threw = null;
     try {
       fn();
-    } catch(e) {
+    } catch (e) {
       threw = e;
     }
     assert(name, threw !== null);
     if (typeof message === 'string') {
       assert(name, threw.message === message);
-    } else
-    if (message instanceof RegExp) {
+    } else if (message instanceof RegExp) {
       assert(name, message.test(threw.message));
     }
   };
 
-  assert.shouldNotThrow = function(name, fn) {
+  assert.shouldNotThrow = function (name, fn) {
     var threw = null;
     try {
       fn();
-    } catch(e) {
+    } catch (e) {
       threw = e;
     }
     assert(name, threw === null);
   };
 
-  assert.deepEqual = function(name, a, b) {
+  assert.deepEqual = function (name, a, b) {
     assert(name, deepEqual(a, b));
   };
 
@@ -67,13 +65,18 @@
     }
     switch (className) {
       case '[object Number]':
-        return (isNaN(a) && isNaN(b)) ? true : a.valueOf() === b.valueOf();
+        return isNaN(a) && isNaN(b) ? true : a.valueOf() === b.valueOf();
       case '[object Date]':
       case '[object String]':
       case '[object Boolean]':
         return a.valueOf() === b.valueOf();
       case '[object RegExp]':
-        return (a.source === b.source && a.global === b.global && a.multiline === b.multiline && a.ignoreCase === b.ignoreCase);
+        return (
+          a.source === b.source &&
+          a.global === b.global &&
+          a.multiline === b.multiline &&
+          a.ignoreCase === b.ignoreCase
+        );
     }
     // todo: Buffer
     // Assume equality for cyclic structures
@@ -122,5 +125,4 @@
 
   exports.testSuite = testSuite;
   exports.assert = assert;
-
 })(global);

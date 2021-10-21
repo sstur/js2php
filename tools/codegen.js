@@ -1,4 +1,4 @@
-(function() {
+(function () {
   var util = require('util');
   var utils = require('./utils');
 
@@ -27,7 +27,7 @@
     NEW: 16,
     TAGGED_TEMPLATE: 17,
     MEMBER: 18,
-    PRIMARY: 19
+    PRIMARY: 19,
   };
 
   var BINARY_PRECEDENCE = {
@@ -44,8 +44,8 @@
     '>': PRECEDENCE.RELATIONAL,
     '<=': PRECEDENCE.RELATIONAL,
     '>=': PRECEDENCE.RELATIONAL,
-    'in': PRECEDENCE.RELATIONAL,
-    'instanceof': PRECEDENCE.RELATIONAL,
+    in: PRECEDENCE.RELATIONAL,
+    instanceof: PRECEDENCE.RELATIONAL,
     '<<': PRECEDENCE.BITWISE_SHIFT,
     '>>': PRECEDENCE.BITWISE_SHIFT,
     '>>>': PRECEDENCE.BITWISE_SHIFT,
@@ -53,14 +53,14 @@
     '-': PRECEDENCE.ADDITIVE,
     '*': PRECEDENCE.MULTIPLICATIVE,
     '%': PRECEDENCE.MULTIPLICATIVE,
-    '/': PRECEDENCE.MULTIPLICATIVE
+    '/': PRECEDENCE.MULTIPLICATIVE,
   };
 
   //these operators expect numbers
   var UNARY_NUM_OPS = {
     '-': '_negate',
     '+': 'to_number',
-    '~': '~' //bitwise not
+    '~': '~', //bitwise not
   };
 
   //these operators expect numbers
@@ -78,38 +78,77 @@
     '^': '^', //bitwise xor
     '<<': '<<', //bitwise left shift
     '>>': '>>', //bitwise sign-propagating right shift
-    '>>>': '_bitwise_zfrs' //bitwise zero-fill right shift
+    '>>>': '_bitwise_zfrs', //bitwise zero-fill right shift
   };
 
   //these operators will always return true/false
   var BOOL_SAFE_OPS = {
-    '===': 1, '!==': 1,
-    '==': 1, '!=': 1,
-    '<': 1, '<=': 1,
-    '>': 1, '>=': 1,
-    'in': 1,
-    'instanceof': 1
+    '===': 1,
+    '!==': 1,
+    '==': 1,
+    '!=': 1,
+    '<': 1,
+    '<=': 1,
+    '>': 1,
+    '>=': 1,
+    in: 1,
+    instanceof: 1,
   };
 
   //these operators will always return numbers
   var NUM_SAFE_UNARY_OPS = {
     '-': 1,
     '+': 1,
-    '~': 1
+    '~': 1,
   };
   var NUM_SAFE_BINARY_OPS = {
     // `+` is not in this list because it's a special case
     '-': 1,
     '%': 1,
-    '*': 1, '/': 1,
-    '&': 1, '|': 1,
+    '*': 1,
+    '/': 1,
+    '&': 1,
+    '|': 1,
     '^': 1,
-    '<<': 1, '>>': 1,
-    '>>>': 1
+    '<<': 1,
+    '>>': 1,
+    '>>>': 1,
   };
 
   //built-in globals (should not be re-assigned)
-  var GLOBALS = {Array: 1, Boolean: 1, Buffer: 1, Date: 1, Error: 1, RangeError: 1, ReferenceError: 1, SyntaxError: 1, TypeError: 1, Function: 1, Infinity: 1, JSON: 1, Math: 1, NaN: 1, Number: 1, Object: 1, RegExp: 1, String: 1, console: 1, decodeURI: 1, decodeURIComponent: 1, encodeURI: 1, encodeURIComponent: 1, escape: 1, eval: 1, isFinite: 1, isNaN: 1, parseFloat: 1, parseInt: 1, undefined: 1, unescape: 1};
+  var GLOBALS = {
+    Array: 1,
+    Boolean: 1,
+    Buffer: 1,
+    Date: 1,
+    Error: 1,
+    RangeError: 1,
+    ReferenceError: 1,
+    SyntaxError: 1,
+    TypeError: 1,
+    Function: 1,
+    Infinity: 1,
+    JSON: 1,
+    Math: 1,
+    NaN: 1,
+    Number: 1,
+    Object: 1,
+    RegExp: 1,
+    String: 1,
+    console: 1,
+    decodeURI: 1,
+    decodeURIComponent: 1,
+    encodeURI: 1,
+    encodeURIComponent: 1,
+    escape: 1,
+    eval: 1,
+    isFinite: 1,
+    isNaN: 1,
+    parseFloat: 1,
+    parseInt: 1,
+    undefined: 1,
+    unescape: 1,
+  };
 
   function Generator(opts) {
     this.opts = Object.create(opts || {});
@@ -118,7 +157,7 @@
   Generator.prototype = {
     //accepts a BlockStatement or an ExpressionStatement (turns to block)
     // assumes the `{}` have already been generated
-    toBlock: function(node) {
+    toBlock: function (node) {
       var opts = this.opts;
       if (node.type === 'BlockStatement') {
         return this.Body(node);
@@ -134,9 +173,9 @@
 
     //generate function or program body
     // assumes the `{}` have already been written
-    Body: function(node) {
+    Body: function (node) {
       var opts = this.opts;
-      var scopeNode = (node.type === 'BlockStatement') ? node.parent : node;
+      var scopeNode = node.type === 'BlockStatement' ? node.parent : node;
       var scopeIndex = scopeNode.scopeIndex || Object.create(null);
       var results = [];
       opts.indentLevel += 1;
@@ -152,7 +191,7 @@
       }
       if (node.vars && opts.initVars) {
         var declarations = [];
-        Object.keys(node.vars).forEach(function(name) {
+        Object.keys(node.vars).forEach(function (name) {
           declarations.push(encodeVarName(name) + ' = null;');
         });
         if (declarations.length) {
@@ -161,13 +200,15 @@
       }
       var funcDeclarations = node.funcs;
       if (funcDeclarations) {
-        Object.keys(funcDeclarations).forEach(function(name) {
+        Object.keys(funcDeclarations).forEach(function (name) {
           var func = this.FunctionExpression(funcDeclarations[name]);
-          results.push(this.indent() + encodeVarName(name) + ' = ' + func + ';\n');
+          results.push(
+            this.indent() + encodeVarName(name) + ' = ' + func + ';\n'
+          );
         }, this);
       }
 
-      node.body.forEach(function(node) {
+      node.body.forEach(function (node) {
         var result = this.generate(node);
         if (result) {
           results.push(this.indent() + result);
@@ -179,16 +220,16 @@
       return results.join('');
     },
 
-    BlockStatement: function(node) {
+    BlockStatement: function (node) {
       var results = ['{\n'];
       results.push(this.Body(node));
       results.push(this.indent() + '}');
       return results.join('') + '\n';
     },
 
-    VariableDeclaration: function(node) {
+    VariableDeclaration: function (node) {
       var results = [];
-      node.declarations.forEach(function(node) {
+      node.declarations.forEach(function (node) {
         if (node.init) {
           results.push(encodeVar(node.id) + ' = ' + this.generate(node.init));
         }
@@ -202,7 +243,7 @@
       return results.join('; ') + ';\n';
     },
 
-    IfStatement: function(node) {
+    IfStatement: function (node) {
       var results = ['if ('];
       results.push(this.truthyWrap(node.test));
       results.push(') {\n');
@@ -221,13 +262,13 @@
       return results.join('') + '\n';
     },
 
-    SwitchStatement: function(node) {
+    SwitchStatement: function (node) {
       var opts = this.opts;
       var results = ['switch ('];
       results.push(this.generate(node.discriminant));
       results.push(') {\n');
       opts.indentLevel += 1;
-      node.cases.forEach(function(node) {
+      node.cases.forEach(function (node) {
         results.push(this.indent());
         if (node.test === null) {
           results.push('default:\n');
@@ -235,7 +276,7 @@
           results.push('case ' + this.generate(node.test) + ':\n');
         }
         opts.indentLevel += 1;
-        node.consequent.forEach(function(node) {
+        node.consequent.forEach(function (node) {
           results.push(this.indent() + this.generate(node));
         }, this);
         opts.indentLevel -= 1;
@@ -245,7 +286,7 @@
       return results.join('') + '\n';
     },
 
-    ConditionalExpression: function(node) {
+    ConditionalExpression: function (node) {
       //PHP has "non-obvious" ternary operator precedence according to the docs
       // these are safe: Literal, Identifier, ThisExpression,
       // FunctionExpression, CallExpression, MemberExpression, NewExpression,
@@ -260,10 +301,16 @@
           alternate = '(' + alternate + ')';
           break;
       }
-      return this.truthyWrap(node.test) + ' ? ' + this.generate(node.consequent) + ' : ' + alternate;
+      return (
+        this.truthyWrap(node.test) +
+        ' ? ' +
+        this.generate(node.consequent) +
+        ' : ' +
+        alternate
+      );
     },
 
-    ForStatement: function(node) {
+    ForStatement: function (node) {
       var results = ['for ('];
       results.push(this.generate(node.init) + '; ');
       results.push(this.truthyWrap(node.test) + '; ');
@@ -274,24 +321,27 @@
       return results.join('') + '\n';
     },
 
-    ForInStatement: function(node) {
+    ForInStatement: function (node) {
       var results = [];
       if (node.left.type === 'VariableDeclaration') {
         var identifier = node.left.declarations[0].id;
-      } else
-      if (node.left.type === 'Identifier') {
+      } else if (node.left.type === 'Identifier') {
         identifier = node.left;
       } else {
-        throw new Error('Unknown left part of for..in `' + node.left.type + '`');
+        throw new Error(
+          'Unknown left part of for..in `' + node.left.type + '`'
+        );
       }
       results.push('foreach (keys(');
-      results.push(this.generate(node.right) + ') as ' + encodeVar(identifier) + ') {\n');
+      results.push(
+        this.generate(node.right) + ') as ' + encodeVar(identifier) + ') {\n'
+      );
       results.push(this.toBlock(node.body));
       results.push(this.indent() + '}');
       return results.join('') + '\n';
     },
 
-    WhileStatement: function(node) {
+    WhileStatement: function (node) {
       var results = ['while ('];
       results.push(this.truthyWrap(node.test));
       results.push(') {\n');
@@ -300,30 +350,43 @@
       return results.join('') + '\n';
     },
 
-    DoWhileStatement: function(node) {
+    DoWhileStatement: function (node) {
       var results = ['do {\n'];
       results.push(this.toBlock(node.body));
-      results.push(this.indent() + '} while (' + this.truthyWrap(node.test) + ');');
+      results.push(
+        this.indent() + '} while (' + this.truthyWrap(node.test) + ');'
+      );
       return results.join('') + '\n';
     },
 
-    TryStatement: function(node) {
+    TryStatement: function (node) {
       var catchClause = node.handlers[0];
       var param = catchClause.param;
       var results = ['try {\n'];
       results.push(this.Body(node.block));
-      results.push(this.indent() + '} catch(Exception ' + encodeVar(param) + ') {\n');
-      results.push(this.indent(1) + 'if (' + encodeVar(param) + ' instanceof Ex) ' + encodeVar(param) + ' = ' + encodeVar(param) + '->value;\n');
+      results.push(
+        this.indent() + '} catch(Exception ' + encodeVar(param) + ') {\n'
+      );
+      results.push(
+        this.indent(1) +
+          'if (' +
+          encodeVar(param) +
+          ' instanceof Ex) ' +
+          encodeVar(param) +
+          ' = ' +
+          encodeVar(param) +
+          '->value;\n'
+      );
       results.push(this.Body(catchClause.body));
       results.push(this.indent() + '}');
       return results.join('') + '\n';
     },
 
-    ThrowStatement: function(node) {
+    ThrowStatement: function (node) {
       return 'throw new Ex(' + this.generate(node.argument) + ');\n';
     },
 
-    FunctionExpression: function(node) {
+    FunctionExpression: function (node) {
       var meta = [];
       var opts = this.opts;
       var parentIsStrict = opts.isStrict;
@@ -338,7 +401,7 @@
       if (node.id) {
         results.push(encodeString(node.id.name) + ', ');
       }
-      var params = node.params.map(function(param) {
+      var params = node.params.map(function (param) {
         return encodeVar(param) + ' = null';
       });
       var scopeIndex = node.scopeIndex || Object.create(null);
@@ -346,13 +409,21 @@
       if (scopeIndex.unresolved[functionName]) {
         delete scopeIndex.unresolved[functionName];
       }
-      var unresolvedRefs = Object.keys(scopeIndex.unresolved).map(function(name) {
+      var unresolvedRefs = Object.keys(scopeIndex.unresolved).map(function (
+        name
+      ) {
         return encodeVarName(name);
       });
-      var useClause = unresolvedRefs.length ? 'use (&' + unresolvedRefs.join(', &') + ') ' : '';
+      var useClause = unresolvedRefs.length
+        ? 'use (&' + unresolvedRefs.join(', &') + ') '
+        : '';
       results.push('function(' + params.join(', ') + ') ' + useClause + '{\n');
       if (scopeIndex.referenced[functionName]) {
-        results.push(this.indent(1) + encodeVarName(functionName) + ' = Func::getCurrent();\n');
+        results.push(
+          this.indent(1) +
+            encodeVarName(functionName) +
+            ' = Func::getCurrent();\n'
+        );
       }
       results.push(this.Body(node.body));
       results.push(this.indent() + '}');
@@ -364,54 +435,91 @@
       return results.join('');
     },
 
-    ArrayExpression: function(node) {
-      var items = node.elements.map(function(el) {
-        return (el === null) ? 'Arr::$empty' : this.generate(el);
+    ArrayExpression: function (node) {
+      var items = node.elements.map(function (el) {
+        return el === null ? 'Arr::$empty' : this.generate(el);
       }, this);
       return 'new Arr(' + items.join(', ') + ')';
     },
 
-    ObjectExpression: function(node) {
+    ObjectExpression: function (node) {
       var items = [];
-      node.properties.forEach(function(node) {
+      node.properties.forEach(function (node) {
         var key = node.key;
         //key can be a literal or an identifier (quoted or not)
-        var keyName = (key.type === 'Identifier') ? key.name : String(key.value);
+        var keyName = key.type === 'Identifier' ? key.name : String(key.value);
         items.push(encodeString(keyName));
         items.push(this.generate(node.value));
       }, this);
       return 'new ObjectClass(' + items.join(', ') + ')';
     },
 
-    CallExpression: function(node) {
-      var args = node.arguments.map(function(arg) {
+    CallExpression: function (node) {
+      var args = node.arguments.map(function (arg) {
         return this.generate(arg);
       }, this);
       if (node.callee.type === 'MemberExpression') {
-        return 'call_method(' + this.generate(node.callee.object) + ', ' + this.encodeProp(node.callee) + (args.length ? ', ' + args.join(', ') : '') + ')';
+        return (
+          'call_method(' +
+          this.generate(node.callee.object) +
+          ', ' +
+          this.encodeProp(node.callee) +
+          (args.length ? ', ' + args.join(', ') : '') +
+          ')'
+        );
       } else {
-        return 'call(' + this.generate(node.callee) + (args.length ? ', ' + args.join(', ') : '') + ')';
+        return (
+          'call(' +
+          this.generate(node.callee) +
+          (args.length ? ', ' + args.join(', ') : '') +
+          ')'
+        );
       }
     },
 
-    MemberExpression: function(node) {
-      return 'get(' + this.generate(node.object) + ', ' + this.encodeProp(node) + ')';
+    MemberExpression: function (node) {
+      return (
+        'get(' + this.generate(node.object) + ', ' + this.encodeProp(node) + ')'
+      );
     },
 
-    NewExpression: function(node) {
-      var args = node.arguments.map(function(arg) {
+    NewExpression: function (node) {
+      var args = node.arguments.map(function (arg) {
         return this.generate(arg);
       }, this);
-      return '_new(' + this.generate(node.callee) + (args.length ? ', ' + args.join(', ') : '') + ')';
+      return (
+        '_new(' +
+        this.generate(node.callee) +
+        (args.length ? ', ' + args.join(', ') : '') +
+        ')'
+      );
     },
 
-    AssignmentExpression: function(node) {
+    AssignmentExpression: function (node) {
       if (node.left.type === 'MemberExpression') {
         //`a.b = 1` -> `set(a, "b", 1)` but `a.b += 1` -> `set(a, "b", 1, "+=")`
         if (node.operator === '=') {
-          return 'set(' + this.generate(node.left.object) + ', ' + this.encodeProp(node.left) + ', ' + this.generate(node.right) + ')';
+          return (
+            'set(' +
+            this.generate(node.left.object) +
+            ', ' +
+            this.encodeProp(node.left) +
+            ', ' +
+            this.generate(node.right) +
+            ')'
+          );
         } else {
-          return 'set(' + this.generate(node.left.object) + ', ' + this.encodeProp(node.left) + ', ' + this.generate(node.right) + ', "' + node.operator + '")';
+          return (
+            'set(' +
+            this.generate(node.left.object) +
+            ', ' +
+            this.encodeProp(node.left) +
+            ', ' +
+            this.generate(node.right) +
+            ', "' +
+            node.operator +
+            '")'
+          );
         }
       }
       if (hasOwnProperty.call(GLOBALS, node.left.name)) {
@@ -423,18 +531,36 @@
       //special case += since plus can be either add or concatenate
       if (node.operator === '+=') {
         var ident = this.generate(node.left);
-        return ident + ' = _plus(' + ident + ', ' + this.generate(node.right) + ')';
+        return (
+          ident + ' = _plus(' + ident + ', ' + this.generate(node.right) + ')'
+        );
       }
-      return encodeVar(node.left) + ' ' + node.operator + ' ' + this.generate(node.right);
+      return (
+        encodeVar(node.left) +
+        ' ' +
+        node.operator +
+        ' ' +
+        this.generate(node.right)
+      );
     },
 
-    UpdateExpression: function(node) {
+    UpdateExpression: function (node) {
       if (node.argument.type === 'MemberExpression') {
         //convert `++a` to `a += 1`
-        var operator = (node.operator === '++') ? '+=' : '-=';
+        var operator = node.operator === '++' ? '+=' : '-=';
         // ++i returns the new (updated) value; i++ returns the old value
         var returnOld = node.prefix ? false : true;
-        return 'set(' + this.generate(node.argument.object) + ', ' + this.encodeProp(node.argument) + ', 1, "' + operator + '", ' + returnOld + ')';
+        return (
+          'set(' +
+          this.generate(node.argument.object) +
+          ', ' +
+          this.encodeProp(node.argument) +
+          ', 1, "' +
+          operator +
+          '", ' +
+          returnOld +
+          ')'
+        );
       }
       //special case (i++ and ++i) assume type is number
       if (node.prefix) {
@@ -444,10 +570,11 @@
       }
     },
 
-    LogicalExpression: function(node) {
+    LogicalExpression: function (node) {
       var op = node.operator;
       if (isBooleanExpr(node)) {
-        var result = this.generate(node.left) + ' ' + op + ' ' + this.generate(node.right);
+        var result =
+          this.generate(node.left) + ' ' + op + ' ' + this.generate(node.right);
         if (opPrecedence(op) < opPrecedence(node.parent.operator)) {
           result = '(' + result + ')';
         }
@@ -461,33 +588,35 @@
       }
     },
 
-    genAnd: function(node) {
+    genAnd: function (node) {
       var opts = this.opts;
-      opts.andDepth = (opts.andDepth == null) ? 0 : opts.andDepth + 1;
-      var name = (opts.andDepth === 0) ? '$and_' : '$and' + opts.andDepth + '_';
+      opts.andDepth = opts.andDepth == null ? 0 : opts.andDepth + 1;
+      var name = opts.andDepth === 0 ? '$and_' : '$and' + opts.andDepth + '_';
       var test = '(' + name + ' = ' + this.generate(node.left) + ')';
       if (!isBooleanExpr(node.left)) {
         test = 'is' + test;
       }
-      var result = '(' + test + ' ? ' + this.generate(node.right) + ' : ' + name + ')';
-      opts.andDepth = (opts.andDepth === 0) ? null : opts.andDepth - 1;
+      var result =
+        '(' + test + ' ? ' + this.generate(node.right) + ' : ' + name + ')';
+      opts.andDepth = opts.andDepth === 0 ? null : opts.andDepth - 1;
       return result;
     },
 
-    genOr: function(node) {
+    genOr: function (node) {
       var opts = this.opts;
-      opts.orDepth = (opts.orDepth == null) ? 0 : opts.orDepth + 1;
-      var name = (opts.orDepth === 0) ? '$or_' : '$or' + opts.orDepth + '_';
+      opts.orDepth = opts.orDepth == null ? 0 : opts.orDepth + 1;
+      var name = opts.orDepth === 0 ? '$or_' : '$or' + opts.orDepth + '_';
       var test = '(' + name + ' = ' + this.generate(node.left) + ')';
       if (!isBooleanExpr(node.left)) {
         test = 'is' + test;
       }
-      var result = '(' + test + ' ? ' + name + ' : ' + this.generate(node.right) + ')';
-      opts.orDepth = (opts.orDepth === 0) ? null : opts.orDepth - 1;
+      var result =
+        '(' + test + ' ? ' + name + ' : ' + this.generate(node.right) + ')';
+      opts.orDepth = opts.orDepth === 0 ? null : opts.orDepth - 1;
       return result;
     },
 
-    BinaryExpression: function(node) {
+    BinaryExpression: function (node) {
       var op = node.operator;
       if (op === '+') {
         var terms = node.terms.map(this.generate, this);
@@ -498,10 +627,22 @@
         }
       }
       if (op === '==') {
-        return 'eq(' + this.generate(node.left) + ', ' + this.generate(node.right) + ')';
+        return (
+          'eq(' +
+          this.generate(node.left) +
+          ', ' +
+          this.generate(node.right) +
+          ')'
+        );
       }
       if (op === '!=') {
-        return '!eq(' + this.generate(node.left) + ', ' + this.generate(node.right) + ')';
+        return (
+          '!eq(' +
+          this.generate(node.left) +
+          ', ' +
+          this.generate(node.right) +
+          ')'
+        );
       }
       // some ops will return int in which case we need to cast result
       if (op === '%') {
@@ -511,8 +652,7 @@
       if (op in BINARY_NUM_OPS) {
         op = BINARY_NUM_OPS[op];
         toNumber = true;
-      } else
-      if (isWord(op)) {
+      } else if (isWord(op)) {
         //in, instanceof
         op = '_' + op;
       }
@@ -520,8 +660,7 @@
       var rightExpr = this.generate(node.right);
       if (isWord(op)) {
         return op + '(' + leftExpr + ', ' + rightExpr + ')';
-      } else
-      if (toNumber) {
+      } else if (toNumber) {
         if (!isNumericExpr(node.left)) {
           leftExpr = 'to_number(' + leftExpr + ')';
         }
@@ -532,54 +671,74 @@
       var result = leftExpr + ' ' + op + ' ' + rightExpr;
       if (castFloat) {
         result = '(float)(' + result + ')';
-      } else
-      if (opPrecedence(node.operator) < opPrecedence(node.parent.operator)) {
+      } else if (
+        opPrecedence(node.operator) < opPrecedence(node.parent.operator)
+      ) {
         return '(' + result + ')';
       }
       return result;
     },
 
-    UnaryExpression: function(node) {
+    UnaryExpression: function (node) {
       var op = node.operator;
       if (op === '!') {
-        return isBooleanExpr(node.argument) ? '!' + this.generate(node.argument) : 'not(' + this.generate(node.argument) + ')';
+        return isBooleanExpr(node.argument)
+          ? '!' + this.generate(node.argument)
+          : 'not(' + this.generate(node.argument) + ')';
       }
       //special case here: -3 is just a number literal, not negate(3)
-      if (op === '-' && node.argument.type === 'Literal' && typeof node.argument.value === 'number') {
+      if (
+        op === '-' &&
+        node.argument.type === 'Literal' &&
+        typeof node.argument.value === 'number'
+      ) {
         return '-' + encodeLiteral(node.argument.value, node.argument);
       }
       //special case here: `typeof a` can be called on a non-declared variable
       if (op === 'typeof' && node.argument.type === 'Identifier') {
         //isset($a) ? _typeof($a) : "undefined"
-        return '(isset(' + this.generate(node.argument) + ') ? _typeof(' + this.generate(node.argument) + ') : "undefined")';
+        return (
+          '(isset(' +
+          this.generate(node.argument) +
+          ') ? _typeof(' +
+          this.generate(node.argument) +
+          ') : "undefined")'
+        );
       }
       //special case here: `delete a.b.c` needs to compute a.b and then delete c
       if (op === 'delete' && node.argument.type === 'MemberExpression') {
-        return '_delete(' + this.generate(node.argument.object) + ', ' + this.encodeProp(node.argument) + ')';
+        return (
+          '_delete(' +
+          this.generate(node.argument.object) +
+          ', ' +
+          this.encodeProp(node.argument) +
+          ')'
+        );
       }
       var toNumber = false;
       if (op in UNARY_NUM_OPS) {
         op = UNARY_NUM_OPS[op];
         toNumber = true;
-      } else
-      if (isWord(op)) {
+      } else if (isWord(op)) {
         //delete, typeof, void
         op = '_' + op;
       }
       var result = this.generate(node.argument);
       if (isWord(op)) {
         result = '(' + result + ')';
-      } else
-      if (toNumber) {
-        if (node.argument.type !== 'Literal' || typeof node.argument.value !== 'number') {
+      } else if (toNumber) {
+        if (
+          node.argument.type !== 'Literal' ||
+          typeof node.argument.value !== 'number'
+        ) {
           result = 'to_number(' + result + ')';
         }
       }
       return op + result;
     },
 
-    SequenceExpression: function(node) {
-      var expressions = node.expressions.map(function(node) {
+    SequenceExpression: function (node) {
+      var expressions = node.expressions.map(function (node) {
         return this.generate(node);
       }, this);
       //allow sequence expression only in the init of a for loop
@@ -591,14 +750,19 @@
     },
 
     // used from if/for/while and ternary to determine truthiness
-    truthyWrap: function(node) {
+    truthyWrap: function (node) {
       //node can be null, for instance: `for (;;) {}`
       if (!node) return '';
       var op = node.operator;
       var type = node.type;
       if (type === 'LogicalExpression') {
         if (op === '&&' || op === '||') {
-          var result = this.truthyWrap(node.left) + ' ' + op + ' ' + this.truthyWrap(node.right);
+          var result =
+            this.truthyWrap(node.left) +
+            ' ' +
+            op +
+            ' ' +
+            this.truthyWrap(node.right);
           if (opPrecedence(op) < opPrecedence(node.parent.operator)) {
             result = '(' + result + ')';
           }
@@ -613,7 +777,7 @@
       }
     },
 
-    generate: function(node) {
+    generate: function (node) {
       var opts = this.opts;
       if (opts.indentLevel == null) {
         opts.indentLevel = -1;
@@ -631,7 +795,9 @@
           result = this.Body(node);
           break;
         case 'ExpressionStatement':
-          result = isStrictDirective(node) ? '' : this.generate(node.expression) + ';\n';
+          result = isStrictDirective(node)
+            ? ''
+            : this.generate(node.expression) + ';\n';
           break;
         case 'ReturnStatement':
           result = 'return ' + this.generate(node.argument) + ';\n';
@@ -712,7 +878,7 @@
       return result;
     },
 
-    encodeProp: function(node) {
+    encodeProp: function (node) {
       if (node.computed) {
         //a[0] or a[b] or a[b + 1]
         return this.generate(node.property);
@@ -722,12 +888,11 @@
       }
     },
 
-    indent: function(count) {
+    indent: function (count) {
       var indentLevel = this.opts.indentLevel + (count || 0);
       return repeat('  ', indentLevel);
-    }
+    },
   };
-
 
   function isStrictDirective(stmt) {
     if (stmt && stmt.type === 'ExpressionStatement') {
@@ -738,7 +903,6 @@
     }
     return false;
   }
-
 
   function isBooleanExpr(node) {
     if (node.type === 'LogicalExpression') {
@@ -760,24 +924,28 @@
     return false;
   }
 
-
   // used to determine when we can omit to_number() so as to prevent stuff
   //  like: to_number(5.0 - 2.0) - 1.0;
   function isNumericExpr(node) {
     if (node.type === 'Literal' && typeof node.value === 'number') {
       return true;
     }
-    if (node.type === 'UnaryExpression' && node.operator in NUM_SAFE_UNARY_OPS) {
+    if (
+      node.type === 'UnaryExpression' &&
+      node.operator in NUM_SAFE_UNARY_OPS
+    ) {
       return true;
     }
-    if (node.type === 'BinaryExpression' && node.operator in NUM_SAFE_BINARY_OPS) {
+    if (
+      node.type === 'BinaryExpression' &&
+      node.operator in NUM_SAFE_BINARY_OPS
+    ) {
       return true;
     }
   }
 
-
   function encodeLiteral(value, node) {
-    var type = (value === null) ? 'null' : typeof value;
+    var type = value === null ? 'null' : typeof value;
     if (type === 'undefined') {
       return 'null';
     }
@@ -790,10 +958,12 @@
     if (type === 'boolean') {
       return value.toString();
     }
-    if (type === 'number'
-        && node
-        && node.raw.length > 1
-        && node.raw.startsWith('0')) {
+    if (
+      type === 'number' &&
+      node &&
+      node.raw.length > 1 &&
+      node.raw.startsWith('0')
+    ) {
       // Preserve numeric literals (e.g. 0xD800)
       // Replace octal prefix because '0o' is not allowed in PHP
       var rawValue = node.raw.replace(/^0o/, '0');
@@ -801,12 +971,14 @@
     }
     if (type === 'number') {
       value = value.toString();
-      return (~value.indexOf('.') || ~value.indexOf('e')) ? value : value + '.0';
+      return ~value.indexOf('.') || ~value.indexOf('e') ? value : value + '.0';
     }
     if (toString.call(value) === '[object RegExp]') {
       return encodeRegExp(value);
     }
-    throw new Error('No handler for literal of type: ' + type + ': ' + util.inspect(value));
+    throw new Error(
+      'No handler for literal of type: ' + type + ': ' + util.inspect(value)
+    );
   }
 
   function encodeRegExp(value) {
@@ -815,10 +987,12 @@
     if (value.ignoreCase) flags += 'i';
     if (value.multiline) flags += 'm';
     //normalize source to ensure no forward slashes are "escaped"
-    var source = value.source.replace(/\\./g, function(s) {
-      return (s === '\\/') ? '/' : s;
+    var source = value.source.replace(/\\./g, function (s) {
+      return s === '\\/' ? '/' : s;
     });
-    return 'new RegExp(' + encodeString(source) + ', ' + encodeString(flags) + ')';
+    return (
+      'new RegExp(' + encodeString(source) + ', ' + encodeString(flags) + ')'
+    );
   }
 
   function encodeString(value) {
@@ -846,7 +1020,7 @@
     return BINARY_PRECEDENCE[op];
   }
 
-  exports.generate = function(ast, opts) {
+  exports.generate = function (ast, opts) {
     var generator = new Generator(opts);
     return generator.generate(ast);
   };

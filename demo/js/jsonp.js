@@ -1,7 +1,7 @@
-(function() {
+(function () {
   var JSONP, createElement, encode, noop, object_to_uri, random, random_string;
 
-  createElement = function(tag) {
+  createElement = function (tag) {
     return window.document.createElement(tag);
   };
 
@@ -9,21 +9,22 @@
 
   random = Math.random;
 
-  JSONP = function(options) {
+  JSONP = function (options) {
     var callback, done, head, params, script;
     options = options ? options : {};
     params = {
       data: options.data || {},
       error: options.error || noop,
       success: options.success || noop,
-      url: options.url || ''
+      url: options.url || '',
     };
     if (params.url.length === 0) {
       throw new Error('MissingUrl');
     }
     done = false;
-    callback = params.data[options.callback_name || 'callback'] = 'jsonp_' + random_string(15);
-    window[callback] = function(data) {
+    callback = params.data[options.callback_name || 'callback'] =
+      'jsonp_' + random_string(15);
+    window[callback] = function (data) {
       params.success(data);
       try {
         return delete window[callback];
@@ -37,14 +38,19 @@
     script.src += params.url.indexOf('?' === -1) ? '?' : '&';
     script.src += object_to_uri(params.data);
     script.async = true;
-    script.onerror = function(evt) {
+    script.onerror = function (evt) {
       return params.error({
         url: script.src,
-        event: evt
+        event: evt,
       });
     };
-    script.onload = script.onreadystatechange = function() {
-      if (!done && (!this.readyState || this.readyState === 'loaded' || this.readyState === 'complete')) {
+    script.onload = script.onreadystatechange = function () {
+      if (
+        !done &&
+        (!this.readyState ||
+          this.readyState === 'loaded' ||
+          this.readyState === 'complete')
+      ) {
         done = true;
         script.onload = script.onreadystatechange = null;
         if (script && script.parentNode) {
@@ -56,11 +62,11 @@
     return head.appendChild(script);
   };
 
-  noop = function() {
+  noop = function () {
     return void 0;
   };
 
-  random_string = function(length) {
+  random_string = function (length) {
     var str;
     str = '';
     while (str.length < length) {
@@ -69,7 +75,7 @@
     return str;
   };
 
-  object_to_uri = function(obj) {
+  object_to_uri = function (obj) {
     var data, key, value;
     data = [];
     for (key in obj) {
@@ -79,14 +85,17 @@
     return data.join('&');
   };
 
-  if ((typeof define !== "undefined" && define !== null) && define.amd) {
-    define(function() {
+  if (typeof define !== 'undefined' && define !== null && define.amd) {
+    define(function () {
       return JSONP;
     });
-  } else if ((typeof module !== "undefined" && module !== null) && module.exports) {
+  } else if (
+    typeof module !== 'undefined' &&
+    module !== null &&
+    module.exports
+  ) {
     module.exports = JSONP;
   } else {
     this.JSONP = JSONP;
   }
-
-}).call(this);
+}.call(this));
