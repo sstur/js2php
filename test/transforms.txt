@@ -304,9 +304,9 @@ assert(e === true);
 $e = true;
 try {
   throw new Ex(_new($Error, "foo"));
-} catch(Exception $e_1_) {
-  if ($e_1_ instanceof Ex) $e_1_ = $e_1_->value;
-  call($assert, _instanceof($e_1_, $Error));
+} catch(Exception $e_2_) {
+  if ($e_2_ instanceof Ex) $e_2_ = $e_2_->value;
+  call($assert, _instanceof($e_2_, $Error));
 }
 call($assert, $e === true);
 
@@ -409,3 +409,23 @@ call(new Func(function() use (&$process, &$Object) {
   }));
   call_method($response, "end");
 }));
+----
+a = 0xFFF;
+====
+$a = (float)0xFFF;
+
+----
+a = 0123;
+====
+$a = (float)0123;
+
+----
+a = 0o123;
+====
+$a = (float)0123;
+
+----
+a = 0b101;
+====
+$a = (float)0b101;
+
