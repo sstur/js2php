@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*global process, require, module, global*/
-(function() {
+(function () {
   // #default is runtime embedded in output file
   // --runtime runtime.php #runtime exists at path; link to via require()
   // --runtime-only #output only the runtime
@@ -17,8 +17,7 @@
     .boolean(['debug', 'fragment', 'runtime-only', 'test', 'quiet'])
     .alias('out', 'o')
     .alias('quiet', 'q')
-    .alias('modules', 'm')
-    .argv;
+    .alias('modules', 'm').argv;
 
   var logTo = argv.quiet ? 'none' : 'stdout';
 
@@ -29,7 +28,6 @@
   } else {
     processTransform(argv);
   }
-
 
   function processTransform(argv) {
     var outfile = argv.out;
@@ -51,7 +49,7 @@
         includeAllModules: includeAllModules,
         includeDebug: argv.debug,
         includeTest: argv.test,
-        log: log
+        log: log,
       });
       if (argv['runtime-only']) {
         outputContent(outfile, '<?php\n' + runtime, 'runtime.php');
@@ -63,8 +61,7 @@
     if (infiles.length) {
       //process input from files specified as arguments
       processInputFiles(infiles);
-    } else
-    if (!process.stdin.isTTY) {
+    } else if (!process.stdin.isTTY) {
       //process input from stdin
       processInputStream();
     } else {
@@ -76,21 +73,21 @@
       var input = [];
       var stdin = process.stdin;
       stdin.setEncoding('utf8');
-      stdin.on('data', function(data) {
+      stdin.on('data', function (data) {
         input.push(data);
       });
-      stdin.on('end', function() {
+      stdin.on('end', function () {
         var source = input.join('');
         log('Processing input from STDIN ...');
         var output = transform({
-          source: source
+          source: source,
         });
         output = output.replace(/^\n+|\n+$/g, '');
         if (runtime) {
           output = runtime + '\n\n' + output;
-        } else
-        if (pathToRuntime) {
-          output = 'require_once(' + JSON.stringify(pathToRuntime) + ');\n\n' + output;
+        } else if (pathToRuntime) {
+          output =
+            'require_once(' + JSON.stringify(pathToRuntime) + ');\n\n' + output;
         }
         outputContent(outfile, '<?php\n' + output + '\n');
       });
@@ -98,19 +95,19 @@
     }
 
     function processInputFiles(infiles) {
-      var output = infiles.map(function(infile) {
+      var output = infiles.map(function (infile) {
         try {
           var source = fs.readFileSync(infile, 'utf8');
-        } catch(e) {
+        } catch (e) {
           if (e.code === 'ENOENT') {
-            log('Unable to open file `' +  infile + '`');
+            log('Unable to open file `' + infile + '`');
             process.exit(1);
           }
           throw e;
         }
-        log('Processing file `' +  infile + '` ...');
+        log('Processing file `' + infile + '` ...');
         var output = transform({
-          source: source
+          source: source,
         });
         output = output.replace(/^\n+|\n+$/g, '');
         return output;
@@ -118,13 +115,11 @@
 
       if (runtime) {
         output.unshift(runtime);
-      } else
-      if (pathToRuntime) {
+      } else if (pathToRuntime) {
         output.unshift('require_once(' + JSON.stringify(pathToRuntime) + ');');
       }
       outputContent(outfile, '<?php\n' + output.join('\n\n') + '\n');
     }
-
   }
 
   function outputContent(outfile, content, defaultFileName) {
@@ -142,25 +137,30 @@
 
   function compileTests() {
     var testSource = fs.readFileSync(__dirname + '/tests.php', 'utf8');
-    testSource.replace(/require_once\('test\/compiled\/(.*?)\.php'\)/g, function(_, name) {
-      var argv = {
-        fragment: true,
-        out: __dirname + '/test/compiled/' + name + '.php',
-        _: [__dirname + '/test/' + name + '.js']
-      };
-      processTransform(argv);
-    });
+    testSource.replace(
+      /require_once\('test\/compiled\/(.*?)\.php'\)/g,
+      function (_, name) {
+        var argv = {
+          fragment: true,
+          out: __dirname + '/test/compiled/' + name + '.php',
+          _: [__dirname + '/test/' + name + '.js'],
+        };
+        processTransform(argv);
+      }
+    );
   }
 
   function runTests() {
-    var child = childProcess.spawn('php', ['-f', 'tests.php'], {cwd: __dirname});
-    child.stdout.on('data', function(data) {
+    var child = childProcess.spawn('php', ['-f', 'tests.php'], {
+      cwd: __dirname,
+    });
+    child.stdout.on('data', function (data) {
       process.stdout.write(data);
     });
-    child.stderr.on('data', function(data) {
+    child.stderr.on('data', function (data) {
       process.stderr.write(data);
     });
-    child.on('close', function(code) {
+    child.on('close', function (code) {
       process.exit(code);
     });
   }
@@ -168,10 +168,8 @@
   function log() {
     if (logTo === 'stdout') {
       console.log.apply(console, arguments);
-    } else
-    if (logTo === 'stderr') {
+    } else if (logTo === 'stderr') {
       console.error.apply(console, arguments);
     }
   }
-
 })();

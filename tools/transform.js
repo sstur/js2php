@@ -1,5 +1,5 @@
 /*global module, require, exports*/
-(function() {
+(function () {
   var fs = require('fs');
   var path = require('path');
   var util = require('util');
@@ -10,13 +10,14 @@
 
   var codegen = require('./codegen');
 
-  var COMMENT_OR_STRING = /'(\\.|[^'\n])*'|"(\\.|[^"\n])*"|\/\*([\s\S]*?)\*\/|\/\/.*?\n/g;
+  var COMMENT_OR_STRING =
+    /'(\\.|[^'\n])*'|"(\\.|[^"\n])*"|\/\*([\s\S]*?)\*\/|\/\/.*?\n/g;
 
   /**
    * opts.source - JS source code to transform
    * opts.initVars - initialize all variables in PHP (default: true)
    */
-  module.exports = function(opts) {
+  module.exports = function (opts) {
     var transformer = new Transformer();
     return transformer.process(opts);
   };
@@ -25,17 +26,22 @@
   module.exports.buildRuntime = buildRuntime;
 
   var nodeHandlers = {
-    NewExpression: function(node) {
-      if (node.callee.type === 'Identifier' && node.callee.name === 'Function') {
+    NewExpression: function (node) {
+      if (
+        node.callee.type === 'Identifier' &&
+        node.callee.name === 'Function'
+      ) {
         var args = node.arguments.slice(0);
         //ensure all arguments are string literals
         for (var i = 0, len = args.length; i < len; i++) {
           var arg = args[i];
           if (arg.type !== 'Literal' || typeof arg.value !== 'string') {
-            throw new Error('Parse Error: new Function() not supported except with string literal');
+            throw new Error(
+              'Parse Error: new Function() not supported except with string literal'
+            );
           }
         }
-        args = args.map(function(arg) {
+        args = args.map(function (arg) {
           return arg.value;
         });
         var body = args.pop();
@@ -46,29 +52,29 @@
         setHidden(newNode, 'useStrict', false);
       }
     },
-    VariableDeclaration: function(node) {
+    VariableDeclaration: function (node) {
       var scope = utils.getParentScope(node);
       var varNames = scope.vars || setHidden(scope, 'vars', {});
-      node.declarations.forEach(function(decl) {
+      node.declarations.forEach(function (decl) {
         varNames[decl.id.name] = true;
       });
     },
-    FunctionDeclaration: function(node) {
+    FunctionDeclaration: function (node) {
       var name = node.id.name;
       var scope = utils.getParentScope(node);
       var funcDeclarations = scope.funcs || setHidden(scope, 'funcs', {});
       funcDeclarations[name] = node;
     },
-    BinaryExpression: function(node) {
+    BinaryExpression: function (node) {
       if (node.operator === '+') {
         var terms = getTerms(node, '+');
-        var isConcat = terms.some(function(node) {
-          return (node.type === 'Literal' && typeof node.value === 'string');
+        var isConcat = terms.some(function (node) {
+          return node.type === 'Literal' && typeof node.value === 'string';
         });
         setHidden(node, 'terms', terms);
         setHidden(node, 'isConcat', isConcat);
       }
-    }
+    },
   };
 
   function getTerms(node, op) {
@@ -87,28 +93,28 @@
   }
 
   function Transformer() {
-    return (this instanceof Transformer) ? this : new Transformer();
+    return this instanceof Transformer ? this : new Transformer();
   }
 
-  Transformer.prototype.process = function(opts) {
+  Transformer.prototype.process = function (opts) {
     opts = Object.create(opts || {});
-    opts.initVars = (opts.initVars !== false);
+    opts.initVars = opts.initVars !== false;
     this.opts = opts;
     var ast = this.parse(opts.source);
     return codegen.generate(ast, opts);
   };
 
-  Transformer.prototype.parse = function(source) {
+  Transformer.prototype.parse = function (source) {
     source = source.trim();
     var ast = rocambole.parse(source);
     this.transform(ast);
     return ast;
   };
 
-  Transformer.prototype.transform = function(ast) {
+  Transformer.prototype.transform = function (ast) {
     var self = this;
     //walk tree and let handlers manipulate specific nodes (by type)
-    rocambole.recursive(ast, function(node) {
+    rocambole.recursive(ast, function (node) {
       var type = node.type;
       if (type in nodeHandlers) {
         nodeHandlers[type].call(self, node);
@@ -122,33 +128,31 @@
     //count is for creating unique variable names
     var count = 0;
     //traverse for catch clauses and rename param if necessary
-    scopes.forEach(function(scope) {
+    scopes.forEach(function (scope) {
       if (scope.type === 'catch') {
         var param = scope.variables[0];
         //todo: rename only if parent scope has any references with same name
         var identifiers = [param.identifiers[0]];
-        param.references.forEach(function(ref) {
+        param.references.forEach(function (ref) {
           identifiers.push(ref.identifier);
         });
-        var suffix = '_' + (++count) + '_';
-        identifiers.forEach(function(identifier) {
+        var suffix = '_' + ++count + '_';
+        identifiers.forEach(function (identifier) {
           identifier.appendSuffix = suffix;
         });
       }
     });
   };
 
-  Transformer.prototype.replaceNode = function(oldNode, newNode) {
+  Transformer.prototype.replaceNode = function (oldNode, newNode) {
     var parent = oldNode.parent;
-    Object.keys(parent).forEach(function(key) {
+    Object.keys(parent).forEach(function (key) {
       if (parent[key] === oldNode) {
         parent[key] = newNode;
       }
     });
     newNode.parent = parent;
   };
-
-
 
   //index a scope, calculating lists of defined, referenced and unresolved vars
   function indexScope(scope) {
@@ -158,13 +162,13 @@
     }
     //get variable names defined in this scope
     var defined = Object.create(null);
-    scope.variables.forEach(function(variable) {
+    scope.variables.forEach(function (variable) {
       defined[variable.name] = true;
     });
     //get all variable names referenced and unresolved ones
     var referenced = Object.create(null);
     var unresolved = Object.create(null);
-    scope.references.forEach(function(ref) {
+    scope.references.forEach(function (ref) {
       var name = ref.identifier.name;
       referenced[name] = true;
       if (!ref.resolved || ref.resolved.scope !== scope) {
@@ -173,9 +177,9 @@
     });
     //get descendant references not defined locally
     var childScopes = scope.childScopes || [];
-    childScopes.forEach(function(childScope) {
+    childScopes.forEach(function (childScope) {
       var index = indexScope(childScope);
-      Object.keys(index.unresolved).forEach(function(name) {
+      Object.keys(index.unresolved).forEach(function (name) {
         referenced[name] = true;
         if (!defined[name]) {
           unresolved[name] = true;
@@ -183,32 +187,35 @@
       });
     });
     var firstVar = scope.variables[0];
-    var argumentsFound = firstVar && firstVar.name === 'arguments' && firstVar.references.length;
+    var argumentsFound =
+      firstVar && firstVar.name === 'arguments' && firstVar.references.length;
     var scopeIndex = {
       defined: defined,
       referenced: referenced,
       unresolved: unresolved,
       thisFound: scope.thisFound,
-      argumentsFound: !!argumentsFound
+      argumentsFound: !!argumentsFound,
     };
     setHidden(scope.block, 'scopeIndex', scopeIndex);
     return scopeIndex;
   }
 
-
   function buildRuntime(opts) {
     opts = opts || {};
     if (!opts.includeAllModules) {
       var includeModules = opts.includeModules || [];
-      includeModules = includeModules.reduce(function(includeModules, name) {
+      includeModules = includeModules.reduce(function (includeModules, name) {
         includeModules[name] = true;
         return includeModules;
       }, {});
     }
-    var source = fs.readFileSync(path.join(__dirname, '../runtime.php'), 'utf8');
+    var source = fs.readFileSync(
+      path.join(__dirname, '../runtime.php'),
+      'utf8'
+    );
     var fileList = [];
     var totalModules = 0;
-    source.replace(/require_once\('(.+?)'\)/g, function(_, file) {
+    source.replace(/require_once\('(.+?)'\)/g, function (_, file) {
       var name = file.split('/').pop().split('.')[0];
       if (includeModules && file.indexOf('php/modules/') === 0) {
         if (!includeModules.hasOwnProperty(name)) {
@@ -224,7 +231,7 @@
       }
       fileList.push(file);
     });
-    var output = fileList.map(function(file) {
+    var output = fileList.map(function (file) {
       var name = file.split('/').pop().split('.')[0];
       //if no modules were included, remove the Module reference
       if (includeModules && totalModules === 0 && name === 'Module') {
@@ -252,12 +259,12 @@
     //primitive method of removing comments from PHP; it might choke on some
     // edge cases, but it's OK because we don't have anything too funky in our
     // runtime code
-    return code.replace(COMMENT_OR_STRING, function(match) {
+    return code.replace(COMMENT_OR_STRING, function (match) {
       var ch = match.charAt(0);
       if (ch === '"' || ch === "'") {
         return match;
       }
-      return (match.slice(0, 2) === '//') ? '\n' : '';
+      return match.slice(0, 2) === '//' ? '\n' : '';
     });
   }
 
@@ -270,9 +277,8 @@
       value: value,
       enumerable: false,
       writable: true,
-      configurable: true
+      configurable: true,
     });
     return value;
   }
-
 })();

@@ -1,7 +1,6 @@
 /*global global, testSuite*/
-testSuite('regex', function(assert) {
-
-  testSuite('string.match with global', function() {
+testSuite('regex', function (assert) {
+  testSuite('string.match with global', function () {
     var s = 'xabcabdabe';
     var r = /a(b)([^b])/g;
     var m = s.match(r);
@@ -10,7 +9,7 @@ testSuite('regex', function(assert) {
     assert('', m.input === undefined);
   });
 
-  testSuite('string.match without global', function() {
+  testSuite('string.match without global', function () {
     var s = 'xabcabdabe';
     var r = /a(b)([^b])/;
     var m = s.match(r);
@@ -18,5 +17,4 @@ testSuite('regex', function(assert) {
     assert('', m.index === 1);
     assert('', m.input === s);
   });
-
 });

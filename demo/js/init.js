@@ -1,5 +1,5 @@
 /*global CodeMirror */
-(function() {
+(function () {
   var debug = location.search.match(/debug/) ? true : false;
   var example = location.search.match(/example/) ? true : false;
   if (example) {
@@ -21,7 +21,7 @@
 
   window.addEventListener(
     'DOMContentLoaded',
-    function() {
+    function () {
       var SAMPLE_CONTENT =
         "var message = 'Hello World';\nconsole.log(message, Math.floor(Math.random() * 100));\nconsole.log(message.charAt(0) + 'ello');\nf();\nfunction f() {\n  console.log('hi from `f`');\n}\nfunction Thing(name) {\n  this.name = name;\n}\nThing.prototype.sayHello = function() {\n  console.log('hi from', this.name);\n};\nvar thing = new Thing('Bob');\nthing.sayHello();";
 
@@ -54,7 +54,7 @@
           return outputEditor.setValue('');
         }
         if (isWorking) {
-          enqueueWork = {sourceCode: sourceCode};
+          enqueueWork = { sourceCode: sourceCode };
           return;
         }
         if (!worker) {
@@ -90,6 +90,6 @@
         }
       }
     },
-    false,
+    false
   );
 })();

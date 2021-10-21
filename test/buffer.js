@@ -1,7 +1,6 @@
 /*global global, testSuite, Buffer*/
-testSuite('buffer', function(assert) {
-
-  testSuite('strings', function() {
+testSuite('buffer', function (assert) {
+  testSuite('strings', function () {
     var b = new Buffer('sa');
     assert('string without encoding specified', b.toString() === 'sa');
     b = new Buffer('sa', 'utf8');
@@ -12,24 +11,22 @@ testSuite('buffer', function(assert) {
     assert('string with utf8 extended length', b.length === 5);
   });
 
-
-  testSuite('binary', function() {
+  testSuite('binary', function () {
     var b = new Buffer(2);
     assert('length', b.length === 2);
     assert('index access', b.get(1) === 0);
-    assert.shouldThrow('get invalid offset', function() {
+    assert.shouldThrow('get invalid offset', function () {
       b.get(2);
     });
     b.set(0, 97);
     b.set(1, 98);
     assert('can set bytes', b.toString() === 'ab');
-    assert.shouldThrow('set invalid offset', function() {
+    assert.shouldThrow('set invalid offset', function () {
       b.set(-1, 0);
     });
   });
 
-
-  testSuite('slice', function() {
+  testSuite('slice', function () {
     var b = new Buffer('abcdefghi');
     assert('one char slice', b.slice(0, 1).toString() === 'a');
     assert('middle slice', b.slice(1, 3).toString() === 'bc');
@@ -40,8 +37,7 @@ testSuite('buffer', function(assert) {
     assert('pos start, neg end', b.slice(1, -1).toString() === 'bcdefgh');
   });
 
-
-  testSuite('Buffer.concat', function() {
+  testSuite('Buffer.concat', function () {
     var a = new Buffer('010203', 'hex');
     var b = new Buffer('0405', 'hex');
     assert('a length', a.length === 3);
@@ -49,16 +45,24 @@ testSuite('buffer', function(assert) {
     var c = Buffer.concat([a, b]);
     assert('c length', c.length === 5);
     assert('c content', c.toString('hex') === '0102030405');
-    assert('length equal', Buffer.concat([a, b], 5).toString('hex') === '0102030405');
-    assert('length greater', Buffer.concat([a, b], 6).toString('hex') === '010203040500');
-    assert('length less', Buffer.concat([a, b], 4).toString('hex') === '01020304');
+    assert(
+      'length equal',
+      Buffer.concat([a, b], 5).toString('hex') === '0102030405'
+    );
+    assert(
+      'length greater',
+      Buffer.concat([a, b], 6).toString('hex') === '010203040500'
+    );
+    assert(
+      'length less',
+      Buffer.concat([a, b], 4).toString('hex') === '01020304'
+    );
   });
 
-
-  testSuite('write', function() {
+  testSuite('write', function () {
     var chunks = ['010203', '0405'];
     var totalLength = 0;
-    chunks.forEach(function(chunk) {
+    chunks.forEach(function (chunk) {
       totalLength += Buffer.byteLength(chunk, 'hex');
     });
     var i, output, buf;
@@ -66,7 +70,7 @@ testSuite('buffer', function(assert) {
     //test: write(buffer, offset)
     i = 0;
     output = new Buffer(totalLength);
-    chunks.forEach(function(chunk) {
+    chunks.forEach(function (chunk) {
       output.write(new Buffer(chunk, 'hex'), i);
       i += Buffer.byteLength(chunk, 'hex');
     });
@@ -75,20 +79,26 @@ testSuite('buffer', function(assert) {
     //test: write(string, offset, enc)
     i = 0;
     output = new Buffer(totalLength);
-    chunks.forEach(function(chunk) {
+    chunks.forEach(function (chunk) {
       output.write(chunk, i, 'hex');
       i += Buffer.byteLength(chunk, 'hex');
     });
-    assert('write(string, offset, enc)', output.toString('hex') === chunks.join(''));
+    assert(
+      'write(string, offset, enc)',
+      output.toString('hex') === chunks.join('')
+    );
 
     //test: write(string, enc, offset)
     i = 0;
     output = new Buffer(totalLength);
-    chunks.forEach(function(chunk) {
+    chunks.forEach(function (chunk) {
       output.write(chunk, 'hex', i);
       i += Buffer.byteLength(chunk, 'hex');
     });
-    assert('write(string, enc, offset)', output.toString('hex') === chunks.join(''));
+    assert(
+      'write(string, enc, offset)',
+      output.toString('hex') === chunks.join('')
+    );
 
     //write(string, enc)
     buf = new Buffer('abcdef');
@@ -122,9 +132,8 @@ testSuite('buffer', function(assert) {
     assert('write(data, offset, enc, len)', buf.toString() === 'xxxxxx');
   });
 
-
-  testSuite('encode hex', function() {
-    var encode = function(str) {
+  testSuite('encode hex', function () {
+    var encode = function (str) {
       return new Buffer(str).toString('hex');
     };
     assert('[empty]', encode('') === '');
@@ -132,9 +141,8 @@ testSuite('buffer', function(assert) {
     assert('e2', encode('\x00') === '00');
   });
 
-
-  testSuite('decode hex', function() {
-    var decode = function(str) {
+  testSuite('decode hex', function () {
+    var decode = function (str) {
       return new Buffer(str, 'hex').toString('ascii');
     };
     assert('[empty]', decode('') === '');
@@ -142,9 +150,8 @@ testSuite('buffer', function(assert) {
     assert('d2', decode('00') === '\x00');
   });
 
-
-  testSuite('encode base64', function() {
-    var encode = function(str) {
+  testSuite('encode base64', function () {
+    var encode = function (str) {
       return new Buffer(str, 'ascii').toString('base64');
     };
     assert('[empty]', encode('') === '');
@@ -167,9 +174,8 @@ testSuite('buffer', function(assert) {
     //});
   });
 
-
-  testSuite('decode base64', function() {
-    var decode = function(str) {
+  testSuite('decode base64', function () {
+    var decode = function (str) {
       return new Buffer(str, 'base64').toString('ascii');
     };
     assert('[empty]', decode('') === '');
@@ -193,6 +199,8 @@ testSuite('buffer', function(assert) {
   });
 
   //strange bug where this would equal 2MQ=VPJb
-  assert('base64 special case', new Buffer('d8c40054f25b', 'hex').toString('base64') ==='2MQAVPJb');
-
+  assert(
+    'base64 special case',
+    new Buffer('d8c40054f25b', 'hex').toString('base64') === '2MQAVPJb'
+  );
 });

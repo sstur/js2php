@@ -1,19 +1,18 @@
 /*global global, testSuite*/
-testSuite('core', function(assert) {
-
+testSuite('core', function (assert) {
   function throwCatch(value) {
     try {
       throw value;
-    } catch(e) {
+    } catch (e) {
       return e;
     }
   }
 
-  testSuite('variables', function() {
+  testSuite('variables', function () {
     implicitGlobal = 1;
     assert('implicitly declared global', global.implicitGlobal === 1);
     var a = null;
-    var f = function() {
+    var f = function () {
       a = 2;
     };
     f();
@@ -21,15 +20,21 @@ testSuite('core', function(assert) {
     assert('lexical scope does not polute global', global.a === undefined);
   });
 
-  testSuite('object', function() {
+  testSuite('object', function () {
     var toString = Object.prototype.toString;
     assert('toString.call(null)', toString.call(null) === '[object Null]');
-    assert('toString.call(undefined)', toString.call(undefined) === '[object Undefined]');
+    assert(
+      'toString.call(undefined)',
+      toString.call(undefined) === '[object Undefined]'
+    );
     assert('toString.call("")', toString.call('') === '[object String]');
     assert('toString.call(0)', toString.call(0) === '[object Number]');
     assert('toString.call(false)', toString.call(false) === '[object Boolean]');
     assert('toString.call([])', toString.call([]) === '[object Array]');
-    assert('toString.call(new String)', toString.call(new String()) === '[object String]');
+    assert(
+      'toString.call(new String)',
+      toString.call(new String()) === '[object String]'
+    );
     assert('new String() instanceof String', new String('s') instanceof String);
     var o = {};
     o[2] = 1;
@@ -38,25 +43,51 @@ testSuite('core', function(assert) {
     o['2'] = 3;
     assert('key coercion string', o[2] === 3);
     o = {};
-    Object.defineProperty(o, 'a', {value: 1, writable: false, enumerable: true, configurable: true});
+    Object.defineProperty(o, 'a', {
+      value: 1,
+      writable: false,
+      enumerable: true,
+      configurable: true,
+    });
     o.a = 2;
     assert('non-writable property', o.a === 1);
-    Object.defineProperty(o, 'b', {value: 1, writable: true, enumerable: false, configurable: true});
+    Object.defineProperty(o, 'b', {
+      value: 1,
+      writable: true,
+      enumerable: false,
+      configurable: true,
+    });
     assert('non-enumerable property', Object.keys(o).join('') === 'a');
-    Object.defineProperty(o, 'c', {value: 1, writable: true, enumerable: true, configurable: false});
+    Object.defineProperty(o, 'c', {
+      value: 1,
+      writable: true,
+      enumerable: true,
+      configurable: false,
+    });
     delete o.c;
     assert('non-configurable property: cannot delete', o.c === 1);
-    assert.shouldThrow('non-configurable property: throws', function() {
-      Object.defineProperty(o, 'c', {value: 1, writable: true, enumerable: true, configurable: true});
+    assert.shouldThrow('non-configurable property: throws', function () {
+      Object.defineProperty(o, 'c', {
+        value: 1,
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      });
     });
-    o = {a: 1};
-    Object.defineProperty(o, 'a', {enumerable: false});
+    o = { a: 1 };
+    Object.defineProperty(o, 'a', { enumerable: false });
     var d = Object.getOwnPropertyDescriptor(o, 'a');
-    assert('can update property descriptor defined in object literal', d.value === 1 && d.writable === true && d.enumerable === false && d.configurable === true);
+    assert(
+      'can update property descriptor defined in object literal',
+      d.value === 1 &&
+        d.writable === true &&
+        d.enumerable === false &&
+        d.configurable === true
+    );
   });
 
-  testSuite('in operator', function() {
-    var o = {a: null};
+  testSuite('in operator', function () {
+    var o = { a: null };
     assert('should be true for null', 'a' in o);
     o.b = void 0;
     assert('should be true for undefined', 'b' in o);
@@ -65,10 +96,10 @@ testSuite('core', function(assert) {
     assert('should be false when deleted', !('b' in o));
   });
 
-  testSuite('for..in', function() {
+  testSuite('for..in', function () {
     var nothing;
     var a = [];
-    var b = {'': false, a: null, b: nothing, c: 0, d: false, e: '1'};
+    var b = { '': false, a: null, b: nothing, c: 0, d: false, e: '1' };
     for (var key in b) {
       a.push(key);
     }
@@ -95,10 +126,13 @@ testSuite('core', function(assert) {
     for (var m in o) {
       a.push(typeof m, m);
     }
-    assert('keys should always be strings', a.join(',') === 'string,2,string,2.3');
+    assert(
+      'keys should always be strings',
+      a.join(',') === 'string,2,string,2.3'
+    );
   });
 
-  testSuite('global', function() {
+  testSuite('global', function () {
     var nothing = void 0;
     var a = [];
     for (var key in global) {
@@ -115,16 +149,24 @@ testSuite('core', function(assert) {
     assert('can access undeclared', global.asdf === nothing);
     assert('contains `undefined`', 'undefined' in global);
     global.undefined = 'foo';
-    assert('re-assigning built-in global does nothing', global.undefined === nothing);
+    assert(
+      're-assigning built-in global does nothing',
+      global.undefined === nothing
+    );
     delete global.Infinity;
-    assert('deleting built-in global does nothing', typeof global.Infinity === 'number');
+    assert(
+      'deleting built-in global does nothing',
+      typeof global.Infinity === 'number'
+    );
   });
 
-  testSuite('functions', function() {
+  testSuite('functions', function () {
     var o = {};
-    var fn1 = function(a) { return this; };
-    var fnStrict = function(a) {
-      "use strict";
+    var fn1 = function (a) {
+      return this;
+    };
+    var fnStrict = function (a) {
+      'use strict';
       return this;
     };
     assert('instance of Function', fn1 instanceof Function);
@@ -135,13 +177,18 @@ testSuite('core', function(assert) {
     assert('can call primitive', fn1.call('s') instanceof String);
     assert('can call primitive (strict)', fnStrict.call('s') === 's');
     assert('can call object', fn1.call(o) === o);
-    assert('can call object.prototype functions', Object.prototype.toString.call([]) === '[object Array]');
+    assert(
+      'can call object.prototype functions',
+      Object.prototype.toString.call([]) === '[object Array]'
+    );
     assert('can apply object', fn1.apply(o, []) === o);
     assert('can apply object without second param', fn1.apply(o) === o);
     var fn1_ = fn1.bind(o);
     assert('bind creates new function', fn1_ !== fn1);
     assert('bind works', fn1_.call(null) === o);
-    var fn2 = function() { return arguments.length; };
+    var fn2 = function () {
+      return arguments.length;
+    };
     assert('can call args', fn2.call(null, false, void 0) === 2);
     assert('can apply args', fn2.apply(o, [0, null, o]) === 3);
     (function a() {
@@ -152,8 +199,10 @@ testSuite('core', function(assert) {
     })();
   });
 
-  testSuite('more functions', function() {
-    var fn1 = function(a, b, c) { return [a, b, c]; };
+  testSuite('more functions', function () {
+    var fn1 = function (a, b, c) {
+      return [a, b, c];
+    };
     var fn2 = fn1.bind(null, 1, '2');
     assert('function arity', fn1.length === 3);
     assert('bound function arity', fn2.length === 1);
@@ -161,7 +210,7 @@ testSuite('core', function(assert) {
     assert('bound function with args', result.join(';') === '1;2;a');
   });
 
-  testSuite('throw/catch', function() {
+  testSuite('throw/catch', function () {
     var nothing = void 0;
     assert('can throw undefined', throwCatch(nothing) === nothing);
     assert('can throw null', throwCatch(null) === null);
@@ -170,7 +219,7 @@ testSuite('core', function(assert) {
     assert('can throw error', throwCatch(e) === e);
     try {
       throw 'foo';
-    } catch(e) {
+    } catch (e) {
       assert('catch creates scope', e === 'foo');
     }
     assert('catch scope should not bleed', e instanceof Error);
@@ -180,16 +229,24 @@ testSuite('core', function(assert) {
     assert('TypeError is distinct from Error', TypeError !== Error);
   });
 
-  testSuite('equality coercion', function() {
-    assert('true == true && false == false && true != false', true == true && false == false && true != false);
-    assert('1 == 1 && 0 == 0 && -1 == -1 && -1 != 1', 1 == 1 && 0 == 0 && -1 == -1 && -1 != 1);
-    assert('"a" == "a" && "a" != "b"', "a" == "a" && "a" != "b");
+  testSuite('equality coercion', function () {
+    assert(
+      'true == true && false == false && true != false',
+      true == true && false == false && true != false
+    );
+    assert(
+      '1 == 1 && 0 == 0 && -1 == -1 && -1 != 1',
+      1 == 1 && 0 == 0 && -1 == -1 && -1 != 1
+    );
+    assert('"a" == "a" && "a" != "b"', 'a' == 'a' && 'a' != 'b');
     assert('[] == false', [] == false);
     assert('[[]] == false', [[]] == false);
     assert('[0] == false', [0] == false);
     assert('[0] == 0', [0] == 0);
-    assert('"1" == 1 && 1 == true && "1" == true && "0" == false', "1" == 1 && 1 == true && "1" == true && "0" == false);
-    assert('"" == 0 && "" == false', "" == 0 && "" == false);
+    assert(
+      '"1" == 1 && 1 == true && "1" == true && "0" == false',
+      '1' == 1 && 1 == true && '1' == true && '0' == false
+    );
+    assert('"" == 0 && "" == false', '' == 0 && '' == false);
   });
-
 });

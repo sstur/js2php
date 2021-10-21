@@ -1,5 +1,5 @@
 /*global require, module, exports, __dirname*/
-exports.run = function() {
+exports.run = function () {
   var fs = require('fs');
   var path = require('path');
   var transform = require('../tools/transform.js');
@@ -7,7 +7,7 @@ exports.run = function() {
   var content = fs.readFileSync(path.join(__dirname, 'transforms.txt'), 'utf8');
 
   console.log('Begin transform tests ...');
-  content.split('----').forEach(function(content) {
+  content.split('----').forEach(function (content) {
     content = content.trim();
     var pair = content.split('====');
     var source = pair[0].trim();
@@ -32,5 +32,4 @@ exports.run = function() {
     }
   });
   console.log('Transform tests completed successfully.');
-
 };
