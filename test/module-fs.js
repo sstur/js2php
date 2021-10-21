@@ -13,6 +13,9 @@ testSuite('strings', function(assert) {
   }
   textBlob = textBlob.join('|');
 
+  fs.removeDirIfExists(basePath.slice(0, -1), true);
+  fs.createDir(basePath.slice(0, -1));
+
   testSuite('createDir', function() {
     fs.removeDirIfExists(basePath + 'test', true);
     testSuite('should create in existing', function() {

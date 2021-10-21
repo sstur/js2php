@@ -2,3 +2,4 @@ node_modules
 _*
 +*
 build/
+test/temp
