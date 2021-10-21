@@ -792,16 +792,11 @@
     }
     if (type === 'number'
         && node
-        && node.startToken
-        && node.startToken.type === 'Numeric'
-        && node.startToken.value.length > 1
-        && node.startToken.value.startsWith('0')) {
-        // preserve numeric literals (e.g. 0xD800)
-      var value = node.startToken.value;
-      if (value.startsWith('0o')) {
-        // Replace octal prefix '0o' with '0' because '0o' is not allowed in PHP
-        value = '0' + value.substr(2);
-      }
+        && node.raw.length > 1
+        && node.raw.startsWith('0')) {
+      // Preserve numeric literals (e.g. 0xD800)
+      // Replace octal prefix because '0o' is not allowed in PHP
+      var value = node.raw.replace(/^0o/, '0');
       return '(float)' + value;
     }
     if (type === 'number') {
