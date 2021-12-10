@@ -32,8 +32,6 @@ testSuite('numbers', function (assert) {
   });
 
   testSuite('operator coercion', function () {
-    assert('"2" < "a"', '2' < 'a' === true);
-    assert('2 < "a"', 2 < 'a' === false);
     assert('str + 1', 'x' + 1 === 'x1');
     assert('str - 1', isNaN('x' - 1));
   });
@@ -44,4 +42,55 @@ testSuite('numbers', function (assert) {
     assert('0o123 === 83', 0o123 === 83);
     assert('0b111 === 7', 0b111 === 7);
   });
+
+  testSuite('string to number comparison', function () {
+    assert('0 == "0"', (0 == "0") === true);
+    assert('0 == "0.0"', (0 == "0.0") === true);
+    assert('0 == "foo"', (0 == "foo") === false);
+    assert('0 == ""', (0 == "") === true);
+    assert('42 == " 42"', (42 == " 42") === true);
+    assert('42 == "42foo"', (42 == "42foo") === false);
+    assert('100 == "1e2"', (100 == "1e2") === true);
+    assert('"0" == "0.0"', ("0" == "0.0") === false);
+    assert('"0" == "foo"', ("0" == "foo") === false);
+    assert('"0" == ""', ("0" == "") === false);
+    assert('"42" == " 42"', ("42" == " 42") === false);
+    assert('"42" == "42foo"', ("42" == "42foo") === false);
+    assert('"100" == "1e2"', ("100" == "1e2") === false);
+    assert('"2" < "a"', "2" < "a" === true);
+    assert('2 < "a"', 2 < "a" === false);
+    assert('2 < "12"', (2 < "12") === true);
+    assert('"2" < "12"', ("2" < "12") === false);
+    assert('41 < "42foo"', (41 < "42foo") === false);
+    assert('"41" < "42foo"', ("41" < "42foo") === true);
+    assert('"a" > "2"', "a" > "2" === true);
+    assert('"a" > 2', ("a" > 2) === false);
+    assert('"12" > 2', ("12" > 2) === true);
+    assert('"12" > "2"', ("12" > "2") === false);
+    assert('"42foo" > 41', ("42foo" > 41) === false);
+    assert('"42foo" > "41"', ("42foo" > "41") === true);
+    assert('"2" <= "a"', "2" <= "a" === true);
+    assert('2 <= "a"', 2 <= "a" === false);
+    assert('2 <= "12"', (2 <= "12") === true);
+    assert('"2" <= "12"', ("2" <= "12") === false);
+    assert('41 <= "42foo"', (41 <= "42foo") === false);
+    assert('"41" <= "42foo"', ("41" <= "42foo") === true);
+    assert('"a" >= "2"', "a" >= "2" === true);
+    assert('"a" >= 2', ("a" >= 2) === false);
+    assert('"12" >= 2', ("12" >= 2) === true);
+    assert('"12" >= "2"', ("12" >= "2") === false);
+    assert('"42foo" >= 41', ("42foo" >= 41) === false);
+    assert('"42foo" >= "41"', ("42foo" >= "41") === true);
+    assert('0 <= "0"', (0 <= "0") === true);
+    assert('0 <= "0.0"', (0 <= "0.0") === true);
+    assert('0 <= ""', (0 <= "") === true);
+    assert('42 <= " 42"', (42 <= " 42") === true);
+    assert('100 <= "1e2"', (100 <= "1e2") === true);
+    assert('0 >= "0"', (0 >= "0") === true);
+    assert('0 >= "0.0"', (0 >= "0.0") === true);
+    assert('0 >= ""', (0 >= "") === true);
+    assert('42 >= " 42"', (42 >= " 42") === true);
+    assert('100 >= "1e2"', (100 >= "1e2") === true);
+  });
+
 });
