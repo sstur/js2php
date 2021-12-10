@@ -75,7 +75,9 @@ function eq($a, $b) {
 function cmp($a, $operator, $b) {
     $typeA = ($a === null || $a === ObjectClass::$null ? 'null' : ($a instanceof ObjectClass ? 'object' : gettype($a)));
     $typeB = ($b === null || $b === ObjectClass::$null ? 'null' : ($b instanceof ObjectClass ? 'object' : gettype($b)));
-    if (in_array($typeA, ['integer', 'double']) && in_array($typeB, ['integer', 'double'])) {
+    $isNumberA = in_array($typeA, ['integer', 'double']);
+    $isNumberB = in_array($typeB, ['integer', 'double']);
+    if ($isNumberA && $isNumberB) {
         // Most common case, nothing to do. Due to performance reasons we put this case first
         // to skip all other checks.
     } else
@@ -83,9 +85,9 @@ function cmp($a, $operator, $b) {
         // two strings are compared lexically in JavaScript, even if both could be converted to numbers
         $a = strcmp($a, $b);
         $b = 0;
-    } else if ($typeA === 'string' && in_array($typeB, ['integer', 'double'])) {
+    } else if ($typeA === 'string' && $isNumberB) {
         $a = to_number($a);
-    } else if ($typeB === 'string' && in_array($typeA, ['integer', 'double'])) {
+    } else if ($typeB === 'string' && $isNumberA) {
         $b = to_number($b);
     }
     switch ($operator) {
