@@ -9,6 +9,10 @@ $process->set('exit', new Func(function($code = 0) {
   exit($code);
 }));
 
+$process->set('sleep', new Func(function($ms = 0) {
+  sleep($ms / 1000);
+}));
+
 $process->set('binding', new Func(function($name) {
   $module = Module::get($name);
   if ($module === null) {

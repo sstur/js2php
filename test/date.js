@@ -7,10 +7,10 @@ testSuite('dates', function (assert) {
       date.valueOf() > 1419750026906
     );
     // pause for 10 milliseconds (defined in tests.php)
-    /*process.sleep(10);
+    process.sleep(10);
     var date2 = new Date();
     var difference = date2.valueOf() - date.valueOf();
-    assert('dates are close to 10ms appart', difference > 0 && difference < 20);*/
+    assert('dates are close to 10ms appart', difference > 0 && difference < 20);
   });
 
   testSuite('construct with ms', function () {
