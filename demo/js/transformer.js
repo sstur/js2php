@@ -7370,9 +7370,42 @@ parseStatement: true, parseSourceElement: true */
                     ')'
                   );
                 }
+                if (['<', '>', '<=', '>='].indexOf(op) > -1) {
+                  return (
+                    'cmp(' +
+                    this.generate(node.left) +
+                    ", '" +
+                    op +
+                    "', " +
+                    this.generate(node.right) +
+                    ')'
+                  );
+                }
+                if (['<', '>', '<=', '>='].indexOf(op) > -1) {
+                  return (
+                    'cmp(' +
+                    this.generate(node.left) +
+                    ", '" +
+                    op +
+                    "', " +
+                    this.generate(node.right) +
+                    ')'
+                  );
+                }
+                if (['<', '>', '<=', '>='].indexOf(op) > -1) {
+                  return (
+                    'cmp(' +
+                    this.generate(node.left) +
+                    ", '" +
+                    op +
+                    "', " +
+                    this.generate(node.right) +
+                    ')'
+                  );
+                }
                 if (op === '>>>') {
                   return (
-                    'zero_fill_right_shift(' +
+                    '_bitwise_zfrs(' +
                     this.generate(node.left) +
                     ', ' +
                     this.generate(node.right) +

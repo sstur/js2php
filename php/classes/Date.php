@@ -30,6 +30,18 @@ class Date extends ObjectClass {
 
   function _initFromString($str) {
     $a = Date::parse($str);
+    if (!$a) {
+        $a = array(
+            'year' => 1970,
+            'month' => 1,
+            'day' => 1,
+            'hour' => 0,
+            'minute' => 0,
+            'second' => 0,
+            'ms' => 0,
+            'isLocal' => false
+        );
+    }
     if ($a['isLocal']) {
       $arr = array($a['year'], $a['month'] - 1, $a['day'], $a['hour'], $a['minute'], $a['second'], $a['ms']);
       $this->_initFromParts($arr);

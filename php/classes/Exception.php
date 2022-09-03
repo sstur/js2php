@@ -19,7 +19,7 @@ class Ex extends Exception {
    * console and then return some unexpected value like false. Here we cause it
    * to throw instead.
    */
-  static function handleError($level, $message, $file, $line, $context) {
+  static function handleError($level, $message, $file, $line, $context = null) {
     if ($level === E_NOTICE) {
       return false;
     }

@@ -66,11 +66,48 @@ function eq($a, $b) {
 }
 
 /**
+ * Implements non-strict comparison operators.
+ * @param mixed $a
+ * @param string $operator <, >, <= or =>
+ * @param mixed $b
+ * @return bool
+ */
+function cmp($a, $operator, $b) {
+    $typeA = ($a === null || $a === ObjectClass::$null ? 'null' : ($a instanceof ObjectClass ? 'object' : gettype($a)));
+    $typeB = ($b === null || $b === ObjectClass::$null ? 'null' : ($b instanceof ObjectClass ? 'object' : gettype($b)));
+    $isNumberA = in_array($typeA, ['integer', 'double']);
+    $isNumberB = in_array($typeB, ['integer', 'double']);
+    if ($isNumberA && $isNumberB) {
+        // Most common case, nothing to do. Due to performance reasons we put this case first
+        // to skip all other checks.
+    } else
+        if ($typeA === 'string' && $typeB === 'string') {
+        // two strings are compared lexically in JavaScript, even if both could be converted to numbers
+        $a = strcmp($a, $b);
+        $b = 0;
+    } else if ($typeA === 'string' && $isNumberB) {
+        $a = to_number($a);
+    } else if ($typeB === 'string' && $isNumberA) {
+        $b = to_number($b);
+    }
+    switch ($operator) {
+        case '<':
+            return $a < $b;
+        case '>':
+            return $a > $b;
+        case '<=':
+            return $a <= $b;
+        case '>=':
+            return $a >= $b;
+    }
+}
+
+/**
  * @param $a
  * @param $b
  * @return float
  */
-function zero_fill_right_shift($a, $b) {
+function _bitwise_zfrs($a, $b) {
     if($a>=0) return (float)($a>>$b);
     if($b==0) return (float)((($a>>1)&0x7fffffff)*2+(($a>>$b)&1));
     return (float)(((~$a)>>$b)^(0x7fffffff>>($b-1)));
@@ -138,7 +175,7 @@ function to_number($value) {
   if (is_float($value)) {
     return $value;
   }
-  if (is_int($value)) {
+  if (is_numeric($value)) {
     return (float)$value;
   }
   if (is_bool($value)) {
