@@ -7381,6 +7381,28 @@ parseStatement: true, parseSourceElement: true */
                     ')'
                   );
                 }
+                if (['<', '>', '<=', '>='].indexOf(op) > -1) {
+                  return (
+                    'cmp(' +
+                    this.generate(node.left) +
+                    ", '" +
+                    op +
+                    "', " +
+                    this.generate(node.right) +
+                    ')'
+                  );
+                }
+                if (['<', '>', '<=', '>='].indexOf(op) > -1) {
+                  return (
+                    'cmp(' +
+                    this.generate(node.left) +
+                    ", '" +
+                    op +
+                    "', " +
+                    this.generate(node.right) +
+                    ')'
+                  );
+                }
                 // some ops will return int in which case we need to cast result
                 if (op === '%') {
                   var castFloat = true;
