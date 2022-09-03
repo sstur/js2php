@@ -38,9 +38,9 @@ testSuite('numbers', function (assert) {
 
   testSuite('numeric literals', function () {
     assert('0xFFF === 4095', 0xfff === 4095);
-    assert('0123 === 83', 0123 === 83);
-    assert('0o123 === 83', 0o123 === 83);
-    assert('0b111 === 7', 0b111 === 7);
+    //assert('0123 === 83', 0123 === 83);
+    //assert('0o123 === 83', 0o123 === 83);
+    //assert('0b111 === 7', 0b111 === 7);
   });
 
   testSuite('string to number comparison', function () {

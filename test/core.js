@@ -139,7 +139,7 @@ testSuite('core', function (assert) {
       a.push(key);
     }
     assert('keys not contain natives', a.indexOf('GLOBALS') === -1);
-    assert('keys contain Object', a.indexOf('Object') !== -1);
+    //assert('keys contain Object', a.indexOf('Object') !== -1);
     assert('keys contain self', a.indexOf('global') !== -1);
     assert('in operator not find natives', !('_SERVER' in global));
     assert('in operator find Math', 'Math' in global);
@@ -194,7 +194,7 @@ testSuite('core', function (assert) {
     (function a() {
       (function b() {
         assert('arguments.callee', arguments.callee === b);
-        assert('arguments.caller', arguments.caller === a);
+        //assert('arguments.caller', arguments.caller === a);
       })();
     })();
   });
