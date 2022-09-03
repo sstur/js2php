@@ -677,6 +677,15 @@
           ')'
         );
       }
+      if (op === '>>>') {
+        return (
+          '_bitwise_zfrs(' +
+          this.generate(node.left) +
+          ', ' +
+          this.generate(node.right) +
+          ')'
+        );
+      }
       // some ops will return int in which case we need to cast result
       if (op === '%') {
         var castFloat = true;

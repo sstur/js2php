@@ -103,6 +103,17 @@ function cmp($a, $operator, $b) {
 }
 
 /**
+ * @param $a
+ * @param $b
+ * @return float
+ */
+function _bitwise_zfrs($a, $b) {
+    if($a>=0) return (float)($a>>$b);
+    if($b==0) return (float)((($a>>1)&0x7fffffff)*2+(($a>>$b)&1));
+    return (float)(((~$a)>>$b)^(0x7fffffff>>($b-1)));
+}
+
+/**
  * Used in `for..in` to get keys (including up the proto chain)
  * @param ObjectClass $obj
  * @param array $arr
