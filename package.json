@@ -11,7 +11,9 @@
     "test:unit": "node js2php --test",
     "test": "npm run format:check && npm run test:unit",
     "build-php-version": "bash build-php-version.sh",
-    "test-php-version": "php js2php.php --test"
+    "test-php-version": "php js2php.php --test",
+    "performance-js": "node performance-tests.js",
+    "performance-php": "php performance-tests.php"
   },
   "dependencies": {
     "escope": "^1.0.1",
