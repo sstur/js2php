@@ -9,7 +9,9 @@
     "format": "prettier --write \"**/*.js\"",
     "format:check": "prettier --check \"**/*.js\"",
     "test:unit": "node js2php --test",
-    "test": "npm run format:check && npm run test:unit"
+    "test": "npm run format:check && npm run test:unit",
+    "build-php-version": "bash build-php-version.sh",
+    "test-php-version": "php js2php.php --test"
   },
   "dependencies": {
     "escope": "^1.0.1",
