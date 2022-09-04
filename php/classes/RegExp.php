@@ -1,5 +1,5 @@
 <?php
-class RegExp extends ObjectClass {
+class RegExp extends Obj {
   public $className = "RegExp";
 
   public $source = '';
@@ -85,7 +85,9 @@ class RegExp extends ObjectClass {
     if ($this->multilineFlag) {
       $flags .= 'm';
     }
-    return '/' . str_replace('/', '\\/', $source) . '/' . $flags;
+    // convert unicode code points from \uXXXX to \x{XXXX)
+    return '/' . str_replace('/', '\\/',
+            preg_replace("/\\\\u([0-9A-Za-z]{4})/", '\\x{$1}', $source)) . '/' . $flags;
   }
 
   /**
@@ -128,7 +130,7 @@ RegExp::$protoMethods = array(
         throw new Ex(Err::create('Error executing Regular Expression: ' . $self->toString()));
       }
       if ($result === 0) {
-        return ObjectClass::$null;
+        return Obj::$null;
       }
       $index = $matches[0][1];
       $self->set('lastIndex', (float)($index + strlen($matches[0][0])));
@@ -143,7 +145,7 @@ RegExp::$protoMethods = array(
   'test' => function($str) {
       $self = Func::getContext();
       $result = preg_match($self->toString(true), to_string($str));
-      return ($result !== false);
+      return ($result === 1);
     },
   'toString' => function() {
       $self = Func::getContext();
@@ -151,5 +153,5 @@ RegExp::$protoMethods = array(
     }
 );
 
-RegExp::$protoObject = new ObjectClass();
+RegExp::$protoObject = new Obj();
 RegExp::$protoObject->setMethods(RegExp::$protoMethods, true, false, true);

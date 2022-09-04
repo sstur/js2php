@@ -327,7 +327,7 @@ var inspect = (function() {
 //this is generated from JS; loosely based on inspect module from Node.js
 Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$JSON, &$Error, &$String, &$Array) {
   $inspect = new Func("inspect", function($obj = null, $depth = null) use (&$stylizeNoColor, &$formatValue) {
-    $ctx = new ObjectClass("seen", new Arr(), "stylize", $stylizeNoColor);
+    $ctx = new Obj("seen", new Arr(), "stylize", $stylizeNoColor);
     return call($formatValue, $ctx, $obj, (isset($depth) ? _typeof($depth) : "undefined") === "undefined" ? 2.0 : $depth);
   });
   $stylizeNoColor = new Func("stylizeNoColor", function($str = null, $styleType = null) {
@@ -416,7 +416,7 @@ Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$J
       case "boolean":
         return call_method($ctx, "stylize", _concat("", $value), "boolean");
     }
-    if ($value === ObjectClass::$null) {
+    if ($value === Obj::$null) {
       return call_method($ctx, "stylize", "null", "null");
     }
   });
@@ -441,13 +441,13 @@ Debug::$inspect = call_user_func(function() use (&$Date, &$Object, &$RegExp, &$J
     return $output;
   });
   $formatProperty = new Func("formatProperty", function($ctx = null, $value = null, $recurseTimes = null, $keys = null, $key = null, $array = null) use (&$formatValue, &$JSON) {
-    $desc = new ObjectClass("value", get($value, $key));
+    $desc = new Obj("value", get($value, $key));
     if (call_method($keys, "indexOf", $key) < 0.0) {
       $name = _concat("[", $key, "]");
     }
     if (call_method(get($ctx, "seen"), "indexOf", get($desc, "value")) < 0.0) {
-      if ($recurseTimes === ObjectClass::$null) {
-        $str = call($formatValue, $ctx, get($desc, "value"), ObjectClass::$null);
+      if ($recurseTimes === Obj::$null) {
+        $str = call($formatValue, $ctx, get($desc, "value"), Obj::$null);
       } else {
         $str = call($formatValue, $ctx, get($desc, "value"), to_number($recurseTimes) - 1.0);
       }

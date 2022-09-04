@@ -3,7 +3,7 @@ $JSON = call_user_func(function() {
 
   $decode = function($value) use (&$decode) {
     if ($value === null) {
-      return ObjectClass::$null;
+      return Obj::$null;
     }
     $type = gettype($value);
     if ($type === 'integer') {
@@ -18,7 +18,7 @@ $JSON = call_user_func(function() {
         $result->push($decode($item));
       }
     } else {
-      $result = new ObjectClass();
+      $result = new Obj();
       foreach ($value as $key => $item) {
         if ($key === '_empty_') {
           $key = '';
@@ -34,7 +34,7 @@ $JSON = call_user_func(function() {
   };
 
   $encode = function($parent, $key, $value, $opts, $encodeNull = false) use (&$escape, &$encode) {
-    if ($value instanceof ObjectClass) {
+    if ($value instanceof Obj) {
       //todo: flatten boxed primitive (use toJSON?)
       //class may specify its own toJSON (date/buffer)
       if (method_exists($value, 'toJSON')) {
@@ -55,7 +55,7 @@ $JSON = call_user_func(function() {
       return $encodeNull ? 'null' : $value;
     }
     //todo: handle same as above?
-    if ($value === ObjectClass::$null || $value === INF || $value === -INF) {
+    if ($value === Obj::$null || $value === INF || $value === -INF) {
       return 'null';
     }
     $type = gettype($value);
@@ -138,12 +138,12 @@ $JSON = call_user_func(function() {
         $opts->replacer = ($replacer instanceof Func) ? $replacer : null;
         $opts->level = -1.0;
         // dummy object required if we have a replacer function (see json2 implementation)
-        $obj = ($opts->replacer !== null) ? new ObjectClass('', $value) : null;
+        $obj = ($opts->replacer !== null) ? new Obj('', $value) : null;
         return $encode($obj, '', $value, $opts);
       }
   );
 
-  $JSON = new ObjectClass();
+  $JSON = new Obj();
   $JSON->setMethods($methods, true, false, true);
   // expose for use elsewhere in php-land
   $JSON->fromNative = $decode;

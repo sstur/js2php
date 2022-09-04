@@ -7,7 +7,7 @@ Module::define('fs', function() {
     $self = Func::getContext();
     $fullPath = $helpers['mapPath']($path);
     $self->set('path', $fullPath);
-    $opts = ($opts instanceof ObjectClass) ? $opts : new ObjectClass();
+    $opts = ($opts instanceof Obj) ? $opts : new Obj();
     $self->set('opts', $opts);
     if (!$opts->hasOwnProperty('chunkSize')) {
       $opts->set('chunkSize', $CHUNK_SIZE);
@@ -24,7 +24,7 @@ Module::define('fs', function() {
     $self->stream = $stream;
   });
 
-  /* @var ObjectClass $prototype */
+  /* @var Obj $prototype */
   $prototype = $ReadStream->get('prototype');
   Module::eventify($prototype);
   $prototype->setMethods(array(
@@ -81,7 +81,7 @@ Module::define('fs', function() {
     $self = Func::getContext();
     $fullPath = $helpers['mapPath']($path);
     $self->set('path', $fullPath);
-    $opts = ($opts instanceof ObjectClass) ? $opts : new ObjectClass();
+    $opts = ($opts instanceof Obj) ? $opts : new Obj();
     $self->set('opts', $opts);
     //default is to append
     $append = $opts->get('append') !== false;
@@ -201,7 +201,7 @@ Module::define('fs', function() {
       },
     'createDir' => function($path, $opts = null) use (&$helpers) {
         $fullPath = $helpers['mapPath']($path);
-        $opts = ($opts instanceof ObjectClass) ? $opts : new ObjectClass();
+        $opts = ($opts instanceof Obj) ? $opts : new Obj();
         $mode = $helpers['normalizeMode']($opts->get('mode'), 0777);
         $deep = ($opts->get('deep') === true);
         try {
@@ -269,7 +269,7 @@ Module::define('fs', function() {
         $fullPath = $helpers['mapPath']($path);
         return $helpers['getInfo']($fullPath, $deep);
       },
-    'readFile' => function($path, $enc = null) use (&$helpers) {
+    'readFileSync' => function($path, $enc = null) use (&$helpers) {
         $fullPath = $helpers['mapPath']($path);
         //file_get_contents returns an empty string for a directory
         if (is_dir($fullPath)) {
@@ -290,11 +290,11 @@ Module::define('fs', function() {
           return $data;
         }
       },
-    'writeFile' => function($path, $data, $opts = null) use (&$helpers) {
+    'writeFileSync' => function($path, $data, $opts = null) use (&$helpers) {
         $fullPath = $helpers['mapPath']($path);
-        $opts = ($opts instanceof ObjectClass) ? $opts : new ObjectClass();
+        $opts = ($opts instanceof Obj) ? $opts : new Obj();
         //default is to append
-        $append = $opts->get('append') !== false;
+        $append = $opts->get('append') === false;
         //overwrite option will override append
         if ($opts->get('overwrite') === true) {
           $append = false;
@@ -369,13 +369,7 @@ Module::define('fs', function() {
       },
     'mapPath' => function($path) use (&$helpers) {
         $path = str_replace('\\', '/', $path);
-        $parts = explode('/', $path);
-        $normalized = array();
-        foreach ($parts as $part) {
-          if ($part === '' || $part === '.' || $part === '..') continue;
-          $normalized[] = $part;
-        }
-        return $helpers['basePath'] . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $normalized);
+        return realpath($path);
       },
     'reverseMapPath' => function($path) use (&$helpers) {
         $basePath = $helpers['basePath'];
@@ -414,7 +408,7 @@ Module::define('fs', function() {
           $helpers['throwError']('EIO', $fullPath);
         }
         $isDir = is_dir($fullPath);
-        $result = new ObjectClass();
+        $result = new Obj();
         $result->set('name', basename($fullPath));
         $result->set('dateCreated', new Date($stat['ctime'] * 1000));
         $result->set('dateLastAccessed', new Date($stat['atime'] * 1000));
@@ -490,7 +484,7 @@ Module::define('fs', function() {
       }
   );
 
-  $fs = new ObjectClass();
+  $fs = new Obj();
   $fs->setMethods($methods, true, false, true);
   return $fs;
 });

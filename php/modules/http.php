@@ -11,7 +11,7 @@ Module::define('request', function() {
       },
     'getHeaders' => function() use (&$SERVER, &$headers) {
         if ($headers === null) {
-          $headers = new ObjectClass();
+          $headers = new Obj();
           foreach ($SERVER as $key => $value) {
             if (substr($key, 0, 5) === 'HTTP_') {
               $key = strtolower(substr($key, 5));
@@ -32,7 +32,7 @@ Module::define('request', function() {
         }
         if (feof($self->stream)) {
           fclose($self->stream);
-          return ObjectClass::$null;
+          return Obj::$null;
         }
         return new Buffer(fread($self->stream, $bytes));
       },
@@ -41,7 +41,7 @@ Module::define('request', function() {
         return new Buffer($data);
       }
   );
-  $request = new ObjectClass();
+  $request = new Obj();
   $request->setMethods($methods, true, false, true);
   return $request;
 });
@@ -72,7 +72,7 @@ Module::define('response', function() {
         exit();
       }
   );
-  $response = new ObjectClass();
+  $response = new Obj();
   $response->setMethods($methods, true, false, true);
   return $response;
 });

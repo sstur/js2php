@@ -59,7 +59,7 @@ class Ex extends Exception {
       $fn($output);
     }
     //an exception could be thrown before we have initialized $console
-    if (isset($console) && ($console instanceof ObjectClass)) {
+    if (isset($console) && ($console instanceof Obj)) {
       $console->callMethod('log', $output);
     } else {
       echo $output;
@@ -83,7 +83,7 @@ class Ex extends Exception {
           $list[] = ($arg) ? 'true' : 'false';
         } else if (is_object($arg)) {
           $class = get_class($arg);
-          if ($arg instanceof ObjectClass) {
+          if ($arg instanceof Obj) {
             $constructor = $arg->get('constructor');
             if ($constructor instanceof Func && $constructor->name) {
               $class .= '[' . $constructor->name . ']';

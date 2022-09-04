@@ -6,7 +6,7 @@ function _void() {
 
 /**
  * @param Func $fn
- * @return ObjectClass
+ * @return Obj
  * @throws Exception
  */
 function _new($fn) {
@@ -18,12 +18,12 @@ function _new($fn) {
 }
 
 /**
- * @param ObjectClass $obj
+ * @param Obj $obj
  * @param Func $fn
  * @return bool
  */
 function _instanceof($obj, $fn) {
-  if (!($obj instanceof ObjectClass)) {
+  if (!($obj instanceof Obj)) {
     return false;
   }
   if (!($fn instanceof Func)) {
@@ -31,7 +31,7 @@ function _instanceof($obj, $fn) {
   }
   $proto = $obj->proto;
   $prototype = get($fn, 'prototype');
-  while ($proto !== ObjectClass::$null) {
+  while ($proto !== Obj::$null) {
     if ($proto === $prototype) {
       return true;
     }
@@ -97,22 +97,24 @@ function _delete($obj, $key = null) {
   if (func_num_args() === 1) {
     return false;
   }
-  if ($obj === null || $obj === ObjectClass::$null) {
+  if ($obj === null || $obj === Obj::$null) {
     throw new Ex(Err::create("Cannot convert undefined or null to object"));
   }
-  $obj = objectify($obj);
+  if (!($obj instanceof Obj)) {
+    $obj = objectify($obj);
+  }
   $obj->remove($key);
   return true;
 }
 
 /**
  * @param string $key
- * @param ObjectClass $obj
+ * @param Obj $obj
  * @return bool
  * @throws Exception
  */
 function _in($key, $obj) {
-  if (!($obj instanceof ObjectClass)) {
+  if (!($obj instanceof Obj)) {
     throw new Ex(Err::create("Cannot use 'in' operator to search for '" . $key . "' in " . to_string($obj)));
   }
   return $obj->hasProperty($key);
@@ -123,7 +125,7 @@ function _typeof($value) {
     return 'undefined';
   }
   //js weirdness
-  if ($value === ObjectClass::$null) {
+  if ($value === Obj::$null) {
     return 'object';
   }
   $type = gettype($value);
@@ -136,7 +138,7 @@ function _typeof($value) {
   if ($value instanceof Func) {
     return 'function';
   }
-  if ($value instanceof ObjectClass) {
+  if ($value instanceof Obj) {
     return 'object';
   }
   return 'unknown';

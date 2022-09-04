@@ -1,5 +1,5 @@
 <?php
-class Func extends ObjectClass {
+class Func extends Obj {
   public $name = "";
   public $className = "Function";
 
@@ -25,7 +25,7 @@ class Func extends ObjectClass {
 
   /**
    * Instantiate is an optional method that can be specified if calling `new` on
-   * this function should instantiate a different `this` than `new ObjectClass()`
+   * this function should instantiate a different `this` than `new Obj()`
    * @var callable
    */
   public $instantiate = null;
@@ -47,7 +47,7 @@ class Func extends ObjectClass {
     $this->fn = array_shift($args);
     $this->meta = isset($args[0]) ? $args[0] : array();
     $this->strict = isset($this->meta['strict']);
-    $prototype = new ObjectClass();
+    $prototype = new Obj();
     $prototype->setProp('constructor', $this, true, false, true);
     $this->setProp('prototype', $prototype, true, false, true);
     $this->setProp('name', $this->name, false, false, false);
@@ -57,7 +57,7 @@ class Func extends ObjectClass {
     if ($this->instantiate !== null) {
       $obj = call_user_func($this->instantiate);
     } else {
-      $obj = new ObjectClass();
+      $obj = new Obj();
       $obj->proto = $this->get('prototype');
     }
     $result = $this->apply($obj, func_get_args());
@@ -77,9 +77,9 @@ class Func extends ObjectClass {
     }
     $this->args = $args;
     if (!$this->strict) {
-      if ($context === null || $context === ObjectClass::$null) {
-        $context = ObjectClass::$global;
-      } else if (!($context instanceof ObjectClass)) {
+      if ($context === null || $context === Obj::$null) {
+        $context = Obj::$global;
+      } else if (!($context instanceof Obj)) {
         //primitives (boolean, number, string) should be wrapped in object
         $context = objectify($context);
       }
@@ -175,7 +175,7 @@ class Func extends ObjectClass {
   }
 }
 
-class Args extends ObjectClass {
+class Args extends Obj {
   /* @var array */
   public $args = null;
   /* @var int */
@@ -271,8 +271,8 @@ Func::$protoMethods = array(
     }
 );
 
-Func::$protoObject = new ObjectClass();
+Func::$protoObject = new Obj();
 Func::$protoObject->setMethods(Func::$protoMethods, true, false, true);
 
 //set the methods on Object.prototype before we proceed
-ObjectClass::$protoObject->setMethods(ObjectClass::$protoMethods, true, false, true);
+Obj::$protoObject->setMethods(Obj::$protoMethods, true, false, true);

@@ -60,7 +60,7 @@
   var UNARY_NUM_OPS = {
     '-': '_negate',
     '+': 'to_number',
-    '~': '~', //bitwise not
+    '~': '(float)~', //bitwise not
   };
 
   //these operators expect numbers
@@ -451,13 +451,16 @@
         items.push(encodeString(keyName));
         items.push(this.generate(node.value));
       }, this);
-      return 'new ObjectClass(' + items.join(', ') + ')';
+      return 'new Obj(' + items.join(', ') + ')';
     },
 
     CallExpression: function (node) {
       var args = node.arguments.map(function (arg) {
         return this.generate(arg);
       }, this);
+      if (node.callee.name === 'require') {
+        args.push('__DIR__');
+      }
       if (node.callee.type === 'MemberExpression') {
         return (
           'call_method(' +
@@ -992,24 +995,35 @@
       return 'null';
     }
     if (type === 'null') {
-      return 'ObjectClass::$null';
+      return 'Obj::$null';
     }
     if (type === 'string') {
+      /*
+      if (node && node.raw) {
+        var result = node.raw;
+        if (result.match(/^'.*'/)) {
+          result = result.replace(/"/g, '\\"')
+              .replace(/\\'/g, '\'')
+              .replace(/^'(.*)'/, '"$1"');
+        }
+        result = result.replace(/\\b/g, '\\x08');
+        return result;
+      }*/
       return encodeString(value);
     }
     if (type === 'boolean') {
       return value.toString();
     }
-    if (
-      type === 'number' &&
-      node &&
-      node.raw.length > 1 &&
-      node.raw.startsWith('0')
-    ) {
-      // Preserve numeric literals (e.g. 0xD800)
-      // Replace octal prefix because '0o' is not allowed in PHP
-      var rawValue = node.raw.replace(/^0o/, '0');
-      return '(float)' + rawValue;
+    if (type === 'number' && node && node.raw.length > 1) {
+      if (node.raw.startsWith('0')) {
+        // Preserve numeric literals (e.g. 0xD800)
+        // Replace octal prefix because '0o' is not allowed in PHP
+        var rawValue = node.raw.replace(/^0o/, '0');
+        return '(float)' + rawValue;
+      }
+      if (~node.raw.indexOf('e')) {
+        return node.raw;
+      }
     }
     if (type === 'number') {
       value = value.toString();

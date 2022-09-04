@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 /*global process, require, module, global*/
 (function () {
   // #default is runtime embedded in output file

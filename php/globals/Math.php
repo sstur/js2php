@@ -112,7 +112,7 @@ $Math = call_user_func(function() {
     'SQRT2' => M_SQRT2
   );
 
-  $Math = new ObjectClass();
+  $Math = new Obj();
   $Math->setMethods($methods, true, false, true);
   $Math->setProps($constants, true, false, true);
 

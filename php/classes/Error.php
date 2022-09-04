@@ -1,5 +1,5 @@
 <?php
-class Err extends ObjectClass {
+class Err extends Obj {
   public $className = "Error";
   public $stack = null;
 
@@ -72,5 +72,5 @@ Err::$protoMethods = array(
     }
 );
 
-Err::$protoObject = new ObjectClass();
+Err::$protoObject = new Obj();
 Err::$protoObject->setMethods(Err::$protoMethods, true, false, true);

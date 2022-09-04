@@ -1,5 +1,5 @@
 <?php
-class Arr extends ObjectClass {
+class Arr extends Obj {
   public $className = "Array";
   public $length = 0;
 
@@ -214,7 +214,7 @@ Arr::$protoMethods = array(
       $len = $self->length;
       for ($i = 0; $i < $len; $i++) {
         $value = $self->get($i);
-        $results[] = ($value === null || $value === ObjectClass::$null) ? '' : to_string($value);
+        $results[] = ($value === null || $value === Obj::$null) ? '' : to_string($value);
       }
       return join(to_string($str), $results);
     },
@@ -476,6 +476,6 @@ Arr::$protoMethods = array(
     }
 );
 
-Arr::$protoObject = new ObjectClass();
+Arr::$protoObject = new Obj();
 Arr::$protoObject->setMethods(Arr::$protoMethods, true, false, true);
 Arr::$empty = new StdClass();

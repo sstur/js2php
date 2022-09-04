@@ -2,7 +2,6 @@
 (function () {
   var fs = require('fs');
   var path = require('path');
-  var util = require('util');
   var utils = require('./utils');
 
   var rocambole = require('rocambole');
@@ -171,7 +170,10 @@
     scope.references.forEach(function (ref) {
       var name = ref.identifier.name;
       referenced[name] = true;
-      if (!ref.resolved || ref.resolved.scope !== scope) {
+      if (
+        (!ref.resolved || ref.resolved.scope !== scope) &&
+        name !== '__dirname'
+      ) {
         unresolved[name] = true;
       }
     });

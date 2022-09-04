@@ -1,5 +1,5 @@
 <?php
-class Number extends ObjectClass {
+class Number extends Obj {
   public $className = "Number";
   public $value = null;
 
@@ -103,7 +103,7 @@ Number::$classMethods = array(
       $sign = ($value[0] === '-') ? -1 : 1;
       $value = preg_replace('/^[+-]/', '', $value);
       if (preg_match('/^(\d+\.\d*|\.\d+|\d+)e([+-]?[0-9]+)/i', $value, $m)) {
-        return (float)($sign * $m[1] * pow(10, $m[2]));
+        return $sign * (float)$value;
       }
       if (preg_match('/^(\d+\.\d*|\.\d+|\d+)/i', $value, $m)) {
         return (float)($m[0] * $sign);
@@ -122,10 +122,12 @@ Number::$protoMethods = array(
     },
   'toString' => function($radix = null) {
       $self = Func::getContext();
-      //todo: radix
+      if ($radix && $radix >= 2 && $radix <= 36) {
+        return base_convert(to_string($self->value), 10, $radix);
+      }
       return to_string($self->value);
     }
 );
 
-Number::$protoObject = new ObjectClass();
+Number::$protoObject = new Obj();
 Number::$protoObject->setMethods(Number::$protoMethods, true, false, true);

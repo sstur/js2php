@@ -225,4 +225,19 @@ testSuite('array', function (assert) {
     }, 0);
     assert('tested', result === 15);
   });
+
+  testSuite('special cases', function () {
+    var index = ['index'];
+    var array = [];
+    assert(
+      'typeof array[index] === "undefined"',
+      typeof array[index] === 'undefined'
+    );
+
+    var object = {};
+    assert(
+      'typeof object[index] === "undefined"',
+      typeof object[index] === 'undefined'
+    );
+  });
 });

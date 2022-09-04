@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "escope": "^1.0.1",
+    "path": "^0.12.7",
     "rocambole": "^0.7.0",
     "yargs": "^1.3.2"
   },

@@ -1,5 +1,5 @@
 <?php
-class Str extends ObjectClass {
+class Str extends Obj {
   public $className = "String";
   public $value = null;
 
@@ -58,8 +58,8 @@ class Str extends ObjectClass {
 }
 
 Str::$classMethods = array(
-  'fromCharCode' => function($code) {
-      return chr($code);
+  'fromCharCode' => function($code) use (&$chr) {
+      return $chr($code);
     }
 );
 
@@ -74,13 +74,21 @@ Str::$protoMethods = array(
       $ch = mb_substr($self->value, $i, 1);
       if ($ch === false) return NAN;
       $len = strlen($ch);
-      if ($len === 1) {
+      if ($len === 0) {
+        return NAN;
+      } else if ($len === 1) {
         $code = ord($ch[0]);
       } else {
         $ch = mb_convert_encoding($ch, 'UCS-2LE', 'UTF-8');
         $code = ord($ch[1]) * 256 + ord($ch[0]);
       }
       return (float)$code;
+    },
+    'codePointAt' => function($i) {
+      $self = Func::getContext();
+      $ch = mb_substr($self->value, $i, 1);
+      if ($ch === false) return NAN;
+      return (float)mb_ord($ch);
     },
   'indexOf' => function($search, $offset = 0) {
       $self = Func::getContext();
@@ -190,6 +198,7 @@ Str::$protoMethods = array(
       $self = Func::getContext();
       //todo: unicode [\u1680​\u180e\u2000​\u2001\u2002​\u2003\u2004​\u2005\u2006​\u2007\u2008​\u2009\u200a​\u2028\u2029​​\u202f\u205f​\u3000]
       //note: trim doesn't work here because \xA0 is a multibyte character in utf8
+    //return preg_replace('/\xC2\xA0|[\s\x0B\xA0]/', '', $self->value);
       return preg_replace('/^[\s\x0B\xA0]+|[\s\x0B\​xA0]+$/u', '', $self->value);
     },
   'match' => function($regex) use (&$RegExp) {
@@ -210,7 +219,7 @@ Str::$protoMethods = array(
         $index = $foundAt + strlen($foundStr);
         $results->push($foundStr);
       }
-      return $results;
+      return $index > 0 ? $results : Obj::$null;
     },
   'replace' => function($search, $replace) {
       $self = Func::getContext();
@@ -319,8 +328,12 @@ Str::$protoMethods = array(
   'toString' => function() {
       $self = Func::getContext();
       return $self->value;
+    },
+    'startsWith' => function($startString) {
+      $self = Func::getContext();
+      return $startString === mb_substr($self->value, 0, mb_strlen($startString));
     }
 );
 
-Str::$protoObject = new ObjectClass();
+Str::$protoObject = new Obj();
 Str::$protoObject->setMethods(Str::$protoMethods, true, false, true);

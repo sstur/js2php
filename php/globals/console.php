@@ -5,7 +5,7 @@ $console = call_user_func(function() {
   $stderr = defined('STDERR') ? STDERR : null;
 
   $toString = function($value) {
-    if ($value instanceof ObjectClass) {
+    if ($value instanceof Obj) {
       if (class_exists('Debug')) {
         //should be ok to call the underlying function directly
         return call_user_func(Debug::$inspect->fn, $value);
@@ -15,14 +15,14 @@ $console = call_user_func(function() {
         $toString = $value->get('toString');
       }
       if (!($toString instanceof Func)) {
-        $toString = ObjectClass::$protoObject->get('toString');
+        $toString = Obj::$protoObject->get('toString');
       }
       return $toString->call($value);
     }
     return to_string($value);
   };
 
-  $console = new ObjectClass();
+  $console = new Obj();
 
   $console->set('log', new Func(function() use (&$stdout, &$toString) {
     if ($stdout === null) {

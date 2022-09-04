@@ -91,6 +91,9 @@
     name = name.replace(/[^a-z0-9_]/gi, function (ch) {
       return '«' + encodeChar(ch).toLowerCase() + '»';
     });
+    if (suffix === '' && name === '__dirname') {
+      return '__DIR__';
+    }
     return '$' + name + suffix;
   }
 

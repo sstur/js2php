@@ -9,7 +9,7 @@ Module::define('util', function() {
     }
   );
 
-  $util = new ObjectClass();
+  $util = new Obj();
   $util->setMethods($methods, true, false, true);
   return $util;
 });

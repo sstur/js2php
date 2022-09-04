@@ -37,7 +37,7 @@ class Module {
   }
 
   /**
-   * @param ObjectClass $obj
+   * @param Obj $obj
    */
   static function eventify($obj) {
     $obj->set('on', self::$on);
@@ -50,7 +50,7 @@ Module::$on = new Func(function($name, $listener) {
   $self = Func::getContext();
   $events = $self->get('_events');
   if ($events === null) {
-    $events = new ObjectClass();
+    $events = new Obj();
     $self->set('_events', $events);
   }
   $listeners = $events->get($name);

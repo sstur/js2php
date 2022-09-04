@@ -8,7 +8,7 @@
  * @return bool
  */
 function is($x) {
-  return $x !== false && $x !== 0.0 && $x !== '' && $x !== null && $x !== ObjectClass::$null && $x === $x /* NaN check */;
+  return $x !== false && $x !== 0.0 && $x !== '' && $x !== null && $x !== Obj::$null && $x === $x /* NaN check */;
 }
 
 /**
@@ -17,7 +17,7 @@ function is($x) {
  * @return bool
  */
 function not($x) {
-  return $x === false || $x === 0.0 || $x === '' || $x === null || $x === ObjectClass::$null || $x !== $x /* NaN check */;
+  return $x === false || $x === 0.0 || $x === '' || $x === null || $x === Obj::$null || $x !== $x /* NaN check */;
 }
 
 /**
@@ -28,8 +28,8 @@ function not($x) {
  * @return bool
  */
 function eq($a, $b) {
-  $typeA = ($a === null || $a === ObjectClass::$null ? 'null' : ($a instanceof ObjectClass ? 'object' : gettype($a)));
-  $typeB = ($b === null || $b === ObjectClass::$null ? 'null' : ($b instanceof ObjectClass ? 'object' : gettype($b)));
+  $typeA = ($a === null || $a === Obj::$null ? 'null' : ($a instanceof Obj ? 'object' : gettype($a)));
+  $typeB = ($b === null || $b === Obj::$null ? 'null' : ($b instanceof Obj ? 'object' : gettype($b)));
   if ($typeA === 'null' && $typeB === 'null') {
     return true;
   }
@@ -73,8 +73,8 @@ function eq($a, $b) {
  * @return bool
  */
 function cmp($a, $operator, $b) {
-    $typeA = ($a === null || $a === ObjectClass::$null ? 'null' : ($a instanceof ObjectClass ? 'object' : gettype($a)));
-    $typeB = ($b === null || $b === ObjectClass::$null ? 'null' : ($b instanceof ObjectClass ? 'object' : gettype($b)));
+    $typeA = ($a === null || $a === Obj::$null ? 'null' : ($a instanceof Obj ? 'object' : gettype($a)));
+    $typeB = ($b === null || $b === Obj::$null ? 'null' : ($b instanceof Obj ? 'object' : gettype($b)));
     $isNumberA = in_array($typeA, ['integer', 'double']);
     $isNumberB = in_array($typeB, ['integer', 'double']);
     if ($isNumberA && $isNumberB) {
@@ -115,19 +115,19 @@ function _bitwise_zfrs($a, $b) {
 
 /**
  * Used in `for..in` to get keys (including up the proto chain)
- * @param ObjectClass $obj
+ * @param Obj $obj
  * @param array $arr
  * @return array
  */
 function keys($obj, &$arr = array()) {
-  if (!($obj instanceof ObjectClass)) {
+  if (!($obj instanceof Obj)) {
     return $arr;
   }
   return $obj->getKeys($arr);
 }
 
 function is_primitive($value) {
-  return ($value === null || $value === ObjectClass::$null || is_scalar($value));
+  return ($value === null || $value === Obj::$null || is_scalar($value));
 }
 
 function is_int_or_float($value) {
@@ -138,7 +138,7 @@ function to_string($value) {
   if ($value === null) {
     return 'undefined';
   }
-  if ($value === ObjectClass::$null) {
+  if ($value === Obj::$null) {
     return 'null';
   }
   $type = gettype($value);
@@ -152,9 +152,13 @@ function to_string($value) {
     if ($value !== $value) return 'NaN';
     if ($value === INF) return 'Infinity';
     if ($value === -INF) return '-Infinity';
+    if ($type === 'double' && fmod($value, 1.0) === 0.0) {
+      // avoid "1.0E+15" notation
+      return sprintf("%u", $value);
+    }
     return $value . '';
   }
-  if ($value instanceof ObjectClass) {
+  if ($value instanceof Obj) {
     $fn = $value->get('toString');
     if ($fn instanceof Func) {
       return $fn->call($value);
@@ -169,7 +173,7 @@ function to_number($value) {
   if ($value === null) {
     return NAN;
   }
-  if ($value === ObjectClass::$null) {
+  if ($value === Obj::$null) {
     return 0.0;
   }
   if (is_float($value)) {
@@ -181,7 +185,7 @@ function to_number($value) {
   if (is_bool($value)) {
     return ($value ? 1.0 : 0.0);
   }
-  if ($value instanceof ObjectClass) {
+  if ($value instanceof Obj) {
     return to_number(to_primitive($value));
   }
   //trim whitespace
@@ -209,12 +213,12 @@ function to_number($value) {
 
 /**
  * Used in to_number/eq to handle objects
- * @param ObjectClass $obj
+ * @param Obj $obj
  * @return mixed
  */
 function to_primitive($obj) {
   $value = $obj->callMethod('valueOf');
-  if ($value instanceof ObjectClass) {
+  if ($value instanceof Obj) {
     $value = to_string($value);
   }
   return $value;
@@ -223,7 +227,7 @@ function to_primitive($obj) {
 /**
  * Used to get/set properties on primitives
  * @param $value
- * @return ObjectClass
+ * @return Obj
  */
 function objectify($value) {
   $type = gettype($value);
@@ -242,13 +246,16 @@ function objectify($value) {
 
 /**
  * get a property from a primitive or Object
- * @param null|string|float|bool|ObjectClass|Null $obj
+ * @param null|string|float|bool|Obj|Null $obj
  * @param string $name
  * @return mixed
  * @throws Exception
  */
 function get($obj, $name) {
-  if ($obj === null || $obj === ObjectClass::$null) {
+  if ($obj instanceof Obj) {
+    return $obj->get($name);
+  }
+  if ($obj === null || $obj === Obj::$null) {
     throw new Ex(Err::create("Cannot read property '" . $name . "' of " . to_string($obj)));
   }
   $obj = objectify($obj);
@@ -258,7 +265,7 @@ function get($obj, $name) {
 /**
  * Set a property on a primitive or Object (setting on a primitive would
  * normally be useless). The operator specified can be =, +=, *=, etc.
- * @param null|string|float|bool|ObjectClass|Null $obj
+ * @param null|string|float|bool|Obj|Null $obj
  * @param string $name
  * @param $value
  * @param string $op
@@ -267,15 +274,17 @@ function get($obj, $name) {
  * @throws Exception
  */
 function set($obj, $name, $value, $op = '=', $returnOld = false) {
-  if ($obj === null || $obj === ObjectClass::$null) {
+  if ($obj === null || $obj === Obj::$null) {
     throw new Ex(Err::create("Cannot set property '" . $name . "' of " . to_string($obj)));
   }
-  $obj = objectify($obj);
+  if (!($obj instanceof Obj)) {
+    $obj = objectify($obj);
+  }
   if ($op === '=') {
     return $obj->set($name, $value);
   }
   $oldValue = $obj->get($name);
-  //todo: bitwise operators: << >> >>> & ^ |
+  //todo: bitwise operators: << >> >>> ^
   switch ($op) {
     case '+=':
       $newValue = _plus($oldValue, $value);
@@ -292,6 +301,14 @@ function set($obj, $name, $value, $op = '=', $returnOld = false) {
     case '%=':
       $newValue = $oldValue % $value;
       break;
+    case '&=':
+      $newValue = $oldValue && $value;
+      break;
+    case '|=':
+      $newValue = $oldValue || $value;
+      break;
+    default:
+      throw new Ex(Err::create("operator '$op' is not implemented"));
   }
   $obj->set($name, $newValue);
   return $returnOld ? $oldValue : $newValue;
@@ -308,21 +325,26 @@ function call($fn) {
     throw new Ex(Err::create(_typeof($fn) . " is not a function"));
   }
   $args = array_slice(func_get_args(), 1);
-  return $fn->apply(ObjectClass::$global, $args);
+  return $fn->apply(Obj::$global, $args);
 }
 
 /**
- * @param ObjectClass $obj
+ * @param Obj $obj
  * @param string $name
  * @return mixed
  * @throws Exception
  */
 function call_method($obj, $name) {
-  if ($obj === null || $obj === ObjectClass::$null) {
+  if ($obj === null || $obj === Obj::$null) {
     throw new Ex(Err::create("Cannot read property '" . $name . "' of " . to_string($obj)));
   }
-  $obj = objectify($obj);
+  if (!($obj instanceof Obj)) {
+    $obj = objectify($obj);
+  }
   $fn = $obj->get($name);
+  if (!$fn) {
+    throw new Ex(Err::create($name . " is not a function"));
+  }
   if (!($fn instanceof Func)) {
     throw new Ex(Err::create(_typeof($fn) . " is not a function"));
   }

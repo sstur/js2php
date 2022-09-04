@@ -1,5 +1,5 @@
 <?php
-$process = new ObjectClass();
+$process = new Obj();
 
 // the type of interface between web server and PHP
 $process->set('sapi_name', php_sapi_name());
@@ -21,8 +21,25 @@ $process->set('binding', new Func(function($name) {
   return $module;
 }));
 
+$process->set('cwd', new Func(function() {
+  return getcwd();
+}));
+
+$env = new Obj();
+$env->setProps(getenv());
+$process->set('env', $env);
+unset($env);
+
 //command line arguments
 $process->argv = isset(GlobalObject::$OLD_GLOBALS['argv']) ? GlobalObject::$OLD_GLOBALS['argv'] : array();
 //first argument is path to script
-$process->argv = array_slice($process->argv, 1);
+array_unshift($process->argv, 'php');
 $process->set('argv', Arr::fromArray($process->argv));
+
+$process->set('stdout', new Obj('write', new Func(function($data) {
+  echo $data;
+})));
+
+$process->set('stderr', new Obj('write', new Func(function($data) {
+  fwrite(STDERR, $data);
+})));

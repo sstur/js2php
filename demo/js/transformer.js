@@ -7150,7 +7150,7 @@ parseStatement: true, parseSourceElement: true */
                   items.push(encodeString(keyName));
                   items.push(this.generate(node.value));
                 }, this);
-                return 'new ObjectClass(' + items.join(', ') + ')';
+                return 'new Obj(' + items.join(', ') + ')';
               },
 
               CallExpression: function (node) {
@@ -7728,7 +7728,7 @@ parseStatement: true, parseSourceElement: true */
                 return 'null';
               }
               if (type === 'null') {
-                return 'ObjectClass::$null';
+                return 'Obj::$null';
               }
               if (type === 'string') {
                 return encodeString(value);

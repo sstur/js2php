@@ -6,7 +6,7 @@ error_reporting(E_ALL);
 require_once('php/helpers/operators.php');
 require_once('php/helpers/helpers.php');
 
-require_once('php/classes/ObjectClass.php');
+require_once('php/classes/Obj.php');
 require_once('php/classes/Function.php');
 require_once('php/classes/Global.php');
 require_once('php/classes/Array.php');
@@ -24,10 +24,14 @@ require_once('php/globals/Math.php');
 require_once('php/globals/JSON.php');
 require_once('php/globals/console.php');
 require_once('php/globals/process.php');
+require_once('php/globals/require.php');
 
 require_once('php/helpers/Module.php');
 require_once('php/modules/http.php');
 require_once('php/modules/fs.php');
+require_once('php/modules/util.php');
+require_once('php/modules/child_process.php');
 
 require_once('php/helpers/Test.php');
 require_once('php/helpers/Debug.php');
+require_once('vendor/autoload.php');
