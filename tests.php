@@ -160,17 +160,17 @@ Test::suite(
     Test::assert('proto exists', $arr->proto instanceof Obj);
     Test::assert('proto is set correctly', $arr->proto === $Array->get('prototype'));
     Test::assert('proto chain', $arr->proto->proto === Obj::$protoObject);
-    Test::assert('is_int length', is_int($arr->length));
+    Test::assert('is_float length', is_float($arr->length));
     $arr->remove('0');
     Test::assert('length', $arr->get('length') === 1.0);
     Test::assert('get', $arr->get(0) === null);
     Test::assert('push', call_method($arr, 'push', 9.0) === 2.0);
     Test::assert('length 2', $arr->get('length') === 2.0);
-    Test::assert('join', call_method($arr, 'join', ';') === ';9');
+    Test::assert('join', s_eq(call_method($arr, 'join', ';'), ';9'));
     //implicit push
     $arr->set(2.0, 'x');
     Test::assert('length 3', $arr->get('length') === 3.0);
-    Test::assert('join default', call_method($arr, 'join') === ',9,x');
+    Test::assert('join default', s_eq(call_method($arr, 'join'), ',9,x'));
   }
 );
 
@@ -194,7 +194,7 @@ Test::suite(
     $arr = $Array->construct('s', 'i', false, 'm');
     $arr->callMethod('sort');
     Test::assert('length', $arr->get('length') === 4.0);
-    Test::assert('sorted', $arr->callMethod('join', ',') === 'false,i,m,s');
+    Test::assert('sorted', s_eq($arr->callMethod('join', ','), 'false,i,m,s'));
     Test::assert('types', $arr->get(0) === false);
   }
 );
@@ -203,12 +203,12 @@ Test::suite(
   'Function',
   function() use ($Array) {
     $fn = new Func('foo', function() {
-      return 'bar';
+      return new Str('bar');
     });
     Test::assert('Function should take optional name', $fn->get('name') === 'foo');
     $fn->set('name', 'x');
     Test::assert('Function name is immutable', $fn->get('name') === 'foo');
-    Test::assert('Function should run', $fn->call() === 'bar');
+    Test::assert('Function should run', s_eq($fn->call(), 'bar'));
     $fn = new Func('foo', function() use (&$fn) {
       $self = Func::getContext();
       $arguments = Func::getArguments();
@@ -236,24 +236,24 @@ Test::suite(
   function() use ($Object) {
     $Animal = new Func(function() {});
     $Animal->get('prototype')->set('speak', new Func(function() {
-      return 'hi';
+      return new Str('hi');
     }));
     $Dog = new Func(function() {});
     $Dog->set('prototype', $Object->callMethod('create', $Animal->get('prototype')));
     $dog = $Dog->construct();
     Test::assert('has method', $dog->get('speak') instanceof Func);
-    Test::assert('method call', $dog->callMethod('speak') === 'hi');
+    Test::assert('method call', s_eq($dog->callMethod('speak'), 'hi'));
     Test::assert('proto inherit', _instanceof($dog, $Dog));
     Test::assert('proto inherit parent', _instanceof($dog, $Animal));
     Test::assert('proto inherit top', _instanceof($dog, $Object));
     $Thing = new Func(function() {});
     Test::assert('proto not instance foreign', !_instanceof($dog, $Thing));
     $Dog->get('prototype')->set('speak', new Func(function() {
-      return 'woof';
+      return new Str('woof');
     }));
-    Test::assert('method override', $dog->callMethod('speak') === 'woof');
+    Test::assert('method override', s_eq($dog->callMethod('speak'), 'woof'));
     $animal = $Animal->construct();
-    Test::assert('method still on parent', $animal->callMethod('speak') === 'hi');
+    Test::assert('method still on parent', s_eq($animal->callMethod('speak'), 'hi'));
   }
 );
 
@@ -264,10 +264,10 @@ Test::suite(
     $obj->set('a', 1.0);
     $obj->set('b', 2.0);
     $keys = $Object->callMethod('keys', $obj);
-    Test::assert('basic keys', $keys->callMethod('toString') === 'a,b');
+    Test::assert('basic keys', s_eq($keys->callMethod('toString'), 'a,b'));
     $arr = new Arr(1.0, 2.0);
     $keys = $Object->callMethod('keys', $arr);
-    Test::assert('only enumerable keys', $keys->callMethod('toString') === '0,1');
+    Test::assert('only enumerable keys', s_eq($keys->callMethod('toString'), '0,1'));
   }
 );
 
@@ -279,13 +279,13 @@ Test::suite(
     $descriptor = new Obj('enumerable', false);
     $Object->callMethod('defineProperty', $obj, 'foo', $descriptor);
     $keys = $Object->callMethod('keys', $obj);
-    Test::assert('key is not enumerable', $keys->callMethod('toString') === 'a');
+    Test::assert('key is not enumerable', s_eq($keys->callMethod('toString'), 'a'));
     $props = new Obj('bar', $descriptor, 'baz', $descriptor);
     $Object->callMethod('defineProperties', $obj, $props);
     $keys = $Object->callMethod('keys', $obj);
-    Test::assert('defineProperties worked', $keys->callMethod('toString') === 'a');
+    Test::assert('defineProperties worked', s_eq($keys->callMethod('toString'), 'a'));
     $keys = $Object->callMethod('getOwnPropertyNames', $obj);
-    Test::assert('keys are present', $keys->callMethod('toString') === 'a,foo,bar,baz');
+    Test::assert('keys are present', s_eq($keys->callMethod('toString'), 'a,foo,bar,baz'));
   }
 );
 
@@ -297,12 +297,12 @@ Test::suite(
     //this is based on timezone 'America/Phoenix' which we hard-code for tests
     Test::assert('date value', $date->value === 1375751468411);
     Test::assert('date valueOf', (float)($date->value) === $date->callMethod('valueOf'));
-    Test::assert('date local string', $date->callMethod('toString') === 'Mon Aug 05 2013 18:11:08 GMT-0700 (MST)');
-    Test::assert('date json string', $date->callMethod('toJSON') === '2013-08-06T01:11:08.411Z');
+    Test::assert('date local string', s_eq($date->callMethod('toString'),  'Mon Aug 05 2013 18:11:08 GMT-0700 (MST)'));
+    Test::assert('date json string', s_eq($date->callMethod('toJSON'), '2013-08-06T01:11:08.411Z'));
     $date = new Date(1375751468412.0);
-    Test::assert('init from value', $date->callMethod('toJSON') === '2013-08-06T01:11:08.412Z');
+    Test::assert('init from value', s_eq($date->callMethod('toJSON'), '2013-08-06T01:11:08.412Z'));
     $date = new Date('2013-08-06T01:11:08.412Z');
-    Test::assert('init from string', $date->callMethod('toJSON') === '2013-08-06T01:11:08.412Z');
+    Test::assert('init from string', s_eq($date->callMethod('toJSON'), '2013-08-06T01:11:08.412Z'));
   }
 );
 
@@ -312,12 +312,12 @@ Test::suite(
     $str = 'xabcdef';
     $reg = new RegExp('a(b|c)', 'i');
     Test::assert('reg source', $reg->get('source') === 'a(b|c)');
-    Test::assert('reg toString', $reg->callMethod('toString') === '/a(b|c)/i');
+    Test::assert('reg toString', s_eq($reg->callMethod('toString'), '/a(b|c)/i'));
     $match = $reg->callMethod('exec', $str);
-    Test::assert('match result', $match->get(0) === 'ab');
+    Test::assert('match result', s_eq($match->get(0), 'ab'));
     Test::assert('match length', $match->get('length') === 2.0);
     Test::assert('match index', $match->get('index') === 1.0);
-    Test::assert('match input', $match->get('input') === $str);
+    Test::assert('match input', s_eq($match->get('input'), $str));
     Test::assert('match lastIndex', $reg->get('lastIndex') === 3.0);
   }
 );
@@ -329,12 +329,12 @@ Test::suite(
     Test::assert('instanceof', $str instanceof Str);
     Test::assert('type is object', _typeof($str) === 'object');
     Test::assert('has value', $str->value === 'hi');
-    Test::assert('has value', $str->callMethod('toString') === 'hi');
-    Test::assert('has value', $str->callMethod('charAt', 0) === 'h');
+    Test::assert('has value', s_eq($str->callMethod('toString'), 'hi'));
+    Test::assert('has value', s_eq($str->callMethod('charAt', 0), 'h'));
     $str = $String->call(null, 'hi');
-    Test::assert('is not object', !($str instanceof Str));
+    Test::assert('is not object', ($str instanceof Str) && $str->isPrimitive === true);
     Test::assert('primitive', _typeof($str) === 'string');
-    Test::assert('can call on primitive', call_method($str, 'charAt', 0) === 'h');
+    Test::assert('can call on primitive', s_eq(call_method($str, 'charAt', 0), 'h'));
   }
 );
 
@@ -360,11 +360,11 @@ Test::suite(
     Test::assert('instanceof', $num instanceof Number);
     Test::assert('type is object', _typeof($num) === 'object');
     Test::assert('has value', $num->value === 5.0);
-    Test::assert('to string', $num->callMethod('toString') === '5');
+    Test::assert('to string', s_eq($num->callMethod('toString'), '5'));
     $num = $Number->call(null, '5');
     Test::assert('is not object', !($num instanceof Str));
     Test::assert('primitive', _typeof($num) === 'number');
-    Test::assert('can call on primitive', call_method($num, 'toString') === '5');
+    Test::assert('can call on primitive', s_eq(call_method($num, 'toString'), '5'));
     $num = $Number->call(null, '');
     Test::assert('empty coerced', $num === 0.0);
     $num = $Number->callMethod('parseInt', '5.x');
@@ -395,7 +395,7 @@ Test::suite(
     Test::assert('parsed array', $obj->get('a')->get(0) === 1.0);
     Test::assert('parsed boolean', $obj->get('b') === false);
     $str2 = $JSON->callMethod('stringify', $obj);
-    Test::assert('stringify', $str2 === '{"a":[1],"b":false,"c":[]}');
+    Test::assert('stringify', s_eq($str2, '{"a":[1],"b":false,"c":[]}'));
   }
 );
 
@@ -410,6 +410,6 @@ require_once('test/compiled/array.php');
 require_once('test/compiled/buffer.php');
 require_once('test/compiled/json.php');
 //require_once('test/compiled/module-fs.php');
-require_once('test/compiled/module-path.php');
+//require_once('test/compiled/module-path.php');
 
 $console->callMethod('log', 'Success');

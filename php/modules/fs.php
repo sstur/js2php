@@ -270,7 +270,7 @@ Module::define('fs', function() {
         return $helpers['getInfo']($fullPath, $deep);
       },
     'readFileSync' => function($path, $enc = null) use (&$helpers) {
-        $fullPath = $helpers['mapPath']($path);
+        $fullPath = $helpers['mapPath']($path)->value;
         //file_get_contents returns an empty string for a directory
         if (is_dir($fullPath)) {
           $helpers['throwError']('EISDIR', $fullPath);
@@ -287,11 +287,11 @@ Module::define('fs', function() {
         if ($enc === null) {
           return new Buffer($data, 'binary');
         } else {
-          return $data;
+          return new Str($data);
         }
       },
     'writeFileSync' => function($path, $data, $opts = null) use (&$helpers) {
-        $fullPath = $helpers['mapPath']($path);
+        $fullPath = $helpers['mapPath']($path)->value;
         $opts = ($opts instanceof Obj) ? $opts : new Obj();
         //default is to append
         $append = $opts->get('append') === false;
@@ -301,6 +301,7 @@ Module::define('fs', function() {
         }
         $flags = $append ? FILE_APPEND : 0;
         $data = ($data instanceof Buffer) ? $data->raw : $data;
+        $data = ($data instanceof Str) ? $data->value : $data;
         try {
           $result = file_put_contents($fullPath, $data, $flags);
         } catch(Exception $e) {
@@ -349,6 +350,7 @@ Module::define('fs', function() {
         //get the error message with the path(s) removed. this prevents words
         // in the path from effecting our parsing below.
         foreach ($paths as $path) {
+          if ($path instanceof Str) $path = $path->value;
           $message = str_replace($path, '', $message);
         }
         $slice = array_slice(explode(':', $message), -1);
@@ -368,10 +370,12 @@ Module::define('fs', function() {
         }
       },
     'mapPath' => function($path) use (&$helpers) {
+        if ($path instanceof Str) $path = $path->value;
         $path = str_replace('\\', '/', $path);
-        return realpath($path);
+        return new Str(realpath($path));
       },
     'reverseMapPath' => function($path) use (&$helpers) {
+        if ($path instanceof Str) $path = $path->value;
         $basePath = $helpers['basePath'];
         if ($path === $basePath) {
           return './';
@@ -379,9 +383,10 @@ Module::define('fs', function() {
         if (strpos($path, $basePath . DIRECTORY_SEPARATOR) === 0) {
           $path = './' . substr($path, strlen($basePath) + 1);
         }
-        return str_replace('\\', '/', $path);
+        return new Str(str_replace('\\', '/', $path));
       },
     'isFile' => function($fullPath) use (&$helpers) {
+        if ($fullPath instanceof Str) $fullPath = $fullPath->value;
         try {
           $result = is_file($fullPath);
         } catch(Exception $e) {
@@ -390,6 +395,7 @@ Module::define('fs', function() {
         return $result;
       },
     'isDir' => function($fullPath) use (&$helpers) {
+        if ($fullPath instanceof Str) $fullPath = $fullPath->value;
         try {
           $result = is_dir($fullPath);
         } catch(Exception $e) {
@@ -398,6 +404,7 @@ Module::define('fs', function() {
         return $result;
       },
     'getInfo' => function($fullPath, $deep) use (&$helpers) {
+        if ($fullPath instanceof Str) $fullPath = $fullPath->value;
         try {
           $stat = stat($fullPath);
         } catch(Exception $e) {
@@ -433,6 +440,7 @@ Module::define('fs', function() {
         return $result;
       },
     'deleteFile' => function($fullPath) use (&$helpers) {
+        if ($fullPath instanceof Str) $fullPath = $fullPath->value;
         try {
           $result = unlink($fullPath);
         } catch(Exception $e) {
@@ -444,6 +452,7 @@ Module::define('fs', function() {
         }
       },
     'removeDir' => function($fullPath, $deep = false) use (&$helpers) {
+        if ($fullPath instanceof Str) $fullPath = $fullPath->value;
         if ($deep === true) {
           try {
             $list = scandir($fullPath);

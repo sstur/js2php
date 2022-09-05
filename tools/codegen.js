@@ -152,6 +152,7 @@
 
   function Generator(opts) {
     this.opts = Object.create(opts || {});
+    this.wrapStringsInObjects = [true];
   }
 
   Generator.prototype = {
@@ -273,7 +274,9 @@
         if (node.test === null) {
           results.push('default:\n');
         } else {
+          this.wrapStringsInObjects.push(true);
           results.push('case ' + this.generate(node.test) + ':\n');
+          this.wrapStringsInObjects.pop();
         }
         opts.indentLevel += 1;
         node.consequent.forEach(function (node) {
@@ -379,6 +382,11 @@
       );
       results.push(this.Body(catchClause.body));
       results.push(this.indent() + '}');
+      if (node.finalizer) {
+        results.push(' finally {\n');
+        results.push(this.Body(node.finalizer));
+        results.push(this.indent() + '}');
+      }
       return results.join('') + '\n';
     },
 
@@ -455,14 +463,16 @@
     },
 
     CallExpression: function (node) {
+      this.wrapStringsInObjects.push(true);
       var args = node.arguments.map(function (arg) {
         return this.generate(arg);
       }, this);
+      this.wrapStringsInObjects.pop();
       if (node.callee.name === 'require') {
         args.push('__DIR__');
       }
       if (node.callee.type === 'MemberExpression') {
-        return (
+        var result = (
           'call_method(' +
           this.generate(node.callee.object) +
           ', ' +
@@ -470,6 +480,7 @@
           (args.length ? ', ' + args.join(', ') : '') +
           ')'
         );
+        return result;
       } else {
         return (
           'call(' +
@@ -481,9 +492,18 @@
     },
 
     MemberExpression: function (node) {
-      return (
-        'get(' + this.generate(node.object) + ', ' + this.encodeProp(node) + ')'
-      );
+      var result = this.generate(node.object);
+      if (result.startsWith('new ')) {
+        result = '(' + result + ')';
+      }
+      if (node.computed) {
+        result += '->get(' + this.encodeProp(node) + ')';
+      } else if (~node.property.name.indexOf('$')) {
+        result += "->{'" + node.property.name + "'}";
+      } else {
+        result += '->' + node.property.name;
+      }
+      return result;
     },
 
     NewExpression: function (node) {
@@ -632,6 +652,24 @@
       if (op === '==') {
         return (
           'eq(' +
+          this.generate(node.left) +
+          ', ' +
+          this.generate(node.right) +
+          ')'
+        );
+      }
+      if (op === '===') {
+        return (
+          's_eq(' +
+          this.generate(node.left) +
+          ', ' +
+          this.generate(node.right) +
+          ')'
+        );
+      }
+      if (op === '!==') {
+        return (
+          '!s_eq(' +
           this.generate(node.left) +
           ', ' +
           this.generate(node.right) +
@@ -859,7 +897,6 @@
         case 'FunctionDeclaration':
           result = '';
           break;
-        case 'VariableDeclaration':
         case 'IfStatement':
         case 'SwitchStatement':
         case 'ForStatement':
@@ -886,7 +923,7 @@
 
         //EXPRESSIONS
         case 'Literal':
-          result = encodeLiteral(node.value, node);
+          result = encodeLiteral(node.value, node, this.wrapStringsInObjects[this.wrapStringsInObjects.length - 1]);
           break;
         case 'Identifier':
           result = encodeVar(node);
@@ -894,8 +931,13 @@
         case 'ThisExpression':
           result = '$this_';
           break;
-        case 'FunctionExpression':
+        case 'VariableDeclaration':
         case 'AssignmentExpression':
+          this.wrapStringsInObjects.push(true)
+          result = this[type](node);
+          this.wrapStringsInObjects.pop();
+          break;
+        case 'FunctionExpression':
         case 'CallExpression':
         case 'MemberExpression':
         case 'NewExpression':
@@ -989,7 +1031,7 @@
     }
   }
 
-  function encodeLiteral(value, node) {
+  function encodeLiteral(value, node, wrapStringInObject) {
     var type = value === null ? 'null' : typeof value;
     if (type === 'undefined') {
       return 'null';
@@ -998,18 +1040,11 @@
       return 'Obj::$null';
     }
     if (type === 'string') {
-      /*
-      if (node && node.raw) {
-        var result = node.raw;
-        if (result.match(/^'.*'/)) {
-          result = result.replace(/"/g, '\\"')
-              .replace(/\\'/g, '\'')
-              .replace(/^'(.*)'/, '"$1"');
-        }
-        result = result.replace(/\\b/g, '\\x08');
-        return result;
-      }*/
-      return encodeString(value);
+      if (wrapStringInObject) {
+        return 'Str::str(' + encodeString(value) + ')';
+      } else {
+        return encodeString(value);
+      }
     }
     if (type === 'boolean') {
       return value.toString();

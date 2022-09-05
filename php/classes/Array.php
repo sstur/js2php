@@ -1,6 +1,7 @@
 <?php
 class Arr extends Obj {
   public $className = "Array";
+  /** @var float */
   public $length = 0;
 
   static $protoObject = null;
@@ -17,19 +18,22 @@ class Arr extends Obj {
     if (func_num_args() > 0) {
       $this->init(func_get_args());
     } else {
-      $this->length = 0;
+      $this->length = 0.0;
     }
   }
 
   function init($arr) {
     $len = 0;
     foreach ($arr as $i => $item) {
+      if (is_string($item)) {
+        $item = new Str($item);
+      }
       if ($item !== Arr::$empty) {
         $this->set($i, $item);
       }
       $len += 1;
     }
-    $this->length = $len;
+    $this->length = (float)$len;
   }
 
   function push($value) {
@@ -39,7 +43,7 @@ class Arr extends Obj {
       $i += 1;
     }
     //we don't need to return a float here because this is an internal method
-    return ($this->length = $i);
+    return ($this->length = (float)$i);
   }
 
   function shift() {
@@ -82,11 +86,11 @@ class Arr extends Obj {
       unset($this->data[$pos]);
       unset($this->dscr[$pos]);
     }
-    $this->length = $len - $num;
+    $this->length = (float)($len - $num);
   }
 
   function shiftElementsForward($num, $startIndex = 0) {
-    $pos = $this->length;
+    $pos = (int)$this->length;
     while (($pos--) > $startIndex) {
       $newPos = $pos + $num;
       if (array_key_exists($pos, $this->data)) {
@@ -114,7 +118,7 @@ class Arr extends Obj {
   function set($key, $value) {
     $i = self::checkInt($key);
     if ($i !== null && $i >= $this->length) {
-      $this->length = $i + 1;
+      $this->length = (float)($i + 1);
     }
     return parent::set($key, $value);
   }
@@ -136,15 +140,19 @@ class Arr extends Obj {
         $this->remove($i);
       }
     }
-    $this->length = $len;
-    return (float)$len;
+    $this->length = (float)$len;
+    return $this->length;
   }
 
   function toArray() {
     $results = array();
     $len = $this->length;
     for ($i = 0; $i < $len; $i++) {
-      $results[] = $this->get($i);
+      $item = $this->get($i);
+      if ($item instanceof Str) {
+        $item = $item->value;
+      }
+      $results[] = $item;
     }
     return $results;
   }
@@ -164,7 +172,7 @@ class Arr extends Obj {
       $arr = new Arr();
       $len = func_num_args();
       if ($len === 1 && is_int_or_float($value)) {
-        $arr->length = (int)$value;
+        $arr->length = (float)$value;
       } else if ($len > 0) {
         $arr->init(func_get_args());
       }
@@ -195,6 +203,9 @@ Arr::$protoMethods = array(
       $result = $self->get($i);
       $self->remove($i);
       $self->length = $i;
+      if (is_string($result)) {
+        $result = new Str($result);
+      }
       return $result;
     },
   'unshift' => function($value) {
@@ -216,21 +227,27 @@ Arr::$protoMethods = array(
         $value = $self->get($i);
         $results[] = ($value === null || $value === Obj::$null) ? '' : to_string($value);
       }
-      return join(to_string($str), $results);
+      return new Str(join(to_string($str), $results));
     },
   'indexOf' => function($value) {
+      if ($value instanceof Str) {
+        $value = $value->value;
+      }
       $self = Func::getContext();
       $len = $self->length;
       for ($i = 0; $i < $len; $i++) {
-        if ($self->get($i) === $value) return (float)$i;
+        if (s_eq($self->get($i), $value)) return (float)$i;
       }
       return -1.0;
     },
   'lastIndexOf' => function($value) {
+      if ($value instanceof Str) {
+        $value = $value->value;
+      }
       $self = Func::getContext();
       $i = $self->length;
       while ($i--) {
-        if ($self->get($i) === $value) return (float)$i;
+        if (s_eq($self->get($i), $value)) return (float)$i;
       }
       return -1.0;
     },

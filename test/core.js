@@ -227,6 +227,14 @@ testSuite('core', function (assert) {
     assert('TypeError', e1 instanceof TypeError);
     assert('TypeError inherits from Error', e1 instanceof Error);
     assert('TypeError is distinct from Error', TypeError !== Error);
+    var foo = 0;
+    try {
+      throw 'foo';
+    } catch (e) {
+    } finally {
+      foo = 1;
+    }
+    assert('finally clause', foo === 1);
   });
 
   testSuite('equality coercion', function () {
@@ -248,5 +256,36 @@ testSuite('core', function (assert) {
       '1' == 1 && 1 == true && '1' == true && '0' == false
     );
     assert('"" == 0 && "" == false', '' == 0 && '' == false);
+  });
+
+  testSuite('switch statement', function () {
+    var a = 'abc';
+    var result = 0;
+    switch (a) {
+      case 'def':
+        result = 2;
+        break;
+      case 'abc':
+        result = 1;
+        break;
+      default:
+        result = 3;
+    }
+    assert("switch doesn't match string constants correctly", result === 1);
+
+    var a = 'abc';
+    var b = 'abc';
+    var c = 'edf';
+    switch (a) {
+      case c:
+        result = 2;
+        break;
+      case b:
+        result = 1;
+        break;
+      default:
+        result = 3;
+    }
+    assert("switch doesn't match string variables correctly", result === 1);
   });
 });

@@ -123,9 +123,9 @@ Number::$protoMethods = array(
   'toString' => function($radix = null) {
       $self = Func::getContext();
       if ($radix && $radix >= 2 && $radix <= 36) {
-        return base_convert(to_string($self->value), 10, $radix);
+        return new Str(base_convert(to_string($self->value), 10, $radix));
       }
-      return to_string($self->value);
+      return new Str(to_string($self->value));
     }
 );
 

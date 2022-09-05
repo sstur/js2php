@@ -2,26 +2,36 @@
 class Str extends Obj {
   public $className = "String";
   public $value = null;
+  public $isPrimitive = true;
 
   static $protoObject = null;
   static $classMethods = null;
   static $protoMethods = null;
+  private static $literalCache = [];
 
   function __construct($str = null) {
     parent::__construct();
     $this->proto = self::$protoObject;
     if (func_num_args() === 1) {
       $this->value = $str;
-      $this->length = mb_strlen($str);
+      $this->length = (float)mb_strlen($str);
     }
   }
 
   function get_length() {
-    return (float)$this->length;
+    return $this->length;
   }
 
   function set_length($len) {
     return $len;
+  }
+
+  public static function str($literal) {
+  if (isset(Str::$literalCache[$literal])) {
+    return Str::$literalCache[$literal];
+  } else {
+    return Str::$literalCache[$literal] = new Str($literal);
+  }
   }
 
   //allow subscript access to characters: `string[1]`
@@ -45,11 +55,13 @@ class Str extends Obj {
         $self->value = to_string($value);
         return $self;
       } else {
-        return to_string($value);
+        return Str::str(to_string($value));
       }
     });
     $String->instantiate = function() {
-      return new Str();
+      $result = new Str();
+      $result->isPrimitive = false;
+      return $result;
     };
     $String->set('prototype', Str::$protoObject);
     $String->setMethods(Str::$classMethods, true, false, true);
@@ -67,7 +79,7 @@ Str::$protoMethods = array(
   'charAt' => function($i) {
       $self = Func::getContext();
       $ch = mb_substr($self->value, $i, 1);
-      return ($ch === false) ? '' : $ch;
+      return Str::str(($ch === false) ? '' : $ch);
     },
   'charCodeAt' => function($i) {
       $self = Func::getContext();
@@ -92,11 +104,17 @@ Str::$protoMethods = array(
     },
   'indexOf' => function($search, $offset = 0) {
       $self = Func::getContext();
+      if ($search instanceof Str) {
+        $search = $search->value;
+      }
       $index = mb_strpos($self->value, $search, $offset);
       return ($index === false) ? -1.0 : (float)$index;
     },
   'lastIndexOf' => function($search, $offset = null) {
       $self = Func::getContext();
+      if ($search instanceof Str) {
+        $search = $search->value;
+      }
       $str = $self->value;
       if ($offset !== null) {
         $offset = to_number($offset);
@@ -112,7 +130,7 @@ Str::$protoMethods = array(
       $str = $self->value;
       if ($delim instanceof RegExp) {
         //$arr = mb_split($delim->source, $str);
-        $arr = preg_split($delim->toString(true), $str);
+        $arr = preg_split($delim->toString(true)->value, $str);
       } else {
         $delim = to_string($delim);
         if ($delim === '') {
@@ -131,7 +149,7 @@ Str::$protoMethods = array(
       $self = Func::getContext();
       $len = $self->length;
       if ($len === 0) {
-        return '';
+        return Str::str('');
       }
       $start = (int)$start;
       if ($start < 0) {
@@ -139,12 +157,12 @@ Str::$protoMethods = array(
         if ($start < 0) $start = 0;
       }
       if ($start >= $len) {
-        return '';
+        return Str::str('');
       }
       if ($num === null) {
-        return mb_substr($self->value, $start);
+        return Str::str(mb_substr($self->value, $start));
       } else {
-        return mb_substr($self->value, $start, $num);
+        return Str::str(mb_substr($self->value, $start, $num));
       }
     },
   'substring' => function($start, $end = null) {
@@ -161,18 +179,18 @@ Str::$protoMethods = array(
       if ($end < 0) $end = 0;
       if ($end > $len) $end = $len;
       if ($start === $end) {
-        return '';
+        return Str::str('');
       }
       if ($end < $start) {
         list($start, $end) = array($end, $start);
       }
-      return mb_substr($self->value, $start, $end - $start);
+      return Str::str(mb_substr($self->value, $start, $end - $start));
     },
   'slice' => function($start, $end = null) {
       $self = Func::getContext();
       $len = $self->length;
       if ($len === 0) {
-        return '';
+        return Str::str('');
       }
       $start = (int)$start;
       if ($start < 0) {
@@ -180,7 +198,7 @@ Str::$protoMethods = array(
         if ($start < 0) $start = 0;
       }
       if ($start >= $len) {
-        return '';
+        return Str::str('');
       }
       $end = ($end === null) ? $len : (int)$end;
       if ($end < 0) {
@@ -192,14 +210,14 @@ Str::$protoMethods = array(
       if ($end > $len) {
         $end = $len;
       }
-      return mb_substr($self->value, $start, $end - $start);
+      return Str::str(mb_substr($self->value, $start, $end - $start));
     },
   'trim' => function() {
       $self = Func::getContext();
       //todo: unicode [\u1680​\u180e\u2000​\u2001\u2002​\u2003\u2004​\u2005\u2006​\u2007\u2008​\u2009\u200a​\u2028\u2029​​\u202f\u205f​\u3000]
       //note: trim doesn't work here because \xA0 is a multibyte character in utf8
     //return preg_replace('/\xC2\xA0|[\s\x0B\xA0]/', '', $self->value);
-      return preg_replace('/^[\s\x0B\xA0]+|[\s\x0B\​xA0]+$/u', '', $self->value);
+      return Str::str(preg_replace('/^[\s\x0B\xA0]+|[\s\x0B\​xA0]+$/u', '', $self->value));
     },
   'match' => function($regex) use (&$RegExp) {
       $self = Func::getContext();
@@ -212,7 +230,7 @@ Str::$protoMethods = array(
       }
       $results = new Arr();
       $index = 0;
-      $preg = $regex->toString(true);
+      $preg = $regex->toString(true)->value;
       while (preg_match($preg, $str, $matches, PREG_OFFSET_CAPTURE, $index) === 1) {
         $foundAt = $matches[0][1];
         $foundStr = $matches[0][0];
@@ -235,20 +253,20 @@ Str::$protoMethods = array(
           $success = null;
           while (
               ($limit === -1 || $count < $limit) &&
-              ($success = preg_match($search, $str, $matches, PREG_OFFSET_CAPTURE, $offset))
+              ($success = preg_match($search->value, $str, $matches, PREG_OFFSET_CAPTURE, $offset))
             ) {
             $matchIndex = $matches[0][1];
             $args = array();
             foreach ($matches as $match) {
-              $args[] = $match[0];
+              $args[] = Str::str($match[0]);
             }
             $result[] = substr($str, $offset, $matchIndex - $offset);
             //calculate multi-byte character index from match index
             $mbIndex = mb_strlen(substr($str, 0, $matchIndex));
             array_push($args, $mbIndex);
-            array_push($args, $str);
+            array_push($args, $self);
             $result[] = to_string($replace->apply(null, $args));
-            $offset = $matchIndex + strlen($args[0]);
+            $offset = $matchIndex + strlen($args[0]->value);
             $count += 1;
           }
           if ($success === false) {
@@ -256,27 +274,27 @@ Str::$protoMethods = array(
             throw new Ex(Err::create('String.prototype.replace() failed'));
           }
           $result[] = substr($str, $offset);
-          return join('', $result);
+          return Str::str(join('', $result));
         } else {
           $matchIndex = strpos($str, $search);
           if ($matchIndex === false) {
-            return $str;
+            return Str::str($str);
           }
           $before = substr($str, 0, $matchIndex);
           $after = substr($str, $matchIndex + strlen($search));
           //mb_strlen used to calculate multi-byte character index
           $args = array($search, mb_strlen($before), $str);
-          return $before . to_string($replace->apply(null, $args)) . $after;
+          return Str::str($before . to_string($replace->apply(null, $args)) . $after);
         }
       }
       $replace = to_string($replace);
       if ($isRegEx) {
         $replace = RegExp::toReplacementString($replace);
-        return preg_replace($search, $replace, $str, $limit);
+        return Str::str(preg_replace($search->value, $replace, $str, $limit));
       } else {
         $parts = explode($search, $str);
         $first = array_shift($parts);
-        return $first . $replace . implode($search, $parts);
+        return Str::str($first . $replace . implode($search, $parts));
       }
     },
   'concat' => function() {
@@ -285,14 +303,14 @@ Str::$protoMethods = array(
       foreach (func_get_args() as $arg) {
         $result[] = to_string($arg);
       }
-      return implode('', $result);
+      return Str::str(implode('', $result));
     },
   'search' => function($regex) use (&$RegExp) {
       $self = Func::getContext();
       if (!($regex instanceof RegExp)) {
         $regex = $RegExp->construct($regex);
       }
-      $preg = $regex->toString(true);
+      $preg = $regex->toString(true)->value;
       $success = preg_match($preg, $self->value, $matches, PREG_OFFSET_CAPTURE);
       if (!$success) {
         return -1;
@@ -303,19 +321,19 @@ Str::$protoMethods = array(
     },
   'toLowerCase' => function() {
       $self = Func::getContext();
-      return mb_strtolower($self->value);
+      return Str::str(mb_strtolower($self->value));
     },
   'toLocaleLowerCase' => function() {
       $self = Func::getContext();
-      return mb_strtolower($self->value);
+      return Str::str(mb_strtolower($self->value));
     },
   'toUpperCase' => function() {
       $self = Func::getContext();
-      return mb_strtoupper($self->value);
+      return Str::str(mb_strtoupper($self->value));
     },
   'toLocaleUpperCase' => function() {
       $self = Func::getContext();
-      return mb_strtoupper($self->value);
+      return Str::str(mb_strtoupper($self->value));
     },
   'localeCompare' => function($compareTo) {
       $self = Func::getContext();
@@ -323,14 +341,17 @@ Str::$protoMethods = array(
     },
   'valueOf' => function() {
       $self = Func::getContext();
-      return $self->value;
+      return Str::str($self->value);
     },
   'toString' => function() {
       $self = Func::getContext();
-      return $self->value;
+      return Str::str($self->value);
     },
     'startsWith' => function($startString) {
       $self = Func::getContext();
+      if ($startString instanceof Str) {
+        $startString = $startString->value;
+      }
       return $startString === mb_substr($self->value, 0, mb_strlen($startString));
     }
 );

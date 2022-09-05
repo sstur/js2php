@@ -22,6 +22,9 @@ class Module {
    * @return mixed
    */
   static function get($name) {
+    if ($name instanceof Str) {
+      $name = $name->value;
+    }
     $modules = self::$modules;
     if (array_key_exists($name, $modules)) {
       return $modules[$name];

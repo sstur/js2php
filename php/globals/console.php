@@ -5,6 +5,9 @@ $console = call_user_func(function() {
   $stderr = defined('STDERR') ? STDERR : null;
 
   $toString = function($value) {
+    if ($value instanceof Str) {
+      $value = $value->value;
+    }
     if ($value instanceof Obj) {
       if (class_exists('Debug')) {
         //should be ok to call the underlying function directly

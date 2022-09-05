@@ -86,8 +86,8 @@ class RegExp extends Obj {
       $flags .= 'm';
     }
     // convert unicode code points from \uXXXX to \x{XXXX)
-    return '/' . str_replace('/', '\\/',
-            preg_replace("/\\\\u([0-9A-Za-z]{4})/", '\\x{$1}', $source)) . '/' . $flags;
+    return new Str('/' . str_replace('/', '\\/',
+            preg_replace("/\\\\u([0-9A-Za-z]{4})/", '\\x{$1}', $source)) . '/' . $flags);
   }
 
   /**
@@ -125,7 +125,7 @@ RegExp::$protoMethods = array(
       $str = to_string($str);
       //todo $offset
       $offset = 0;
-      $result = preg_match($self->toString(true), $str, $matches, PREG_OFFSET_CAPTURE, $offset);
+      $result = preg_match($self->toString(true)->value, $str, $matches, PREG_OFFSET_CAPTURE, $offset);
       if ($result === false) {
         throw new Ex(Err::create('Error executing Regular Expression: ' . $self->toString()));
       }
@@ -144,7 +144,7 @@ RegExp::$protoMethods = array(
     },
   'test' => function($str) {
       $self = Func::getContext();
-      $result = preg_match($self->toString(true), to_string($str));
+      $result = preg_match($self->toString(true)->value, to_string($str));
       return ($result === 1);
     },
   'toString' => function() {

@@ -2,6 +2,7 @@
 Module::define('child_process', function() {
   $methods = array(
     'spawn' => function($command, $argArray = null) {
+      if ($command instanceof Str) $command = $command->value;
       $argArray = $argArray ? $argArray : new Arr();
       // TODO: Handle arguments correctly that need to be enclosed in " or '
       $process = new React\ChildProcess\Process($command . ' ' . implode(' ', $argArray->toArray()));
@@ -11,12 +12,13 @@ Module::define('child_process', function() {
         $jsStream = new Obj();
         (function ($stream) use (&$jsStream) {
           $jsStream->set('on', new Func(function($event, $listener) use (&$stream) {
-            $stream->on($event, $listener->fn);
+            $stream->on($event->value, $listener->fn);
           }));
         })($process->{$streamName});
         $jsProcess->set($streamName, $jsStream);
       }
       $jsProcess->set('on', new Func(function($event, $listener) use (&$process) {
+        $event = $event->value;
         if ($event === 'close') {
           $event = 'exit';
         }

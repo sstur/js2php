@@ -20,12 +20,12 @@ $a = (is($or_ = $a) ? $or_ : $b);
 ----
 x = a && a.b && a.b.c;
 ====
-$x = (is($and_ = (is($and1_ = $a) ? get($a, "b") : $and1_)) ? get(get($a, "b"), "c") : $and_);
+$x = (is($and_ = (is($and1_ = $a) ? $a->b : $and1_)) ? $a->b->c : $and_);
 
 ----
 console.log('hi ' + name + '!');
 ====
-call_method($console, "log", _concat("hi ", $name, "!"));
+call_method($console, "log", _concat(Str::str("hi "), $name, Str::str("!")));
 
 ----
 x = a + b / c + d;
@@ -36,8 +36,8 @@ $x = _plus($a, _divide($b, $c), $d);
 x = 'a';
 x += 'b';
 ====
-$x = "a";
-$x = _plus($x, "b");
+$x = Str::str("a");
+$x = _plus($x, Str::str("b"));
 
 ----
 x = a % b;
@@ -57,12 +57,12 @@ $x = to_number($a) - 1.0 - 2.0;
 ----
 true ? 'true' : false ? 't' : 'f';
 ====
-true ? "true" : (false ? "t" : "f");
+true ? Str::str("true") : (false ? Str::str("t") : Str::str("f"));
 
 ----
 true ? 'true' : f();
 ====
-true ? "true" : call($f);
+true ? Str::str("true") : call($f);
 
 ----
 ~1;
@@ -136,7 +136,7 @@ $fn = new Func("fn", function() {
 })(new Function('return this')())
 ====
 call(new Func(function($global = null) use (&$console) {
-  call_method($console, "log", "global", $global);
+  call_method($console, "log", Str::str("global"), $global);
 }, array("strict" => true)), call(new Func(function() {
   $this_ = Func::getContext();
   return $this_;
@@ -151,7 +151,7 @@ function a(x, y) {
 $a = new Func("a", function($x = null, $y = null) {
   return _plus($x, $y);
 });
-$result = call($a, "foo");
+$result = call($a, Str::str("foo"));
 
 ----
 if (a) b();
@@ -303,12 +303,13 @@ assert(e === true);
 ====
 $e = true;
 try {
-  throw new Ex(_new($Error, "foo"));
+  throw new Ex(_new($Error, Str::str("foo")));
 } catch(Exception $e_2_) {
   if ($e_2_ instanceof Ex) $e_2_ = $e_2_->value;
   call($assert, _instanceof($e_2_, $Error));
 }
-call($assert, $e === true);
+call($assert, s_eq($e, true));
+
 
 ----
 function f() {
@@ -370,7 +371,7 @@ $a = new Func("a", function() use (&$console) {
     call_method($console, "log", to_number($x) - to_number($y));
     return $a;
   });
-  call_method($console, "log", "foo");
+  call_method($console, "log", Str::str("foo"));
   $x = 5.0;
 });
 
@@ -398,17 +399,20 @@ call_method($r, "match", $s);
 })();
 ====
 call(new Func(function() use (&$process, &$Object) {
-  $request = get($process, "request");
-  $response = get($process, "response");
-  $resHeaders = new Obj("Content-Type", "text/plain");
-  call_method($response, "writeHead", 200.0, "OK", $resHeaders);
-  call_method($response, "write", _concat(call_method($request, "getMethod"), " ", call_method($request, "getURL"), "\n"));
+  $request = $process->request;
+  $response = $process->response;
+  $resHeaders = new Obj("Content-Type", Str::str("text/plain"));
+  call_method($response, "writeHead", 200.0, Str::str("OK"), $resHeaders);
+  call_method($response, "write", _concat(call_method($request, "getMethod"), Str::str(" "), call_method($request, "getURL"), Str::str("\n")));
   $reqHeaders = call_method($request, "getHeaders");
   call_method(call_method($Object, "keys", $reqHeaders), "forEach", new Func(function($key = null) use (&$response, &$reqHeaders) {
-    call_method($response, "write", _concat($key, ": ", get($reqHeaders, $key), "\n"));
+    call_method($response, "write", _concat($key, Str::str(": "), $reqHeaders->get($key), Str::str("\n")));
   }));
   call_method($response, "end");
 }));
+
+
+
 ----
 a = 0xFFF;
 ====
@@ -461,34 +465,38 @@ call(new Func(function() {
 ----
 var util = require('util');
 ====
-$util = call($require, "util", __DIR__);
+$util = call($require, Str::str("util"), __DIR__);
 
 ----
 var a = '\xA0';
 ====
-$a = "\xC2\xA0";
+$a = Str::str("\xC2\xA0");
 
 ----
 var a = '"';
 ====
-$a = "\"";
+$a = Str::str("\"");
 
 ----
 var a = '\b';
 ====
-$a = "\x08";
+$a = Str::str("\x08");
 
 ----
 var a = '\'';
 ====
-$a = "'";
+$a = Str::str("'");
 
 ----
 var a = "\b";
 ====
-$a = "\x08";
+$a = Str::str("\x08");
 
 ----
 var a = 8.64e15;
 ====
 $a = 8.64e15;
+----
+path.join('a', 'b');
+====
+call_method($path, "join", Str::str("a"), Str::str("b"));

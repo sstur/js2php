@@ -5,8 +5,8 @@ call(new Func(function() use (&$Object, &$exports) {
   $toHex = new Func("toHex", function($code = null, $prefix = null) {
     $hex = null;
     $hex = call_method(call_method($code, "toString", 16.0), "toUpperCase");
-    if (get($hex, "length") === 1.0) {
-      $hex = _concat("0", $hex);
+    if (s_eq($hex->length, 1.0)) {
+      $hex = _concat(Str::str("0"), $hex);
     }
     if (is($prefix)) {
       $hex = _plus($prefix, $hex);
@@ -22,7 +22,7 @@ call(new Func(function() use (&$Object, &$exports) {
     if (eq((to_number($code) & (float)0xffffff80), 0.0)) {
       return call($toHex, $code, $prefix);
     }
-    $result = "";
+    $result = Str::str("");
     if (eq((to_number($code) & (float)0xfffff800), 0.0)) {
       $result = call($toHex, to_number($code) >> 6.0 & (float)0x1f | (float)0xc0, $prefix);
     } else if (eq((to_number($code) & (float)0xffff0000), 0.0)) {
@@ -40,38 +40,38 @@ call(new Func(function() use (&$Object, &$exports) {
   });
   $encodeString = new Func("encodeString", function($string = null) use (&$ESC_CHARS, &$encodeChar) {
     $string = call_method($string, "replace", new RegExp("[\\\\\"\\\$\\x00-\\x1F\\u007F-\\uFFFF]", "g"), new Func(function($ch = null) use (&$ESC_CHARS, &$encodeChar) {
-      return _in($ch, $ESC_CHARS) ? get($ESC_CHARS, $ch) : call($encodeChar, $ch, "\\x");
+      return _in($ch, $ESC_CHARS) ? $ESC_CHARS->get($ch) : call($encodeChar, $ch, Str::str("\\x"));
     }));
-    return _concat("\"", $string, "\"");
+    return _concat(Str::str("\""), $string, Str::str("\""));
   });
   $encodeVarName = new Func("encodeVarName", function($name = null, $suffix = null) use (&$SUPER_GLOBALS, &$hasOwnProperty, &$encodeChar) {
-    $suffix = (is($or_ = $suffix) ? $or_ : "");
+    $suffix = (is($or_ = $suffix) ? $or_ : Str::str(""));
     if (not($suffix) && is(call_method($hasOwnProperty, "call", $SUPER_GLOBALS, $name))) {
-      $suffix = "_";
+      $suffix = Str::str("_");
     }
-    if (not($suffix) && call_method($name, "slice", -1.0) === "_") {
-      $suffix = "_";
+    if (not($suffix) && s_eq(call_method($name, "slice", -1.0), Str::str("_"))) {
+      $suffix = Str::str("_");
     }
     $name = call_method($name, "replace", new RegExp("[^a-z0-9_]", "gi"), new Func(function($ch = null) use (&$encodeChar) {
-      return _concat("\xC2\xAB", call_method(call($encodeChar, $ch), "toLowerCase"), "\xC2\xBB");
+      return _concat(Str::str("\xC2\xAB"), call_method(call($encodeChar, $ch), "toLowerCase"), Str::str("\xC2\xBB"));
     }));
-    if ($suffix === "" && $name === "__dirname") {
-      return "__DIR__";
+    if (s_eq($suffix, Str::str("")) && s_eq($name, Str::str("__dirname"))) {
+      return Str::str("__DIR__");
     }
-    return _concat("\$", $name, $suffix);
+    return _concat(Str::str("\$"), $name, $suffix);
   });
   $getParentScope = new Func("getParentScope", function($node = null) use (&$SCOPE_TYPES) {
     $parent = null;
-    $parent = get($node, "parent");
-    while (!_in(get($parent, "type"), $SCOPE_TYPES)) {
-      $parent = get($parent, "parent");
+    $parent = $node->parent;
+    while (!_in($parent->type, $SCOPE_TYPES)) {
+      $parent = $parent->parent;
     }
-    return get($parent, "type") === "Program" ? $parent : get($parent, "body");
+    return s_eq($parent->type, Str::str("Program")) ? $parent : $parent->body;
   });
-  $hasOwnProperty = get(get($Object, "prototype"), "hasOwnProperty");
+  $hasOwnProperty = $Object->prototype->hasOwnProperty;
   $SCOPE_TYPES = new Obj("FunctionDeclaration", 1.0, "FunctionExpression", 1.0, "Program", 1.0);
   $SUPER_GLOBALS = new Obj("GLOBALS", 1.0, "_SERVER", 1.0, "_GET", 1.0, "_POST", 1.0, "_FILES", 1.0, "_COOKIE", 1.0, "_SESSION", 1.0, "_REQUEST", 1.0, "_ENV", 1.0);
-  $ESC_CHARS = new Obj("\t", "\\t", "\n", "\\n", "\f", "\\f", "\r", "\\r", "\"", "\\\"", "\$", "\\\$", "\\", "\\\\");
+  $ESC_CHARS = new Obj("\t", Str::str("\\t"), "\n", Str::str("\\n"), "\f", Str::str("\\f"), "\r", Str::str("\\r"), "\"", Str::str("\\\""), "\$", Str::str("\\\$"), "\\", Str::str("\\\\"));
   set($exports, "encodeString", $encodeString);
   set($exports, "encodeVarName", $encodeVarName);
   set($exports, "getParentScope", $getParentScope);

@@ -7361,6 +7361,15 @@ parseStatement: true, parseSourceElement: true */
                     ')'
                   );
                 }
+                if (op === '===') {
+                  return (
+                    's_eq(' +
+                    this.generate(node.left) +
+                    ', ' +
+                    this.generate(node.right) +
+                    ')'
+                  );
+                }
                 if (op === '!=') {
                   return (
                     '!eq(' +

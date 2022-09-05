@@ -16,7 +16,7 @@ for (var i in tests) {
   var test = tests[i];
   var path = './test/' + test;
   var startTimeInMs = Date.now();
-  var numOfLoops = 1000;
+  var numOfLoops = 100;
   for (var j = 0; j < numOfLoops; j++) {
     delete require.cache[require.resolve(path)];
     require(path);

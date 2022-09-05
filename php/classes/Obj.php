@@ -41,6 +41,9 @@ class Obj {
     if ($key instanceof Arr) {
       return null;
     }
+    if ($key instanceof Str) {
+      $key = $key->value;
+    }
     $key = (string)$key;
     if (method_exists($this, 'get_' . $key)) {
       return $this->{'get_' . $key}();
@@ -58,8 +61,17 @@ class Obj {
     return null;
   }
 
+  public function __get($name)
+  {
+    return $this->get(is_numeric($name) ? (float)$name : $name);
+  }
+
   function set($key, $value) {
-    $key = (string)$key;
+    if ($key instanceof Str) {
+      $key = $key->value;
+    } else {
+      $key = (string)$key;
+    }
     if (method_exists($this, 'set_' . $key)) {
       return $this->{'set_' . $key}($value);
     }
@@ -70,6 +82,7 @@ class Obj {
   }
 
   function remove($key) {
+    if ($key instanceof Str) $key = $key->value;
     $key = (string)$key;
     if (array_key_exists($key, $this->dscr)) {
       if (!$this->dscr[$key]->configurable) {
@@ -92,7 +105,11 @@ class Obj {
 
   //determine if the given property exists (walk proto)
   function hasProperty($key) {
-    $key = (string)$key;
+    if ($key instanceof Str) {
+      $key = $key->value;
+    } else {
+      $key = (string)$key;
+    }
     if ($this->hasOwnProperty($key)) {
       return true;
     }
@@ -107,7 +124,11 @@ class Obj {
   function getOwnKeys($onlyEnumerable) {
     $arr = array();
     foreach ($this->data as $key => $value) {
-      $key = (string)$key;
+      if ($key instanceof Str) {
+        $key = $key->value;
+      } else {
+        $key = (string)$key;
+      }
       if ($onlyEnumerable) {
         $dscr = isset($this->dscr[$key]) ? $this->dscr[$key] : null;
         if (!$dscr || $dscr->enumerable) {
@@ -123,7 +144,11 @@ class Obj {
   //produce the list of keys that are considered to be enumerable (walk proto)
   function getKeys(&$arr = array()) {
     foreach ($this->data as $key => $v) {
-      $key = (string)$key;
+      if ($key instanceof Str) {
+        $key = $key->value;
+      } else {
+        $key = (string)$key;
+      }
       $dscr = isset($this->dscr[$key]) ? $this->dscr[$key] : null;
       if (!$dscr || $dscr->enumerable) {
         $arr[] = $key;
@@ -145,7 +170,11 @@ class Obj {
    * @return mixed
    */
   function setProp($key, $value, $writable = null, $enumerable = null, $configurable = null) {
-    $key = (string)$key;
+    if ($key instanceof Str) {
+      $key = $key->value;
+    } else {
+      $key = (string)$key;
+    }
     if (array_key_exists($key, $this->dscr)) {
       $result = $this->dscr[$key];
       unset($this->dscr[$key]);
@@ -315,7 +344,11 @@ Obj::$classMethods = array(
       if (!($obj instanceof Obj)) {
         throw new Ex(Err::create('Object.getOwnPropertyDescriptor called on non-object'));
       }
-      $key = (string)$key;
+      if ($key instanceof Str) {
+        $key = $key->value;
+      } else {
+        $key = (string)$key;
+      }
       if (method_exists($obj, 'get_' . $key)) {
         $hasProperty = true;
         $value = $obj->{'get_' . $key}();
@@ -332,7 +365,11 @@ Obj::$classMethods = array(
       }
     },
   'defineProperty' => function($obj, $key, $desc) {
-      $key = (string)$key;
+      if ($key instanceof Str) {
+        $key = $key->value;
+      } else {
+        $key = (string)$key;
+      }
       if (!($obj instanceof Obj)) {
         throw new Ex(Err::create('Object.defineProperty called on non-object'));
       }
@@ -436,6 +473,9 @@ Obj::$classMethods = array(
 Obj::$protoMethods = array(
   'hasOwnProperty' => function($key) {
       $self = Func::getContext();
+      if ($key instanceof Str) {
+        $key = $key->value;
+      }
       //this should implicitly ensure $key is a string
       return array_key_exists($key, $self->data);
     },
@@ -453,7 +493,7 @@ Obj::$protoMethods = array(
         }
         $className = $obj->className;
       }
-      return '[object ' . $className . ']';
+      return new Str('[object ' . $className . ']');
     },
   'valueOf' => function() {
       return Func::getContext();

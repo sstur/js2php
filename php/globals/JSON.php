@@ -9,7 +9,10 @@ $JSON = call_user_func(function() {
     if ($type === 'integer') {
       return (float)$value;
     }
-    if ($type === 'string' || $type === 'boolean' || $type === 'double') {
+    if ($type === 'string') {
+      return new Str($value);
+    }
+    if ($type === 'boolean' || $type === 'double') {
       return $value;
     }
     if ($type === 'array') {
@@ -57,6 +60,9 @@ $JSON = call_user_func(function() {
     //todo: handle same as above?
     if ($value === Obj::$null || $value === INF || $value === -INF) {
       return 'null';
+    }
+    if ($value instanceof Str) {
+      $value = $value->value;
     }
     $type = gettype($value);
     if ($type === 'boolean') {
@@ -110,6 +116,9 @@ $JSON = call_user_func(function() {
 
   $methods = array(
     'parse' => function($string, $reviver = null) use(&$decode) {
+        if ($string instanceof Str) {
+          $string = $string->value;
+        }
         $string = '{"_":' . $string . '}';
         $value = json_decode($string);
         if ($value === null) {
@@ -118,6 +127,12 @@ $JSON = call_user_func(function() {
         return $decode($value->_);
       },
     'stringify' => function($value, $replacer = null, $space = null) use (&$encode) {
+        if ($value instanceof Str) {
+          $value = $value->value;
+        }
+      if ($space instanceof Str) {
+        $space = $space->value;
+      }
         $opts = new stdClass();
         $opts->indent = null;
         $opts->gap = null;
@@ -139,7 +154,7 @@ $JSON = call_user_func(function() {
         $opts->level = -1.0;
         // dummy object required if we have a replacer function (see json2 implementation)
         $obj = ($opts->replacer !== null) ? new Obj('', $value) : null;
-        return $encode($obj, '', $value, $opts);
+        return new Str($encode($obj, '', $value, $opts));
       }
   );
 

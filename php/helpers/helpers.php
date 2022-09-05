@@ -8,7 +8,8 @@
  * @return bool
  */
 function is($x) {
-  return $x !== false && $x !== 0.0 && $x !== '' && $x !== null && $x !== Obj::$null && $x === $x /* NaN check */;
+  return $x !== false && $x !== 0.0 && $x !== '' && $x !== null && $x !== Obj::$null && $x === $x /* NaN check */
+      && (!($x instanceof Str) || $x->value !== '');
 }
 
 /**
@@ -17,7 +18,8 @@ function is($x) {
  * @return bool
  */
 function not($x) {
-  return $x === false || $x === 0.0 || $x === '' || $x === null || $x === Obj::$null || $x !== $x /* NaN check */;
+  return $x === false || $x === 0.0 || $x === '' || $x === null || $x === Obj::$null || $x !== $x /* NaN check */
+      || ($x instanceof Str && $x->value === '');
 }
 
 /**
@@ -28,6 +30,12 @@ function not($x) {
  * @return bool
  */
 function eq($a, $b) {
+  if ($a instanceof Str) {
+    $a = $a->value;
+  }
+  if ($b instanceof Str) {
+    $b = $b->value;
+  }
   $typeA = ($a === null || $a === Obj::$null ? 'null' : ($a instanceof Obj ? 'object' : gettype($a)));
   $typeB = ($b === null || $b === Obj::$null ? 'null' : ($b instanceof Obj ? 'object' : gettype($b)));
   if ($typeA === 'null' && $typeB === 'null') {
@@ -73,6 +81,12 @@ function eq($a, $b) {
  * @return bool
  */
 function cmp($a, $operator, $b) {
+    if ($a instanceof Str) {
+      $a = $a->value;
+    }
+    if ($b instanceof Str) {
+      $b = $b->value;
+    }
     $typeA = ($a === null || $a === Obj::$null ? 'null' : ($a instanceof Obj ? 'object' : gettype($a)));
     $typeB = ($b === null || $b === Obj::$null ? 'null' : ($b instanceof Obj ? 'object' : gettype($b)));
     $isNumberA = in_array($typeA, ['integer', 'double']);
@@ -100,6 +114,22 @@ function cmp($a, $operator, $b) {
         case '>=':
             return $a >= $b;
     }
+}
+
+/**
+ * Implements strict equality operator (===). Necessary because strings can be wrapped in Str objects.
+ * @param $a
+ * @param $b
+ * @return bool
+ */
+function s_eq($a, $b) {
+  if ($a instanceof Str) {
+    $a = $a->value;
+  }
+  if ($b instanceof Str) {
+    $b = $b->value;
+  }
+  return $a === $b;
 }
 
 /**
@@ -141,6 +171,9 @@ function to_string($value) {
   if ($value === Obj::$null) {
     return 'null';
   }
+  if ($value instanceof Str) {
+    return $value->value;
+  }
   $type = gettype($value);
   if ($type === 'string') {
     return $value;
@@ -161,7 +194,11 @@ function to_string($value) {
   if ($value instanceof Obj) {
     $fn = $value->get('toString');
     if ($fn instanceof Func) {
-      return $fn->call($value);
+      $result = $fn->call($value);
+      if ($result instanceof Str) {
+        $result = $result->value;
+      }
+      return $result;
     } else {
       throw new Ex(Err::create('Cannot convert object to primitive value'));
     }

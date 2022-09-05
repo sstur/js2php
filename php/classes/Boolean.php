@@ -47,7 +47,7 @@ Bln::$protoMethods = array(
     },
   'toString' => function() {
       $self = Func::getContext();
-      return to_string($self->value);
+      return new Str(to_string($self->value));
     }
 );
 

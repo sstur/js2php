@@ -1,6 +1,7 @@
 <?php
 $require = new Func(function ($name, $caller_dir = null) {
   global $require, $JSON;
+  if ($name instanceof Str) $name = $name->value;
   $module = Module::get($name);
   if ($module) {
     return $module;

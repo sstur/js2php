@@ -13,6 +13,9 @@ class GlobalObject extends Obj {
   static $classMethods = null;
 
   function set($key, $value) {
+    if ($key instanceof Str) {
+      $key = $key->value;
+    }
     if (array_key_exists($key, self::$immutable)) {
       return $value;
     }
@@ -82,7 +85,9 @@ class GlobalObject extends Obj {
   }
 
   static function encodeVar($str) {
-    if (array_key_exists($str, self::$SUPER_GLOBALS)) {
+    if ($str instanceof Str) {
+      $str = $str->value;
+    }    if (array_key_exists($str, self::$SUPER_GLOBALS)) {
       return $str . '_';
     }
     $str = preg_replace('/_$/', '__', $str);

@@ -20,6 +20,9 @@ class Date extends Obj {
   }
 
   function init($arr) {
+    $arr = array_map(function($elem) {
+      return $elem instanceof Str ? $elem->value : $elem;
+    }, $arr);
     $len = count($arr);
     if ($len === 1 && is_string($arr[0])) {
       $this->_initFromString($arr[0]);
@@ -79,7 +82,7 @@ class Date extends Obj {
     $ms = $this->value % 1000;
     if ($ms < 0) $ms = 1000 + $ms;
     if ($ms < 0) $ms = 0;
-    return $str . '.' . substr('00' . $ms, -3) . 'Z';
+    return new Str($str . '.' . substr('00' . $ms, -3) . 'Z');
   }
 
   static function now() {
@@ -168,7 +171,7 @@ Date::$protoMethods = array(
   'toString' => function() {
       $self = Func::getContext();
       //Sat Aug 09 2014 12:00:00 GMT+0000 (UTC)
-      return str_replace('~', 'GMT', $self->date->format('D M d Y H:i:s ~O (T)'));
+      return new Str(str_replace('~', 'GMT', $self->date->format('D M d Y H:i:s ~O (T)')));
     },
   //this will give us en-US locale formatted
   'toLocaleString' => function() {
@@ -191,14 +194,14 @@ Date::$protoMethods = array(
       $self = Func::getContext();
       $date = Date::fromMilliseconds($self->value, 'UTC');
       //Sun, 07 Dec 2014 01:10:08 GMT
-      return $date->format('D, d M Y H:i:s') . ' GMT';
+      return new Str($date->format('D, d M Y H:i:s') . ' GMT');
     },
   //identical to `toUTCString` above
   'toGMTString' => function() {
       $self = Func::getContext();
       $date = Date::fromMilliseconds($self->value, 'UTC');
       //Sun, 07 Dec 2014 01:10:08 GMT
-      return $date->format('D, d M Y H:i:s') . ' GMT';
+      return new Str($date->format('D, d M Y H:i:s') . ' GMT');
     },
   'toDateString' => function() {
       throw new Ex(Err::create('date.toDateString not implemented'));

@@ -2,6 +2,7 @@
 class Buffer extends Obj {
 
   public $raw = '';
+  /** @var float */
   public $length = 0;
 
   static $protoObject = null;
@@ -21,6 +22,9 @@ class Buffer extends Obj {
   function init($args) {
     global $Buffer;
     list($subject, $encoding, $offset) = array_pad($args, 3, null);
+    if ($subject instanceof Str) {
+      $subject = $subject->value;
+    }
     $type = gettype($subject);
     if ($type === 'integer' || $type === 'double') {
       $this->raw = str_repeat("\0", (int)$subject);
@@ -44,16 +48,16 @@ class Buffer extends Obj {
     }
     $len = strlen($this->raw);
     //save an integer copy of length for performance
-    $this->length = $len;
+    $this->length = (float)$len;
     $this->set('length', (float)$len);
   }
 
   function toJSON($max = null) {
     $raw = $this->raw;
     if ($max !== null && $max < strlen($raw)) {
-      return '<Buffer ' . bin2hex(substr($raw, 0, $max)) . '...>';
+      return new Str('<Buffer ' . bin2hex(substr($raw, 0, $max)) . '...>');
     } else {
-      return '<Buffer ' . bin2hex($raw) . '>';
+      return new Str('<Buffer ' . bin2hex($raw) . '>');
     }
   }
 
@@ -205,17 +209,20 @@ Buffer::$protoMethods = array(
     },
   'toString' => function($enc = 'utf8', $start = null, $end = null) {
       $self = Func::getContext();
+      if ($enc instanceof Str) {
+        $enc = $enc->value;
+      }
       $raw = $self->raw;
       if (func_num_args() > 1) {
         $raw = substr($raw, $start, $end - $start + 1);
       }
       if ($enc === 'hex') {
-        return bin2hex($raw);
+        return new Str(bin2hex($raw));
       }
       if ($enc === 'base64') {
-        return base64_encode($raw);
+        return new Str(base64_encode($raw));
       }
-      return $raw;
+      return new Str($raw);
     },
   'toJSON' => function() {
       $self = Func::getContext();

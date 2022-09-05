@@ -60,7 +60,11 @@ class Func extends Obj {
       $obj = new Obj();
       $obj->proto = $this->get('prototype');
     }
-    $result = $this->apply($obj, func_get_args());
+    $unwrappedArgs = [];
+    foreach (func_get_args() as $arg) {
+      $unwrappedArgs[] = ($arg instanceof Str) ? $arg->value : $arg;
+    }
+    $result = $this->apply($obj, $unwrappedArgs);
     return is_primitive($result) ? $obj : $result;
   }
 
@@ -92,6 +96,9 @@ class Func extends Obj {
     //add ourself to the call stack, execute, then remove
     self::$callStack[self::$callStackLength++] = $this;
     $result = call_user_func_array($this->fn, $args);
+    if (is_string($result)) {
+      $result = Str::str($result);
+    }
     self::$callStack[--self::$callStackLength] = null;
     $this->callStackPosition = $oldStackPosition;
     $this->arguments = $oldArguments;
@@ -178,8 +185,8 @@ class Func extends Obj {
 class Args extends Obj {
   /* @var array */
   public $args = null;
-  /* @var int */
-  public $length = 0;
+  /* @var float */
+  public $length = 0.0;
   /* @var Func */
   public $callee = null;
 
@@ -208,7 +215,7 @@ class Args extends Obj {
   }
 
   function get_length() {
-    return (float)$this->length;
+    return $this->length;
   }
 
   function set_length($value) {
@@ -264,10 +271,10 @@ Func::$protoMethods = array(
         $meta = $self->meta;
         if (isset($meta['id']) && isset($source[$meta['id']])) {
           $source = $source[$meta['id']];
-          return substr($source, $meta['start'], $meta['end'] - $meta['start'] + 1);
+          return new Str(substr($source, $meta['start'], $meta['end'] - $meta['start'] + 1));
         }
       }
-      return 'function ' . $self->name . '() { [native code] }';
+      return new Str('function ' . $self->name . '() { [native code] }');
     }
 );
 

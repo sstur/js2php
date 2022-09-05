@@ -55,7 +55,7 @@ function _plus() {
   $strings = array();
   $isString = false;
   foreach (func_get_args() as $arg) {
-    if (is_string($arg)) {
+    if (is_string($arg) || $arg instanceof Str) {
       $isString = true;
     }
     $strings[] = to_string($arg);
@@ -63,7 +63,7 @@ function _plus() {
       $total += to_number($arg);
     }
   }
-  return $isString ? join('', $strings) : $total;
+  return $isString ? new Str(join('', $strings)) : $total;
 }
 
 function _concat() {
@@ -71,7 +71,7 @@ function _concat() {
   foreach (func_get_args() as $arg) {
     $strings[] = to_string($arg);
   }
-  return join('', $strings);
+  return new Str(join('', $strings));
 }
 
 function _negate($val) {
@@ -127,6 +127,13 @@ function _typeof($value) {
   //js weirdness
   if ($value === Obj::$null) {
     return 'object';
+  }
+  if ($value instanceof Str) {
+    if ($value->isPrimitive) {
+      return 'string';
+    } else {
+      return 'object';
+    }
   }
   $type = gettype($value);
   if ($type === 'integer' || $type === 'double') {
