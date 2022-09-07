@@ -123,7 +123,7 @@ A comparison result show up like that:
 | array    |    174 ms |    476 ms |      173 % |
 | string   |    102 ms |    726 ms |      611 % |
 | json     |    772 ms |   3389 ms |      338 % |
-| process  |   1486 ms |   5976 ms |      302 % |
+| process  |   1486 ms |   5976 ms |      302 % | 
 
 ### BSD License
 

@@ -5,7 +5,7 @@ Module::define('util', function() {
         return strval($value);
       },
     'isString' => function($value) {
-      return is_string($value);
+      return is_string($value) || $value instanceof Str;
     }
   );
 
