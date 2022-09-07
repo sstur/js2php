@@ -13,8 +13,8 @@ foreach ($tests as $test) {
         require($path);
     }
     $endTimeInMms = microtime(true);
-    $duration = round(($endTimeInMms - $startTimeInMs) * 1000, 3);
-    echo "$test, total: $duration ms, each run: " . ($duration / $numOfLoops) . " ms\n";
+    $duration = round(($endTimeInMms - $startTimeInMs) * 1000);
+    echo "$test, total: $duration ms, each run: " . round(($duration / $numOfLoops),) . " ms\n";
     $processDuration += $duration;
 }
-echo "process total: $processDuration ms, each run: " . ($processDuration / $numOfLoops) . " ms\n";
+echo "process, total: $processDuration ms, each run: " . round(($processDuration / $numOfLoops),) . " ms\n";
