@@ -104,6 +104,27 @@ Note: The Following is probably a very outdated list.
 
 Run `npm test`. Requires PHP 5.3+ or [HHVM][16].
 
+### Performance Comparison
+
+You need a PHP version of js2php first: `npm build-php-version`
+
+Afterwards you can run the comparison: `npm run performance-comparison`
+
+A comparison result show up like that:
+
+| Test     |        JS |       PHP |   Slowdown |
+|----------|-----------|-----------|------------|
+| boolean  |     24 ms |     31 ms |       29 % |
+| date     |     44 ms |     97 ms |      120 % |
+| regex    |     45 ms |    114 ms |      153 % |
+| number   |     84 ms |    300 ms |      257 % |
+| buffer   |    109 ms |    407 ms |      273 % |
+| core     |    125 ms |    436 ms |      248 % |
+| array    |    174 ms |    476 ms |      173 % |
+| string   |    102 ms |    726 ms |      611 % |
+| json     |    772 ms |   3389 ms |      338 % |
+| process  |   1486 ms |   5976 ms |      302 % |
+
 ### BSD License
 
 Copyright (c) 2014, sstur@me.com. All rights reserved.

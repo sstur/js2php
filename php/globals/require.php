@@ -2,6 +2,7 @@
 $require = new Func(function ($name, $caller_dir = null) {
   global $require, $JSON;
   if ($name instanceof Str) $name = $name->value;
+  if ($caller_dir instanceof Str) $caller_dir = $caller_dir->value;
   $module = Module::get($name);
   if ($module) {
     return $module;
@@ -75,7 +76,7 @@ $require->setMethods(array(
       foreach ($GLOBALS as $key => $val) {
         global $$key;
       }
-      require $path;
+      require ($path instanceof Str) ? $path->value : $path;
       return $module->get('exports');
     }
 ));

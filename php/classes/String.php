@@ -67,6 +67,11 @@ class Str extends Obj {
     $String->setMethods(Str::$classMethods, true, false, true);
     return $String;
   }
+
+  function __toString()
+  {
+    return $this->value;
+  }
 }
 
 Str::$classMethods = array(

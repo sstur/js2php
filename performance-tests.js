@@ -35,7 +35,7 @@ for (var i in tests) {
 var processEndInMs = Date.now();
 var processDuration = processEndInMs - processStartInMs;
 console.log(
-  'process total: ' +
+  'process, total: ' +
     processDuration +
     ' ms, each run: ' +
     processDuration / numOfLoops +

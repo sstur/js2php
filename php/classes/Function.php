@@ -95,7 +95,9 @@ class Func extends Obj {
     $this->callStackPosition = self::$callStackLength;
     //add ourself to the call stack, execute, then remove
     self::$callStack[self::$callStackLength++] = $this;
-    $result = call_user_func_array($this->fn, $args);
+    $result = call_user_func_array($this->fn, array_map(function($arg) {
+      return ($arg instanceof Str) ? $arg : (is_string($arg) ? Str::str($arg) : $arg);
+    }, $args));
     if (is_string($result)) {
       $result = Str::str($result);
     }
