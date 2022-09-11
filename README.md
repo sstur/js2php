@@ -110,20 +110,39 @@ You need a PHP version of js2php first: `npm build-php-version`
 
 Afterwards you can run the comparison: `npm run performance-comparison`
 
-A comparison result show up like that:
+Two comparisons how up, one for the test run, and one for compile times:
 
-| Test     |        JS |       PHP |   Slowdown |
+Comparison Test Runs:
+
+| Test     |        JS |       PHP | Percentage |
 |----------|-----------|-----------|------------|
-| boolean  |     24 ms |     31 ms |       29 % |
-| date     |     44 ms |     97 ms |      120 % |
-| regex    |     45 ms |    114 ms |      153 % |
-| number   |     84 ms |    300 ms |      257 % |
-| buffer   |    109 ms |    407 ms |      273 % |
-| core     |    125 ms |    436 ms |      248 % |
-| array    |    174 ms |    476 ms |      173 % |
-| string   |    102 ms |    726 ms |      611 % |
-| json     |    772 ms |   3389 ms |      338 % |
-| process  |   1486 ms |   5976 ms |      302 % | 
+| boolean  |     25 ms |     13 ms |       52 % |
+| date     |     48 ms |     54 ms |      112 % |
+| regex    |     44 ms |     54 ms |      122 % |
+| buffer   |    101 ms |    124 ms |      122 % |
+| number   |     84 ms |    138 ms |      164 % |
+| core     |    131 ms |    179 ms |      136 % |
+| array    |    136 ms |    200 ms |      147 % |
+| string   |    117 ms |    246 ms |      210 % |
+| json     |    510 ms |   1318 ms |      258 % |
+| process  |   1202 ms |   2326 ms |      193 % |
+
+Comparison Compile Times:
+
+| Test        |        JS |       PHP | Percentage |
+|-------------|-----------|-----------|------------|
+| module-path |      4 ms |     40 ms |     1000 % |
+| boolean     |      4 ms |     49 ms |     1225 % |
+| date        |      2 ms |    123 ms |     6150 % |
+| regex       |      7 ms |    182 ms |     2600 % |
+| helpers     |     11 ms |    342 ms |     3109 % |
+| buffer      |     17 ms |    723 ms |     4252 % |
+| string      |     17 ms |   1036 ms |     6094 % |
+| array       |     17 ms |   1038 ms |     6105 % |
+| module-fs   |     16 ms |   1041 ms |     6506 % |
+| core        |     27 ms |   1133 ms |     4196 % |
+| number      |     37 ms |   1305 ms |     3527 % |
+| json        |     44 ms |   6182 ms |    14050 % |
 
 ### BSD License
 

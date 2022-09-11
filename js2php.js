@@ -95,6 +95,7 @@
 
     function processInputFiles(infiles) {
       var output = infiles.map(function (infile) {
+        var beginMillis = Date.now();
         try {
           var source = fs.readFileSync(infile, 'utf8');
         } catch (e) {
@@ -109,6 +110,7 @@
           source: source,
         });
         output = output.replace(/^\n+|\n+$/g, '');
+        log('Processing done for `' + infile + ': ' + (Date.now() - beginMillis) + ' ms');
         return output;
       });
 
