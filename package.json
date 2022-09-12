@@ -6,8 +6,8 @@
     "js2php": "./js2php.js"
   },
   "scripts": {
-    "format": "prettier --write \"**/*.js\"",
-    "format:check": "prettier --check \"**/*.js\"",
+    "format": "prettier --write \"**/*.php\" \"**/*.js\" ",
+    "format:check": "prettier --check \"**/*.php\" \"**/*.js\"",
     "test:unit": "node js2php --test",
     "test": "npm run format:check && npm run test:unit"
   },
@@ -17,7 +17,8 @@
     "yargs": "^1.3.2"
   },
   "devDependencies": {
-    "prettier": "^2.4.1"
+    "@prettier/plugin-php": "^0.19.0",
+    "prettier": "^2.7.1"
   },
   "repository": "github:sstur/js2php",
   "keywords": [
